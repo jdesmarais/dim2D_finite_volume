@@ -53,11 +53,14 @@ from create_sm_lg_inputs import (get_parameter,
                                  create_inputFile)
 from math import floor
 
+
 # determine the inputs modified in the input file
 def get_inputsToBeModified(
     simulation_duration,
     steady_state_ac                    = 0,
     spherical_cap                      = False,
+    nucleation_in_flow                 = False,
+    extra_domain                       = 'None',
     temperature                        = 0.999,
     flow_velocity                      = 0.0,
     flow_direction                     = 'E',
@@ -141,15 +144,54 @@ def get_inputsToBeModified(
     # y_max : domain_extent[1][1]
     domain_extent = get_wall_domain_extent(x_max,y_max,dx_max)
     
+    x_length = domain_extent[1][0]
+
     #============================================================
-    if(spherical_cap):
-        domain_extent[1][0] = 2*domain_extent[1][0]
+    # for the test cases involving the spherical cap transported
+    # by the flow or nucleation in the flow, the domain should be
+    # extended compared to the simpler test cases to prevent
+    # interactions between the vapor bubble and the boundaries
+    #============================================================
+    if(spherical_cap or nucleation_in_flow):
+        domain_extent[1][0] = 3.0*x_length
         domain_extent[1][1] = 2.0*(3.0*interface_lgh) + 2.0*interface_lgh*4.0
         domain_extent[1][1] = float(floor(domain_extent[1][1]*10**4)/10**4)
-    #============================================================
 
+    
+    #============================================================
+    # for the test cases where the flow velocity is 0.0, the
+    # domain can be simply symmetrized around the x=0 plane
+    #============================================================
     if(flow_velocity!=0.0):
-        domain_extent[0][0] = -domain_extent[1][0]
+        domain_extent[0][0] = -x_length
+
+    #============================================================
+    # for the some test cases, some extra domain is needed to
+    # prevent the interactions between the vapor bubble and the
+    # boundaries
+    # BUT at the same time, we want to have the same velocity
+    # profile and this velocity profile depends on the height of the
+    # domain v(y) = vmax*(y/height)^2
+    # therefore, we need to modify the flow velocity imposed at the
+    # top to ensure that the flow velocity is the same at the height
+    # of the domain if it was not enlarged
+    # vmax_new = vmax*(new_height/prev_height)^2
+    #============================================================
+    flow_velocity_m = flow_velocity
+
+    if(extra_domain!='None'):
+
+        if(flow_velocity!=0.):
+            flow_velocity_m = flow_velocity*(
+                float(domain_extent[1][1]+extra_domain[1][1]*x_length)/
+                float(domain_extent[1][1])
+                )**2
+
+        domain_extent[0][0]+= extra_domain[0][0]*x_length
+        domain_extent[1][0]+= extra_domain[1][0]*x_length
+        domain_extent[0][1]+= extra_domain[0][1]*x_length
+        domain_extent[1][1]+= extra_domain[1][1]*x_length
+
 
     if(debug): print 'domain_extent: ', domain_extent
 
@@ -160,7 +202,7 @@ def get_inputsToBeModified(
     speed_of_sound = get_max_speed_of_sound(temperature,cv_r)
 
     # compute the maximum time step ensuring numerical stability
-    speed_max = abs(flow_velocity) + speed_of_sound
+    speed_max = abs(flow_velocity_m) + speed_of_sound
     if(debug): print 'speed_of_sound: ', speed_of_sound
 
     dt_max        = get_dt_max(dx_max,speed_max,CFL_constant,precision_c=6)
@@ -176,8 +218,6 @@ def get_inputsToBeModified(
     if(debug): print 'detail_print: ', detail_print
 
     # choice of boundary conditions
-    
-
     if(flow_velocity!=0.0):
         bc_choice = wall_S_openbc_EWN
     else:
@@ -213,7 +253,7 @@ def get_inputsToBeModified(
         'wall_extra_heat_source_choice'      : wall_extra_heat_source_choice,
         'wall_maximum_extra_heat_flux'       : wall_maximum_extra_heat_flux,
         'ic_choice'                          : ic_choice,
-        'flow_velocity'                      : flow_velocity,
+        'flow_velocity'                      : flow_velocity_m,
         'flow_direction'                     : flow_direction,
         'temperature'                        : temperature,
         'phase_at_center'                    : phase_at_center,
@@ -231,6 +271,8 @@ def create_wall_nonst_inputs(
     inputs_wall_modified               = 'inputs_wall.txt',
     steady_state_ac                    = 0,
     spherical_cap                      = False,
+    nucleation_in_flow                 = False,
+    extra_domain                       = 'None',
     temperature                        = 0.999,
     flow_velocity                      = 0.0,
     phase_at_center                    = 'vapor',
@@ -263,6 +305,8 @@ def create_wall_nonst_inputs(
         simulation_duration,
         steady_state_ac                    = steady_state_ac,
         spherical_cap                      = spherical_cap,
+        nucleation_in_flow                 = nucleation_in_flow,
+        extra_domain                       = extra_domain,
         temperature                        = temperature,
         flow_velocity                      = flow_velocity,
         phase_at_center                    = phase_at_center,

@@ -46,6 +46,18 @@ def usage():
     print '-x : set the limits for the x-axis when plotting the graphs'
     print '-y : set the limits for the y-axis when plotting the graphs'
     print '-w : run the visit engine without window'
+    print '-l : contourType used to determine the mass contours:'
+    print ''
+    print '        - wall_max_gradient: determine the location of the maximum'
+    print '                             gradient at the wall and use the mass'
+    print '                             density at this location'
+    print '        - max_gradient     : determine the location of the maximum'
+    print '                             gradient and use the mass density at'
+    print '                             this location'
+    print '        - mass             : use the mid-mass between the liquid'
+    print '                             and vapor satured phases at the'
+    print '                             simulation temperature'
+    print '        '
     print ''
     print 'ex: ./extract_bubble_contour.py -i <dir> -c <90.0> -t [0,100,10]'
     print ''
@@ -65,7 +77,7 @@ def parse_opts(argv):
 
     try:
         opts, args = getopt.getopt(argv,
-                                   "hi:c:t:pgx:y:ws",
+                                   "hi:c:t:pgx:y:wsl:r",
                                    ["help",
                                     "inputDir",
                                     "contactAngle=",
@@ -73,7 +85,8 @@ def parse_opts(argv):
                                     "phaseCheck",
                                     "genContours",
                                     "show",
-                                    "no_window"])
+                                    "no_window",
+                                    "reflection"])
     except getopt.GetoptError:
         usage()
         sys.exit(2)
@@ -89,6 +102,8 @@ def parse_opts(argv):
     options['x_limits']    = 'None'
     options['y_limits']    = 'None'
     options['no_window']   = False
+    options['contourType'] = 'wall_max_gradient' #'mass', 'gradient'
+    options['reflection']  = False
 
 
     for opt, arg in opts:
@@ -162,6 +177,20 @@ def parse_opts(argv):
         elif opt in ("-w","--no_window"):
             options['no_window'] = True
 
+        elif opt in ("-l"):
+            
+            if arg in ['wall_max_gradient','max_gradient','mass']:
+                options["contourType"] = arg
+
+            else:
+                print 'contourType not recognized'
+                usage()
+                sys.exit(2)
+
+        elif opt in ("-r"):
+
+            options['reflection'] = True
+
 
     if(not(inputDirProvided and contactAngleProvided and timeFrameProvided)):
         print 'the options are not correctly provided'
@@ -192,7 +221,8 @@ def generate_st_graphs(ncFolder,
                        maxNbBubbleContours='None',
                        show=True,
                        x_limits='None',
-                       y_limits='None'):
+                       y_limits='None',
+                       reflection=False):
     '''
     @description: generate the contours of the bubble
     at different timesteps, extract the contact length
@@ -229,7 +259,7 @@ def generate_st_graphs(ncFolder,
             contourPer=contourPer,
             contourType=contourType,
             phase_check=phase_check,
-            reflection=True)
+            reflection=reflection)
     
 
     # paths for saving the contact angle and volume figures
@@ -452,23 +482,23 @@ if __name__=='__main__':
             visit.Launch()
         visit.SuppressMessages(1)
 
-    contourType = 'wall_max_gradient' #'mass', 'gradient'
-
     contoursPath = os.path.join(options['inputDir'],'contours')
+
 
     ## generate the contact lengthm, the volume and
     ## the bubble contours graphs
     generate_st_graphs(options['inputDir'],
                        options['timeFrame'],
                        options['contactAngle'],
-                       contourType,
+                       options['contourType'],
                        phase_check=options['phaseCheck'],
                        genContours=options['genContours'],
                        contourPer=0.1,
                        maxNbBubbleContours=5,
                        show=options['show'],
                        x_limits=options['x_limits'],
-                       y_limits=options['y_limits'])
+                       y_limits=options['y_limits'],
+                       reflection=options['reflection'])
 
     [t_i,r_i] = find_initial_bubble(os.path.join(contoursPath,'volume.txt'))
 

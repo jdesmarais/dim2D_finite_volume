@@ -83,11 +83,11 @@ generate_inflow_sph_contours(){
 
     inputDir=$( get_inflow_sph_dir $T $ca $v $hca)
 
+    
+    options="-i $inputDir -c $ca -t $5 -x $6 -y $7 -p -l max_gradient -g -w"
 
-    ./extract_bubble_contours.py -i $inputDir -c $ca -t $5 -p -g -w -x $6 -y $7 #>cur_contours.out 2>&1
-    #./extract_bubble_contours.py -i $inputDir -c $ca -t $5 -p -x $6 -y $7 -s #> cur_contours.out 2>&1
+    ./extract_bubble_contours.py  $options #>cur_contours.out 2>&1
 
-    #mv cur_contours.out $inputDir/contours
 
     echo "=================================================="
     echo "generate_contours( "$T" , "$ca" , "$v", "$hca" ) : done"

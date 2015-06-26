@@ -120,6 +120,8 @@ def generate_wall_nonst_results(
     wall_maximum_extra_heat_flux       = 0.0,
     total_nb_files                     = total_nb_files_default,
     spherical_cap                      = False,
+    nucleation_in_flow                 = False,
+    extra_domain                       = 'None',
     adapt_domain                       = False):
 
     '''
@@ -178,6 +180,8 @@ def generate_wall_nonst_results(
         inputs_wall_modified               = inputPath,
         steady_state_ac                    = steady_state_ac,
         spherical_cap                      = spherical_cap,
+        nucleation_in_flow                 = nucleation_in_flow,
+        extra_domain                       = extra_domain,
         temperature                        = temperature,
         flow_velocity                      = flow_velocity,
         phase_at_center                    = phase_at_center,

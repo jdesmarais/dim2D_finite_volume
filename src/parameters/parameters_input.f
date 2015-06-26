@@ -27,17 +27,17 @@
         logical    , parameter :: debug = .true.        
 
         !<computational field dimensions
-        real(rkind), parameter :: x_min = -0.1428000000d0
-        real(rkind), parameter :: x_max = 0.1428000000d0
+        real(rkind), parameter :: x_min = -0.2856000000d0
+        real(rkind), parameter :: x_max = 0.7854000000d0
         real(rkind), parameter :: y_min = 0.0000000000d0
-        real(rkind), parameter :: y_max = 0.1428000000d0
+        real(rkind), parameter :: y_max = 0.2495000000d0
         
         !<computational times
-        real(rkind), parameter :: t_max = 100.0000000000d0 !10.0d0
-        real(rkind), parameter :: dt = 0.0000400000d0
+        real(rkind), parameter :: t_max = 10.0000000000d0 !10.0d0
+        real(rkind), parameter :: dt = 0.0000330000d0
         
         !<output writing
-        real(rkind), parameter :: detail_print = 0.0002000000d0
+        real(rkind), parameter :: detail_print = 0.0017000000d0
         logical    , parameter :: write_domain_extension = .true.
         logical    , parameter :: write_detectors = .true.
 
@@ -47,8 +47,8 @@
 
         !<size of the main tables
         !<careful, choose ne according to the physical model
-        integer(ikind), parameter :: ntx = 173
-        integer(ikind), parameter :: nty = 89
+        integer(ikind), parameter :: ntx = 635
+        integer(ikind), parameter :: nty = 152
 
         integer(ikind), parameter :: nx = ntx/npx
         integer(ikind), parameter :: ny = nty/npy
@@ -120,11 +120,11 @@
         integer    , parameter :: flow_direction = x_direction
         real(rkind), parameter :: flow_x_side = 1.0000000000d0
         real(rkind), parameter :: flow_y_side = 1.0000000000d0
-        real(rkind), parameter :: flow_velocity = 0.1000000000d0
+        real(rkind), parameter :: flow_velocity = 0.5000000000d0
         
         real(rkind), parameter :: T0 = 0.9500000000d0
 
-        integer    , parameter :: ic_choice = bubble_nucleation
+        integer    , parameter :: ic_choice = bubble_spherical_cap
 
         integer    , parameter :: phase_at_center = vapor
 
@@ -260,8 +260,8 @@
         ! contact angle at the heater
         !-----------------------------------------------------
         real(rkind), parameter :: wall_heater_center = 0.0000000000d0
-        real(rkind), parameter :: wall_heater_length = 0.0514777942d0
-        real(rkind), parameter :: wall_heater_variation_angle_length = 0.0356472677d0
+        real(rkind), parameter :: wall_heater_length = 0.3136114186d0
+        real(rkind), parameter :: wall_heater_variation_angle_length = 0.0178236339d0
         real(rkind), parameter :: wall_heater_micro_contact_angle = 135.0000000000d0
 
 
@@ -291,8 +291,8 @@
         real(rkind), parameter :: wall_heat_source_center   = wall_heater_center
         real(rkind), parameter :: wall_heat_source_variance = 0.5d0*wall_heater_length
 
-        integer    , parameter :: wall_extra_heat_source_choice = gaussian_heat_source
-        real(rkind), parameter :: wall_maximum_extra_heat_flux = -0.0375000000d0
+        integer    , parameter :: wall_extra_heat_source_choice = no_heat_source
+        real(rkind), parameter :: wall_maximum_extra_heat_flux = 0.0000000000d0
         real(rkind), parameter :: wall_extra_heat_source_center   = wall_heater_center
         real(rkind), parameter :: wall_extra_heat_source_variance = 0.5d0*wall_heater_length
 

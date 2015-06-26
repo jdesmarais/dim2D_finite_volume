@@ -81,7 +81,7 @@ def get_heater_variation_angle_length(Li):
                   heater
     '''
 
-    ratio_va = 2.0
+    ratio_va = 1.0
 
     return ratio_va*Li
 
@@ -106,6 +106,8 @@ def generate_wall_nonst_results_uniform_surface(
     wall_maximum_heat_flux,
     total_nb_files,
     spherical_cap,
+    nucleation_in_flow,
+    extra_domain,
     adapt_domain):
     '''
     @description: generate the results for a surface
@@ -134,6 +136,8 @@ def generate_wall_nonst_results_uniform_surface(
         wall_maximum_extra_heat_flux  = wall_maximum_heat_flux,
         total_nb_files                = total_nb_files,
         spherical_cap                 = spherical_cap,
+        nucleation_in_flow            = nucleation_in_flow,
+        extra_domain                  = extra_domain,
         adapt_domain                  = adapt_domain)
 
 
@@ -159,6 +163,8 @@ def generate_wall_nonst_results_surface_with_heaters(
     wall_maximum_heat_flux,
     total_nb_files,
     spherical_cap,
+    nucleation_in_flow,
+    extra_domain,
     adapt_domain):
     '''
     @description: generate the results for a surface with heaters
@@ -188,6 +194,8 @@ def generate_wall_nonst_results_surface_with_heaters(
         wall_maximum_extra_heat_flux       = wall_maximum_heat_flux,
         total_nb_files                     = total_nb_files,
         spherical_cap                      = spherical_cap,
+        nucleation_in_flow                 = nucleation_in_flow,
+        extra_domain                       = extra_domain,
         adapt_domain                       = adapt_domain)
 
 
@@ -226,10 +234,10 @@ if __name__=="__main__":
 
     heaterNucleation_sourceHeatStudy   = False
     heaterNucleation_contactAngleStudy = False
-    heaterNucleation_flowVelocityStudy = True
+    heaterNucleation_flowVelocityStudy = False
 
     uniformSphericalC_flowVelocityStudy = False
-    heaterSphericalC_flowVelocityStudy  = False
+    heaterSphericalC_flowVelocityStudy  = True
 
     
     # default parameters for the generation of results
@@ -257,7 +265,8 @@ if __name__=="__main__":
     wall_micro_contact_angle_uniform_nucleation =  90.0 
     wall_maximum_heat_flux_nucleation           = -0.02
     wall_micro_contact_angle_with_heaters       =  0.0
-    adapt_domain                                = False
+    extra_domain                                = 'None'
+    adapt_domain                                = False    
 
 
     #============================================================
@@ -341,7 +350,8 @@ if __name__=="__main__":
         wall_max_heat_flux_array = [-0.02] #[-0.02,-0.04,-0.06,-0.08,-0.1]
         total_nb_files           = 500
 
-        spherical_cap = False
+        spherical_cap      = False
+        nucleation_in_flow = False
 
         #-------------------------------------------------------------
         #2.1) uniform surface: source heat study for one contact angle
@@ -374,6 +384,8 @@ if __name__=="__main__":
                     max_heat_flux,
                     total_nb_files,
                     spherical_cap,
+                    nucleation_in_flow,
+                    extra_domain,
                     adapt_domain)
 
 
@@ -412,6 +424,8 @@ if __name__=="__main__":
                     max_heat_flux,
                     total_nb_files,
                     spherical_cap,
+                    nucleation_in_flow,
+                    extra_domain,
                     adapt_domain)
 
                 
@@ -441,6 +455,7 @@ if __name__=="__main__":
         total_nb_files           = 500
 
         spherical_cap = False
+        nucleation_in_flow = False
 
     
         #-------------------------------------------------------------
@@ -474,6 +489,8 @@ if __name__=="__main__":
                     wall_maximum_heat_flux,
                     total_nb_files,
                     spherical_cap,
+                    nucleation_in_flow,
+                    extra_domain,
                     adapt_domain)
 
         #-------------------------------------------------------------
@@ -513,6 +530,8 @@ if __name__=="__main__":
                     wall_maximum_heat_flux,
                     total_nb_files,
                     spherical_cap,
+                    nucleation_in_flow,
+                    extra_domain,
                     adapt_domain)
 
 
@@ -522,15 +541,15 @@ if __name__=="__main__":
     if(uniformNucleation_flowVelocityStudy or
        heaterNucleation_flowVelocityStudy):
 
-        simulationDuration   = 100.0
+        simulationDuration   = 20.0
         steady_state_ac      = 0
         temperature          = 0.95
 
         Li = extract_interface_length(dim2dParamPath,temperature)
 
-        contact_angle_array  = [22.5,45.0,67.5,112.5,135.0]
+        contact_angle_array  = [22.5] #[22.5,45.0,67.5,112.5,135.0]
         phase_at_center      = 'vapor'
-        flow_velocity_array  = [0.1] #[0.05, 0.1, 0.15, 0.2]
+        flow_velocity_array  = [0.4] #[0.05, 0.1, 0.15, 0.2]
 
         ratio_bubble_interface = 2.0
         gravity_ac             = 0
@@ -540,10 +559,11 @@ if __name__=="__main__":
         wall_heater_center       = 0.0
         wall_heater_length       = get_heater_length(22.5,Li)
         wall_heat_source_choice  = 'gaussian_heat_source'
-        max_heat_flux_array      = [-0.035,-0.0375]#,-0.04] #[-0.04,-0.06,-0.08,-0.1]
+        max_heat_flux_array      = [-0.05,-0.06,-0.07] #,-0.06,-0.08,-0.1]#,-0.04] #[-0.04,-0.06,-0.08,-0.1]
 
         total_nb_files           = 500
         spherical_cap            = False
+        nucleation_in_flow       = True
 
 
         #-------------------------------------------------------------
@@ -585,6 +605,8 @@ if __name__=="__main__":
                             max_heat_flux,
                             total_nb_files,
                             spherical_cap,
+                            nucleation_in_flow,
+                            extra_domain,
                             adapt_domain)
 
 
@@ -633,6 +655,8 @@ if __name__=="__main__":
                             max_heat_flux,
                             total_nb_files,
                             spherical_cap,
+                            nucleation_in_flow,
+                            extra_domain,
                             adapt_domain)
                             
                             
@@ -649,9 +673,38 @@ if __name__=="__main__":
 
         Li = extract_interface_length(dim2dParamPath,temperature)
 
-        contact_angle_array    = [22.5] #[22.5,45.0,67.5,90.0,112.5,135.0]
         phase_at_center        = 'vapor'
-        flow_velocity_array    = [0.1] #[0.3,0.4,0.5] #0.0, 0.1, 0.15, 0.2]
+        
+        #============================================================
+        # simulations with extended domain for detachment
+        #============================================================
+        # x_min : extra_domain[0][0]
+        # x_max : extra_domain[1][0]
+        # y_min : extra_domain[0][1]
+        # y_max : extra_domain[1][1]
+        #============================================================
+        # 1) extra simulations for v=0.4
+        #contact_angle_array    = [90.0,112.5,135.0]
+        #flow_velocity_array    = [0.4]
+
+        # 2) extra simulations for v=0.5
+        contact_angle_array    = [45.0,67.5,90.0,112.5,135.0]
+        flow_velocity_array    = [0.5]
+
+        extra_domain           = [[0 for x in range(2)] for x in range(2)]
+        extra_domain[0][0]     =-1.0
+        extra_domain[1][0]     = 2.5
+        extra_domain[0][1]     = 0.0
+        extra_domain[1][1]     = 0.0
+        #============================================================
+        
+        #============================================================
+        # normal simulations
+        #============================================================
+        #contact_angle_array    = [22.5,45.0,67.5,90.0,112.5,135.0]
+        #flow_velocity_array    = [0.1,0.2,0.3,0.4,0.5]
+        #============================================================
+
         ratio_bubble_interface = 2.0
         gravity_ac             = 0
         gravity_amp            = 0.000
@@ -663,6 +716,7 @@ if __name__=="__main__":
 
         total_nb_files         = 500
         spherical_cap          = True
+        nucleation_in_flow     = False
 
 
         #-------------------------------------------------------------
@@ -713,6 +767,8 @@ if __name__=="__main__":
                             max_heat_flux,
                             total_nb_files,
                             spherical_cap,
+                            nucleation_in_flow,
+                            extra_domain,
                             adapt_domain)
 
         #-------------------------------------------------------------
@@ -769,4 +825,6 @@ if __name__=="__main__":
                             max_heat_flux,
                             total_nb_files,
                             spherical_cap,
+                            nucleation_in_flow,
+                            extra_domain,
                             adapt_domain)

@@ -98,7 +98,7 @@ def compute_mass(massLim,domain_borders):
     BoxAtts.minx = domain_borders['x_min']+2.0*domain_borders['dx']
     BoxAtts.maxx = domain_borders['x_max']-2.0*domain_borders['dx']
     BoxAtts.miny = domain_borders['y_min']+2.0*domain_borders['dy']
-    BoxAtts.maxy = domain_borders['y_min']-2.0*domain_borders['dy']
+    BoxAtts.maxy = domain_borders['y_max']-2.0*domain_borders['dy']
     BoxAtts.inverse = 0
     visit.SetOperatorOptions(BoxAtts,1)
 
@@ -108,7 +108,14 @@ def compute_mass(massLim,domain_borders):
     # is simply the sum of the mass over the entire
     # domain
     totalMass = visit.Query("Weighted Variable Sum")
-    totalMass = float(totalMass.split('is')[1].split('(')[0])
+    try:
+        totalMass = float(totalMass.split('is')[1].split('(')[0])
+    except ValueError:
+        print 'library_nc_to_vtklines'
+        print 'compute_mass'
+        print 'error when reading totalMass'
+        print totalMass
+        sys.exit(2)
 
     # remove the plots
     visit.DeleteActivePlots()
@@ -209,6 +216,105 @@ def get_var_range(var):
 
 
 def get_mid_by_max_grad(domain_borders,phase_check=False):
+    '''
+    @description: extract the mass density at the
+    interface between the liquid and vapor phases
+    by extracting the mass at the location where
+    the maximum mass density gradient is reached
+    '''
+
+    # extract the location of the maximum gradient for the mass
+    visit.DefineScalarExpression("mass_grad_x", "gradient(mass)[0]")
+    visit.DefineScalarExpression("mass_grad_y", "gradient(mass)[1]")
+    visit.DefineScalarExpression("mass_grad"  , "sqrt(mass_grad_x^2+mass_grad_y^2)")
+    visit.AddPlot("Pseudocolor","mass_grad", 1, 1)
+
+    visit.AddOperator("Box",1)
+    BoxAtts = visit.BoxAttributes()
+    BoxAtts.amount = BoxAtts.All
+    BoxAtts.minx = domain_borders['x_min']+2.5*domain_borders['dx']
+    BoxAtts.maxx = domain_borders['x_max']-2.5*domain_borders['dx']
+    BoxAtts.miny = domain_borders['y_min']+2.5*domain_borders['dy']
+    BoxAtts.maxy = domain_borders['y_max']-2.5*domain_borders['dy']
+    BoxAtts.inverse = 0
+    visit.SetOperatorOptions(BoxAtts,1)
+
+    visit.DrawPlots()
+
+    gradMass = visit.Query('Max', use_actual_data=1)
+
+    coord1 = float(gradMass.split(',')[0].split('<')[1])
+    coord2 = float(gradMass.split(',')[1].split('>')[0])
+
+    gradMass = float(gradMass.split('=')[1].split('(')[0])
+
+    visit.DeleteActivePlots()
+
+
+    if(gradMass!=0.0):
+
+        # extract the mass at the location of the maximum gradient
+        visit.AddPlot("Pseudocolor","mass", 1, 1)
+        visit.DrawPlots()
+
+        midMass = visit.NodePick(coord=(coord1,coord2,0),
+                                 vars=("default","mass"))
+        midMass = midMass['mass']
+
+        visit.DeleteActivePlots()
+
+
+        # if the phase check is enabled, determine whether the mass
+        # density extracted corresponds to a potential mass density
+        # at the location of the interface
+        if(phase_check):
+
+            # definition of the kortweg energy
+    	    visit.DefineScalarExpression("mass_grad_squared", "mass_grad_x^2+mass_grad_y^2")
+    	    visit.DefineScalarExpression("we", str(we))
+    	    visit.DefineScalarExpression("korteweg_energy", "0.5/we*mass_grad_squared")
+    	
+    	    # definition of the kinetic energy
+    	    visit.DefineScalarExpression("velocity_x", "momentum_x/mass")
+    	    visit.DefineScalarExpression("velocity_y", "momentum_y/mass")
+    	    visit.DefineScalarExpression("kinetic_energy", "0.5*mass*(velocity_x^2+velocity_y^2)")
+    	
+    	    # definition of the temperature
+    	    visit.DefineScalarExpression("cv_r", str(cv_r))
+    	    visit.DefineScalarExpression("temperature", "3/(8*cv_r)*(1/mass*(energy-kinetic_energy-korteweg_energy)+3*mass)")
+    	
+    	    # draw the temperature and extract the temperature at the maximum gradient point
+    	    visit.AddPlot("Pseudocolor","temperature", 1, 1)
+    	    visit.DrawPlots()
+    	    midTemperature = visit.NodePick(coord=(coord1,coord2,0), vars=("default","temperature"))
+    	    midTemperature = midTemperature['temperature']
+    	    visit.DeleteActivePlots()
+    	
+    	    # deduce the mass densities of the liquid and vapor phases at this temperature
+    	    mass_vap = get_mass_density_vapor(midTemperature)
+    	    mass_liq = get_mass_density_liquid(midTemperature)
+    	
+    	    # check whether the mass density extracted is close enough from the
+    	    # mid mass density
+    	    mid_mass_c = 0.5*(mass_vap+mass_liq)
+    	    check = abs((midMass-mid_mass_c)/(mass_liq-mass_vap)) < 0.2
+    	
+    	    # check by comparing the maximum gradient of the mass density
+    	    interface_lgh = get_interface_length(we,midTemperature)
+    	    mid_gradMass = (mass_liq-mass_vap)/interface_lgh
+    	    check = check and (abs((gradMass - mid_gradMass)/mid_gradMass) < 0.4)
+
+        else:
+            check = True
+
+    else:
+        midMass = 0.0
+        check = False
+
+    return [midMass,check]
+
+
+def get_mid_by_max_grad_at_wall(domain_borders,phase_check=False):
     '''
     @description: extract the mass density at the
     interface between the liquid and vapor phases
@@ -506,6 +612,12 @@ def generate_vtklines(ncPath,
 
     elif(contourType=='wall_max_gradient'):
                 
+        [contourMin,generateContours] = get_mid_by_max_grad_at_wall(domain_borders,
+                                                                    phase_check=phase_check)
+        contourMax = contourMin
+
+    elif(contourType=='max_gradient'):
+                
         [contourMin,generateContours] = get_mid_by_max_grad(domain_borders,
                                                             phase_check=phase_check)
         contourMax = contourMin
@@ -558,7 +670,7 @@ def generate_vtklines(ncPath,
             os.remove(os.path.basename(vtkPath)+'.0.vtk',)
             os.remove(os.path.basename(vtkPath)+'.1.vtk')
         else:
-            sys.rm(os.path.basename(vtkPath)+'.vtk')
+            os.remove(os.path.basename(vtkPath)+'.vtk')
 
         #get the volume
         volume = compute_volume(domain_borders, graph_data[0][:], graph_data[1][:])
@@ -622,6 +734,7 @@ def generate_time_contour_data(ncRootPath,
         vtkPath = vtkRootPath+str(t)
 
         if(not os.path.isfile(ncPath)):
+            print ncPath
             break
 
         # write the file id
@@ -658,16 +771,37 @@ def generate_time_contour_data(ncRootPath,
         # determine the contact length
         if(graph_data_t!='None'):
 
-            # interpolate x=f(y) to find x such that y=0 for
-            # the contact length
+            ## check whether the contour is a closed contour:
+            ## compare the distance to close the extreme points
+            ## in the contour and the grid size
+            #domain_ds  = sqrt(domain_borders['dx']**2+domain_borders['dy']**2)
+            #contour_ds = sqrt(
+            #    (graph_data_t[0][0] - graph_data_t[0][-1])**2 +\
+            #    (graph_data_t[1][0] - graph_data_t[1][-1])**2)
+            #
+            #closed_contour =  contour_ds < domain_ds*(1+0.1)
+
+            
+            # check which is the y of the lowest point in the contour
             y = np.array(graph_data_t[1][:])
             i_min, = np.unravel_index(y.argmin(),y.shape)
             y_min = y[i_min]
-            if(y_min>(domain_borders['y_min']+2*domain_borders['dy'])): #+2*domain_borders['dy']
+
+            # if this lowest point is above the wall limit,
+            # then the bubble is detached from the wall
+            if(y_min>(domain_borders['y_min']+3.0*domain_borders['dy'])): #+2*domain_borders['dy']
                 contact_lgh[i]=0.0
+
+            # otherwise, the bubble is attached to the wall
+            # we need to find the two points such that the
+            # bubble is attached to the wall, these are the
+            # extreme points in the contours (first and last)
             else:
                 
-                contact_lgh[i] = abs(graph_data_t[0][i_min])
+                x1 = graph_data_t[0][0]
+                x2 = graph_data_t[0][-1]
+
+                contact_lgh[i] = abs(x2-x1)
 
         else:
 
