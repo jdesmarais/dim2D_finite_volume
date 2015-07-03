@@ -132,7 +132,7 @@ def create_simulation(destDir,
 
     #3) create the PBS script
     temperature         = float(get_parameter('temperature',inputPath))
-    micro_contact_angle = float(get_parameter('micro_contact_angle',inputPath))
+    micro_contact_angle = float(get_parameter('wall_micro_contact_angle',inputPath))
     nameRun = get_name_run(temperature,micro_contact_angle)
     simulation_duration = 12.0*60.0*60.0 #estimate_simulation_duration(inputPath)
     walltime = estimate_wall_time(simulation_duration,

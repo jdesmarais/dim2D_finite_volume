@@ -109,38 +109,71 @@ def generate_wall_nonst_results_uniform_surface(
     spherical_cap,
     nucleation_in_flow,
     extra_domain,
-    adapt_domain):
+    adapt_domain,
+    conduction_heat=False):
     '''
     @description: generate the results for a surface
                   with uniform contact angle
     '''
 
-    [destDir, nameRun] =\
-        \
-        generate_wall_nonst_results(
-        mainDir,
-        model_input,
-        PBSnameRun,
-        simulationDuration,
-        steady_state_ac               = steady_state_ac,
-        temperature                   = temperature,
-        flow_velocity                 = flow_velocity,
-        flow_profile                  = flow_profile,
-        phase_at_center               = phase_at_center,
-        ratio_bubble_interface        = ratio_bubble_interface,
-        gravity_ac                    = gravity_ac,
-        gravity_amp                   = gravity_amp,
-        wall_surface_type             = wall_surface_type,
-        wall_micro_contact_angle      = contact_angle,
-        wall_heater_center            = wall_heater_center,
-        wall_heater_length            = wall_heater_length,
-        wall_extra_heat_source_choice = wall_heat_source_choice,
-        wall_maximum_extra_heat_flux  = wall_maximum_heat_flux,
-        total_nb_files                = total_nb_files,
-        spherical_cap                 = spherical_cap,
-        nucleation_in_flow            = nucleation_in_flow,
-        extra_domain                  = extra_domain,
-        adapt_domain                  = adapt_domain)
+    if(conduction_heat):
+
+        [destDir, nameRun] =\
+            \
+            generate_wall_nonst_results(
+            mainDir,
+            model_input,
+            PBSnameRun,
+            simulationDuration,
+            steady_state_ac               = steady_state_ac,
+            temperature                   = temperature,
+            flow_velocity                 = flow_velocity,
+            flow_profile                  = flow_profile,
+            phase_at_center               = phase_at_center,
+            ratio_bubble_interface        = ratio_bubble_interface,
+            gravity_ac                    = gravity_ac,
+            gravity_amp                   = gravity_amp,
+            wall_surface_type             = wall_surface_type,
+            wall_micro_contact_angle      = contact_angle,
+            wall_heater_center            = wall_heater_center,
+            wall_heater_length            = wall_heater_length,
+            wall_heat_source_choice       = wall_heat_source_choice,
+            wall_maximum_heat_flux        = wall_maximum_heat_flux,
+            total_nb_files                = total_nb_files,
+            spherical_cap                 = spherical_cap,
+            nucleation_in_flow            = nucleation_in_flow,
+            extra_domain                  = extra_domain,
+            adapt_domain                  = adapt_domain)
+
+    else:
+
+
+        [destDir, nameRun] =\
+            \
+            generate_wall_nonst_results(
+            mainDir,
+            model_input,
+            PBSnameRun,
+            simulationDuration,
+            steady_state_ac               = steady_state_ac,
+            temperature                   = temperature,
+            flow_velocity                 = flow_velocity,
+            flow_profile                  = flow_profile,
+            phase_at_center               = phase_at_center,
+            ratio_bubble_interface        = ratio_bubble_interface,
+            gravity_ac                    = gravity_ac,
+            gravity_amp                   = gravity_amp,
+            wall_surface_type             = wall_surface_type,
+            wall_micro_contact_angle      = contact_angle,
+            wall_heater_center            = wall_heater_center,
+            wall_heater_length            = wall_heater_length,
+            wall_extra_heat_source_choice = wall_heat_source_choice,
+            wall_maximum_extra_heat_flux  = wall_maximum_heat_flux,
+            total_nb_files                = total_nb_files,
+            spherical_cap                 = spherical_cap,
+            nucleation_in_flow            = nucleation_in_flow,
+            extra_domain                  = extra_domain,
+            adapt_domain                  = adapt_domain)
 
 
 def generate_wall_nonst_results_surface_with_heaters(
@@ -231,8 +264,7 @@ if __name__=="__main__":
 
     # choice of the results generated
     #------------------------------------------------------------
-    uniformNucleation_conductionHeatStudy = False
-    uniformNucleation_sourceHeatStudy     = False
+    uniformNucleation_sourceHeatStudy     = True
     uniformNucleation_contactAngleStudy   = False
     uniformNucleation_flowVelocityStudy   = False
 
@@ -241,7 +273,7 @@ if __name__=="__main__":
     heaterNucleation_flowVelocityStudy = False
 
     uniformSphericalC_flowVelocityStudy = False
-    heaterSphericalC_flowVelocityStudy  = True
+    heaterSphericalC_flowVelocityStudy  = False
 
     
     # default parameters for the generation of results
@@ -265,6 +297,10 @@ if __name__=="__main__":
     # adapt_domain
     #        by default the domain is not adapted for
     #        performance considerations
+    #
+    # conduction_heat
+    #        choose whether to apply heat at the bottom using
+    #        conduction heat or artifical heat
     #------------------------------------------------------------
     wall_micro_contact_angle_uniform_nucleation =  90.0 
     wall_maximum_heat_flux_nucleation           = -0.02
@@ -272,63 +308,7 @@ if __name__=="__main__":
     flow_profile                                = 'parabolic_profile'
     extra_domain                                = 'None'
     adapt_domain                                = False    
-
-
-    #============================================================
-    #1) uniform surface: source heat study for one contact angle
-    #============================================================
-    if(uniformNucleation_conductionHeatStudy):
-
-
-        simulationDuration  = 100
-        steady_state_ac     = 0
-        temperature         = 0.95
-        flow_velocity       = 0.0
-
-        Li = extract_interface_length(dim2dParamPath,temperature)
-
-        phase_at_center          = 'vapor'
-        ratio                    = 2.0
-        gravity_ac               = 0
-        gravity                  = 0.000
-
-        wall_surface_type        = 'uniform_surface'
-
-        wall_micro_contact_angle = wall_micro_contact_angle_uniform_nucleation
-
-        wall_heater_center       = 0.0
-        wall_heater_length       = get_heater_length(Li)
-
-        wall_heat_source_choice  = 'gaussian_heat_source'
-        wall_max_heat_flux_array = [0.0001,0.001,0.01]
-
-        total_nb_files           = 500
-
-    
-        for max_heat_flux in wall_max_heat_flux_array:
-            
-            PBSnameRun = 'dim2d_'+str(temperature)+'_fh'+str(max_heat_flux)
-
-            [destDir, nameRun] =\
-                \
-                generate_wall_nonst_results(
-                mainDir,
-                model_input,
-                PBSnameRun,
-                simulationDuration,
-                steady_state_ac          = steady_state_ac,
-                temperature              = temperature,
-                phase_at_center          = phase_at_center,
-                ratio_bubble_interface   = ratio,
-                gravity_ac               = gravity_ac,
-                gravity_amp              = gravity,
-                wall_surface_type        = wall_surface_type,
-                wall_micro_contact_angle = contact_angle,
-                wall_heater_center       = wall_heater_center,
-                wall_heater_length       = wall_heater_length,
-                wall_heat_source_choice  = wall_heat_source_choice,
-                wall_maximum_heat_flux   = max_heat_flux,
-                total_nb_files           = total_nb_files)
+    conduction_heat                             = True
             
 
     #============================================================
@@ -392,7 +372,8 @@ if __name__=="__main__":
                     spherical_cap,
                     nucleation_in_flow,
                     extra_domain,
-                    adapt_domain)
+                    adapt_domain,
+                    conduction_heat=conduction_heat)
 
 
         #-------------------------------------------------------------
@@ -433,7 +414,8 @@ if __name__=="__main__":
                     spherical_cap,
                     nucleation_in_flow,
                     extra_domain,
-                    adapt_domain)
+                    adapt_domain,
+                    conduction_heat=conduction_heat)
 
                 
     #============================================================
@@ -558,8 +540,8 @@ if __name__=="__main__":
 
         contact_angle_array  = [22.5] #[22.5,45.0,67.5,112.5,135.0]
         phase_at_center      = 'vapor'
-        flow_velocity_array  = [0.4] #[0.05, 0.1, 0.15, 0.2]
-        flow_profile         = 'linear_profile' #'parabolic_profile'
+        flow_velocity_array  = [0.4]
+        flow_profile         = 'parabolic_profile' #'linear_profile' 
 
         ratio_bubble_interface = 2.0
         gravity_ac             = 0
@@ -569,7 +551,7 @@ if __name__=="__main__":
         wall_heater_center       = 0.0
         wall_heater_length       = get_heater_length(22.5,Li)
         wall_heat_source_choice  = 'gaussian_heat_source'
-        max_heat_flux_array      = [-0.05,-0.06,-0.07] #,-0.06,-0.08,-0.1]#,-0.04] #[-0.04,-0.06,-0.08,-0.1]
+        max_heat_flux_array      = [-0.08,-0.1] #-0.08,-0.1,-0.12] #-0.04,-0.06]#-0.05,-0.06,-0.07] #,-0.06,-0.08,-0.1]#,-0.04] #[-0.04,-0.06,-0.08,-0.1]
 
         total_nb_files           = 500
         spherical_cap            = False
@@ -701,21 +683,21 @@ if __name__=="__main__":
         #flow_velocity_array    = [0.4]
 
         # 2) extra simulations for v=0.5
-        #contact_angle_array    = [45.0,67.5,90.0,112.5,135.0]
-        #flow_velocity_array    = [0.5]
-        #
-        #extra_domain           = [[0 for x in range(2)] for x in range(2)]
-        #extra_domain[0][0]     =-1.0
-        #extra_domain[1][0]     = 2.5
-        #extra_domain[0][1]     = 0.0
-        #extra_domain[1][1]     = 0.0
+        contact_angle_array    = [67.5,90.0,112.5,135.0]
+        flow_velocity_array    = [0.5]
+        
+        extra_domain           = [[0 for x in range(2)] for x in range(2)]
+        extra_domain[0][0]     =-1.0
+        extra_domain[1][0]     = 2.5
+        extra_domain[0][1]     = 0.0
+        extra_domain[1][1]     = 0.0
         #============================================================
         
         #============================================================
         # normal simulations
         #============================================================
-        contact_angle_array    = [22.5,45.0,67.5,90.0,112.5,135.0]
-        flow_velocity_array    = [0.1] #[0.1,0.2,0.3,0.4,0.5]
+        #contact_angle_array    = [22.5,45.0,67.5,90.0,112.5,135.0]
+        #flow_velocity_array    = [0.3,0.4,0.5] #[0.1,0.2,0.3,0.4,0.5]
         #============================================================
 
         ratio_bubble_interface = 2.0

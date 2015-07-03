@@ -155,7 +155,7 @@
           li = get_interface_length(T0)
 
           !set the major and minor axes of the bubble ellipse
-          a=2.0d0*li
+          a=3.0d0*li*Sqrt(2.0d0) !2.0d0*li
           b=a
 
           !set the center of the droplet

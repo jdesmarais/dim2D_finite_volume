@@ -50,6 +50,7 @@ def generate_detachment_data(
 
     else:
         (det,i_det,t_det) = find_detachment_time(contactLghPath)
+        print det
         
     if(not det):
         print 'no detachment'
@@ -151,17 +152,31 @@ if __name__=='__main__':
 
     # directories for the detachment study
     # with different contact angles
-    contactAngleArray = [67.5]
-    flowVelocityArray = [0.3]
+    contactAngleArray = [112.5] #[,45.0,67.5,90.0,112.5,135.0]
+    flowVelocityArray = [0.5]#,0.2,0.3,0.4,0.5]
 
     simDirs = []
 
     for contactAngle in contactAngleArray:
         for flowVelocity in flowVelocityArray:
 
-            simDir = 'dim2d_0.95_ca'+str(contactAngle)+\
-                     '_vap_v'+str(flowVelocity)+'_hca0.0_sph'
 
+            # directory analyzed
+            #=================================================================
+            simDir = 'dim2d_0.95_ca'+str(contactAngle)+\
+                     '_vap_vl'+str(flowVelocity)+'_hca0.0_sph'
+
+
+            # generate the detachement data corresponding to the simulation
+            #=================================================================
+            # detachment time: time at which the bubble makes a closed contour
+            #                  seperated from the wall
+            # x-coord        : x-coordinate of the lowest point of the bubble
+            #                  contour
+            # max_lgh        : maximum extent of the bubble at detachment time
+            # mass           : vapor mass contained in the bubble at detachment
+            #                  time
+            #=================================================================
             (t_det,x_det,lgh_det,mass_det) = generate_detachment_data(os.path.join(mainDir,simDir,'contours'))
 
             print '=================================================='
@@ -169,11 +184,11 @@ if __name__=='__main__':
             print 'flow_velocity: ', flowVelocity
             print '=================================================='
             print 'detachment data'
-            print 'time   : ', t_det
-            print 'x-coord: ', x_det
-            print 'max_lgh: ', lgh_det
-            print 'mass   : ', mass_det
+            print ("time   :  %3.2f" % (t_det))
+            print ("x-coord:  %4.3f"  % (x_det))
+            print ("max_lgh:  %4.2f"  % (lgh_det))
+            print ("mass   :  %4.3f"  % (mass_det))
             print ''
-            
+
     plt.show()
 

@@ -2,8 +2,8 @@
 !================================================================================
 !detail_print : real : Set detail (between 0. and < = 1.0)
 !================================================================================
-detail_print = 0.002
-!detail_print = 0.002
+detail_print = 0.0001
+!detail_print = 0.0001
 
 
 !2.	Simulation duration
@@ -13,9 +13,9 @@ detail_print = 0.002
 !steady_state_ac : integer : (0 not activated, 1 activated)
 !                :         : run until steady state
 !================================================================================
-dt = 4e-05
-t_max = 10.0
-steady_state_ac = 0
+dt = 4.2e-05
+t_max = 200.0
+steady_state_ac = 1
 
 
 !3.	Space discretisation
@@ -32,12 +32,12 @@ steady_state_ac = 0
 !npy     : integer : number of tiles in the y-direction
 !================================================================================
 dx = 0.0017
-x_min = -0.1428
-x_max = 0.4284
+x_min = 0.0
+x_max = 0.3026
 
 dy = 0.0017
 y_min = 0.0
-y_max = 0.2495
+y_max = 0.3026
 
 npx = 1
 npy = 1
@@ -76,7 +76,7 @@ pm_choice = 4
 ! 7 : for south wall and open bc for E,W,N
 ! 8 : for half south wall, reflection left, open bc for E,N
 !================================================================================
-bc_choice = 7
+bc_choice = 6
 
 
 !5.1    Open boundary conditions
@@ -184,7 +184,7 @@ openbc_perturbation_vy0_amp = 0.0
 !5.2.1 Type of surface
 !--------------------------------------------------------------------------------
 !
-! wall_surface_type : integer
+! wall_surface_type : character
 ! 	uniform_surface (same contact angle everywhere)
 !	surface_with_heaters (different contact angle at heater)
 !
@@ -239,16 +239,16 @@ openbc_perturbation_vy0_amp = 0.0
 !--------------------------------------------------------------------------------
 !5.2.1	Type of surface
 !--------------------------------------------------------------------------------
-wall_surface_type = surface_with_heaters
-wall_micro_contact_angle = 0.0
+wall_surface_type = uniform_surface
+wall_micro_contact_angle = 135.0
 
 !--------------------------------------------------------------------------------
 !5.2.2	Dimensions of the heater
 !--------------------------------------------------------------------------------
 wall_heater_center = 0.0
-wall_heater_length = 0.313611418622
-wall_heater_variation_angle_length = 0.0178236338583
-wall_heater_micro_contact_angle = 135.0
+wall_heater_length = 2.0
+wall_heater_variation_angle_length = 0.5
+wall_heater_micro_contact_angle = 45.0
 
 !--------------------------------------------------------------------------------
 !5.2.3	Characteristics of the conduction-based heaters
@@ -291,7 +291,7 @@ wall_maximum_extra_heat_flux = 0.0
 ! 6 : bubble transported
 ! 7 : bubble next to wall
 ! 8 : bubble nucleation at wall
-! 9 : bubble spherical cap approximation
+! 9 : bubble spherical cap approximation at wall
 !
 !--------------------------------------------------------------------------------
 !flow_direction : character
@@ -361,14 +361,14 @@ wall_maximum_extra_heat_flux = 0.0
 !--------------------------------------------------------------------------------
 !6.1	Choice of the initial conditions
 !--------------------------------------------------------------------------------
-ic_choice = 9
+ic_choice = 7
 
 !--------------------------------------------------------------------------------
 !6.2	Parameters for the initial conditions
 !--------------------------------------------------------------------------------
 flow_direction = E
-flow_velocity = 0.1
-flow_profile = linear_profile
+flow_velocity = 0.0
+flow_profile = parabolic_profile
 temperature = 0.95
 phase_at_center = vapor
 

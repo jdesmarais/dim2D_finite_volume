@@ -22,17 +22,24 @@ def find_detachment_time(contactLghPath):
     # 
     contactLgh = np.loadtxt(contactLghPath)
 
+    print contactLghPath
+
     i_detachment = 0
     t_detachment = 0.
     detachment   = False
 
     for i in range(0,len(contactLgh[:,0])):
-        
+
         if(contactLgh[i,2]==0.0):
             i_detachment = int(contactLgh[i,0])
             t_detachment = contactLgh[i,1]
             detachment = True
+
+            if(contactLgh[i,1]==0.0):
+                detachment = False
             break
+
+    
 
     return (detachment, i_detachment,t_detachment)
 

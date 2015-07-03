@@ -52,6 +52,8 @@ from library_wall_st_inputs import (get_equilibrium_length,
 from create_sm_lg_inputs import (get_parameter,
                                  create_inputFile)
 
+from math import sqrt
+
 
 # determine the inputs modified in the input file
 def get_inputsToBeModified(steady_state_ac,
@@ -105,8 +107,8 @@ def get_inputsToBeModified(steady_state_ac,
     if(debug): print 'interface_length: ', interface_lgh
 
     # compute the bubble diameter from the interface length
-    bubble_diameter = get_bubble_diameter(interface_lgh,
-                                          ratio_bubble_interface)
+    bubble_diameter = 3.0*interface_lgh*sqrt(2.0) #get_bubble_diameter(interface_lgh,
+                                        #  ratio_bubble_interface)
     if(debug): print 'bubble_diameter: ', bubble_diameter
     
 

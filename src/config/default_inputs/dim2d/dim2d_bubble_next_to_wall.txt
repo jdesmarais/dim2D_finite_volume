@@ -76,7 +76,7 @@ pm_choice = 4
 ! 7 : for south wall and open bc for E,W,N
 ! 8 : for half south wall, reflection left, open bc for E,N
 !================================================================================
-bc_choice = 8
+bc_choice = 6
 
 
 !5.1    Open boundary conditions

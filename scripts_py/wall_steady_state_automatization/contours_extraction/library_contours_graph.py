@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import os
 import sys
 
+
 def extract_domain_borders(dataPath):
     '''
     @description: extract the domain borders from
@@ -166,7 +167,7 @@ def create_graph(data_path,
         Ri = sqrt(2.0*volume[-1,2]/pi)
         theta = (180-contactAngle)*pi/180
 
-        data[:,2] = get_equilibrium_length(Ri,theta)
+        data[:,2] = 2.0*get_equilibrium_length(Ri,theta)
 
         plt.plot(
             data[:,1],
@@ -221,7 +222,7 @@ def create_st_graph(dataRootPath,
     
         timestep = timestepExtracted[i]
 
-        dataPath = dataRootPath+'/contours'+str(timestep)+'.curve'
+        dataPath = os.path.join(dataRootPath,'contours'+str(timestep)+'.curve')
 
         if(os.path.isfile(dataPath)):
 
@@ -296,7 +297,7 @@ def create_st_graph(dataRootPath,
 
 
 def create_sph_graph(dataRootPath,
-                     timestepExtracted,
+                     timestep,
                      contactAngle,
                      xlabel='$x$',
                      ylabel='',
@@ -325,32 +326,40 @@ def create_sph_graph(dataRootPath,
     y_min = 0.0
     y_max = 0.0
 
-    dataPath = dataRootPath+'/contours'+str(timestepExtracted)+'.curve'
+    dataPath = os.path.join(dataRootPath,'contours'+str(timestep)+'.curve')
 
     if(os.path.isfile(dataPath)):
 
         data = np.loadtxt(dataPath)
         
+        plotstyle = '-'
+        linewidth = width
+        color = grayscale_to_RGB(1.0)
+        
         plt.plot(
             data[:,0],
             data[:,1],
-            '-',
-            linewidth=width,
-            color='black')
-
+            plotstyle,
+            linewidth=linewidth,
+            color=color)
+        
         y_min = min(y_min,min(data[:,1]))
         y_max = max(y_max,max(data[:,1]))
+        
+    y_max = 1.05*y_max
+
+    plt.ylim([y_min,y_max])
 
 
     # plot the spherical cap
-    dataPath = dataRootPath+'/volume.txt'
+    dataPath = os.path.join(dataRootPath,'volume.txt')
     volume = np.loadtxt(dataPath)
 
-    theta = (180-contactAngle)*pi/180
+    theta = (180.0-contactAngle)*pi/180.0
     Ri = sqrt(2.0*volume[-1,2]/pi)
         
-    dataPath = dataRootPath+'/domain_borders.txt'
-    domain_borders = extract_domain_borders(dataPath)    
+    dataPath = os.path.join(dataRootPath,'domain_borders.txt')
+    domain_borders = extract_domain_borders(dataPath)
 
     x_min = data[ 0,0]*1.5
     x_max = data[-1,0]*1.5
@@ -359,7 +368,6 @@ def create_sph_graph(dataRootPath,
 
     #x_min = -0.35
     #x_max =  0.35
-
 
     if(contactAngle<90):
         sph_data = get_spherical_cap_data(y_min,x_min,x_max,Ri,theta,filled=True)

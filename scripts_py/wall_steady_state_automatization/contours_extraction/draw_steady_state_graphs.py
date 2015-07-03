@@ -45,7 +45,7 @@ def create_contact_lgh_graph(simDirs,
 
     for i in range(0,len(simDirs)):
         
-        contactLgh = np.loadtxt(os.path.join(simDirs[i],'contact_lgh.txt'))
+        contactLgh = np.loadtxt(os.path.join(simDirs[i],'contact_lgh_n.txt'))
 
         # plot the mass as function
         # of time on the main graph
@@ -68,7 +68,7 @@ def create_contact_lgh_graph(simDirs,
 
         plt.plot(contactLgh[:,1],
                  contactLgh[:,2],
-                 '-',
+                 '+-',
                  linewidth=width,
                  color=grayscale_to_RGB(grayscale_value))
 
@@ -83,7 +83,7 @@ def create_contact_lgh_graph(simDirs,
     if(legend!='None'):
         plt.legend(legend,loc='lower right')
 
-    #ax.set_xlim([0,1800])
+    ax.set_xlim([0,30])
 
     if(show):
         plt.show()
@@ -98,20 +98,22 @@ if __name__=='__main__':
 
     mainDir = os.path.join(os.getenv('HOME'),'projects')
 
-    
+    T=0.95
+
+
     #=============================================================
     # Steady state study at different contact angles
     #=============================================================
 
     # directories for the nucleation study with
     # different contact angles
-    contactAngleArray = [22.5,45.0,67.5,90.0,112.5,135.0]# 22.5,45.0,67.5,90.0,112.5,135.0]
+    contactAngleArray = [22.5,45.0,67.5,90.0,112.5,135.0]
 
     simDirs = []
 
     for contactAngle in contactAngleArray:
 
-        simDir = 'dim2d_0.999_ca'+str(contactAngle)+'_vap'
+        simDir = 'dim2d_'+str(T)+'_ca'+str(contactAngle)+'_vap'
         simDirs.append(os.path.join(mainDir,simDir,'contours'))
 
 

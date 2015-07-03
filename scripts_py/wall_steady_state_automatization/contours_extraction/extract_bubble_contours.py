@@ -16,6 +16,10 @@ import visit
 from library_nc_to_vtklines import (generate_vtklines,
                                     generate_time_contour_data)
 
+from library_contact_lgh import curves_to_contact_lgh
+
+from library_volume import curves_to_volume
+
 from library_contours_graph import (create_graph,
                                     create_st_graph,
                                     create_sph_graph)
@@ -57,6 +61,8 @@ def usage():
     print '        - mass             : use the mid-mass between the liquid'
     print '                             and vapor satured phases at the'
     print '                             simulation temperature'
+    print '-r : reflection activated '
+    print '-e : select the final time'
     print '        '
     print ''
     print 'ex: ./extract_bubble_contour.py -i <dir> -c <90.0> -t [0,100,10]'
@@ -77,7 +83,7 @@ def parse_opts(argv):
 
     try:
         opts, args = getopt.getopt(argv,
-                                   "hi:c:t:pgx:y:wsl:r",
+                                   "hi:c:t:pgx:y:wsl:re",
                                    ["help",
                                     "inputDir",
                                     "contactAngle=",
@@ -96,14 +102,15 @@ def parse_opts(argv):
     timeFrameProvided     = False
 
     options = {}
-    options['phaseCheck']  = False
-    options['genContours'] = False
-    options['show']        = False
-    options['x_limits']    = 'None'
-    options['y_limits']    = 'None'
-    options['no_window']   = False
-    options['contourType'] = 'wall_max_gradient' #'mass', 'gradient'
-    options['reflection']  = False
+    options['phaseCheck']      = False
+    options['genContours']     = False
+    options['show']            = False
+    options['x_limits']        = 'None'
+    options['y_limits']        = 'None'
+    options['no_window']       = False
+    options['contourType']     = 'wall_max_gradient' #'mass', 'gradient'
+    options['reflection']      = False
+    options['select_end_time'] = True
 
 
     for opt, arg in opts:
@@ -191,6 +198,10 @@ def parse_opts(argv):
 
             options['reflection'] = True
 
+        elif opt in ("-e"):
+            
+            options['select_end_time'] = False
+
 
     if(not(inputDirProvided and contactAngleProvided and timeFrameProvided)):
         print 'the options are not correctly provided'
@@ -222,7 +233,8 @@ def generate_st_graphs(ncFolder,
                        show=True,
                        x_limits='None',
                        y_limits='None',
-                       reflection=False):
+                       reflection=False,
+                       select_end_time=True):
     '''
     @description: generate the contours of the bubble
     at different timesteps, extract the contact length
@@ -278,6 +290,9 @@ def generate_st_graphs(ncFolder,
 
 
     # plot the contact length as funtion of time
+    curves_to_contact_lgh(ncFolder)
+    curves_to_volume(ncFolder)
+
     create_graph(contact_lgh_path,
                  contactAngle=contactAngle,
                  xlabel='$t$',
@@ -332,11 +347,12 @@ def generate_st_graphs(ncFolder,
     start_i = max(start_i,timeRange[0])
 
     end_i = len(volume[:,0])-1
-    for i in range(start_i,len(volume[:,0])):
-        if(volume[i,2]==0):
-            end_i = i-1
-            break
-    end_i = min(end_i,timeRange[1])
+    if(select_end_time):
+        for i in range(start_i,len(volume[:,0])):
+            if(volume[i,2]==0):
+                end_i = i-1
+                break
+    end_i = min(end_i,timeRange[1])    
     nt = len(volume[:,0])
 
 
@@ -351,6 +367,7 @@ def generate_st_graphs(ncFolder,
     for i in range(start_i,end_i,step):
         times.append(int(volume[i,0]))
     times.append(int(volume[end_i,0]))
+    #times[-2] = 304 #for 0.95_ca135.0_vl0.4_sph to see the bubble expulsed
 
     times_t = []
     for i in range(start_i,end_i,step):
@@ -415,8 +432,11 @@ def compute_contact_length_variation(contactLghPath,
     from the volume and the contact angle as function of time
     '''
 
-    theta = pi*contact_angle/180.0
-    
+    print 'contact_angle: ', contact_angle
+
+    theta  = pi*float(180-contact_angle)/180.0
+    theta1 = pi-theta
+        
     contactLgh = np.loadtxt(contactLghPath)
     volume     = np.loadtxt(volumePath)
 
@@ -428,11 +448,16 @@ def compute_contact_length_variation(contactLghPath,
 
         volumet = volume[i,2]
 
-        contactLghEq = sqrt(volumet/((pi-theta)+cos(theta)*sin(theta)))*sin(theta)
+        eq_R   = sqrt(volumet)*1.0/sqrt(pi-theta1+cos(theta1)*sin(theta1))
+        eq_lgh = 2.0*eq_R*sin(theta1)
+
+        contactLghEq = eq_lgh #2.0*sqrt(volumet/((pi-theta)+cos(theta)*sin(theta)))*sin(theta)
 
         contactLghDiff[i] = (contactLghEq-contactLgh[i,2])/contactLghEq
 
-    out = open(os.path.dirname(volumePath)+'/contact_lgh_n.txt', 'w')
+        #print 'eq_lgh: ', contactLghEq, contactLgh[i,2], contactLghDiff[i]
+
+    out = open(os.path.join(os.path.dirname(volumePath),'contact_lgh_n.txt'), 'w')
     for (i,t,l) in zip(volume[:,0],volume[:,1],contactLghDiff):
         out.write("%f %f %f\n" % (i,t,l))
     out.close()
@@ -498,7 +523,8 @@ if __name__=='__main__':
                        show=options['show'],
                        x_limits=options['x_limits'],
                        y_limits=options['y_limits'],
-                       reflection=options['reflection'])
+                       reflection=options['reflection'],
+                       select_end_time=options['select_end_time'])
 
     [t_i,r_i] = find_initial_bubble(os.path.join(contoursPath,'volume.txt'))
 

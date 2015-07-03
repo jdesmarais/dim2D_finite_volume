@@ -26,6 +26,10 @@ from library_sm_lg_inputs import (get_mass_density_vapor,
 
 from automatization_contours_csts import cv_r,we
 
+debug = False
+add_sleep  = debug
+time_sleep = 5.0
+
 
 def create_mg_progress(mg_progress):
     '''
@@ -46,39 +50,57 @@ def create_mg_final(mg_progress):
     print '\n'
 
 
-def compute_volume(domain_borders,x_data,y_data):
+def get_x_reflection(domain_borders,bc_size=2):
+
+    x_reflection = domain_borders['x_min']+bc_size*domain_borders['dx']
+
+    return x_reflection
+
+
+def compute_volume(massLim,domain_borders,reflection=False):
     '''
     @description: compute the volume of
     the contours using trapezoid rule
     '''
 
-    y_min = domain_borders['y_min']+2.0*domain_borders['dy']
+    # create a variable which is equal to the mass
+    # inside the vapor phase and equal to 0 in the
+    # liquid phase
+    visit.DefineScalarExpression("vap_phase", "if( le(mass,"+str(massLim)+") , 1, 0)")
+    visit.AddPlot("Pseudocolor","vap_phase", 1, 1)
 
-    x_prev = x_data[0]
-    y_prev = y_data[0]
+    remove_boundary_pts(domain_borders)
 
-    volume = 0.0
-        
-    for i in range(1,len(x_data)):
-            
-        x = x_data[i]
-        y = y_data[i]
+    if(reflection):
+        x_reflection = get_x_reflection(domain_borders)
+        add_reflection_x(x_reflection)
 
-        if(y<y_min):
-            y = y_min
-            
-        dx = x - x_prev
-        dy = y - y_prev
-            
-        volume += dx*((y-y_min) + 0.5*dy)
-            
-        x_prev = x
-        y_prev = y
+    visit.DrawPlots()
 
-    return volume
+    if(add_sleep):
+        time.sleep(time_sleep)
+
+    # in this way the mass contained in the "bubble"
+    # is simply the sum of the mass over the entire
+    # domain
+    totalVolume = visit.Query("Weighted Variable Sum")
+    try:
+        totalVolume = float(totalVolume.split('is')[1].split('(')[0])
+    except ValueError:
+        print 'library_nc_to_vtklines'
+        print 'compute_volume'
+        print 'error when reading totalVolume'
+        print totalVolume
+        sys.exit(2)
+
+    # remove the plots
+    visit.RemoveOperator(0,1)
+    visit.DeleteActivePlots()
+
+    return totalVolume
 
 
-def compute_mass(massLim,domain_borders):
+def compute_mass(massLim,domain_borders,reflection=False):
     '''
     @description:
     define a variable which is 1.0 inside the
@@ -92,17 +114,16 @@ def compute_mass(massLim,domain_borders):
     visit.DefineScalarExpression("vap_phase", "if( le(mass,"+str(massLim)+") , mass, 0)")
     visit.AddPlot("Pseudocolor","vap_phase", 1, 1)
 
-    visit.AddOperator("Box",1)
-    BoxAtts = visit.BoxAttributes()
-    BoxAtts.amount = BoxAtts.All
-    BoxAtts.minx = domain_borders['x_min']+2.0*domain_borders['dx']
-    BoxAtts.maxx = domain_borders['x_max']-2.0*domain_borders['dx']
-    BoxAtts.miny = domain_borders['y_min']+2.0*domain_borders['dy']
-    BoxAtts.maxy = domain_borders['y_max']-2.0*domain_borders['dy']
-    BoxAtts.inverse = 0
-    visit.SetOperatorOptions(BoxAtts,1)
+    remove_boundary_pts(domain_borders)
+
+    if(reflection):
+        x_reflection = get_x_reflection(domain_borders)
+        add_reflection_x(x_reflection)
 
     visit.DrawPlots()
+
+    if(add_sleep):
+        time.sleep(time_sleep)
 
     # in this way the mass contained in the "bubble"
     # is simply the sum of the mass over the entire
@@ -118,6 +139,7 @@ def compute_mass(massLim,domain_borders):
         sys.exit(2)
 
     # remove the plots
+    visit.RemoveOperator(0,1)
     visit.DeleteActivePlots()
 
     return totalMass
@@ -215,15 +237,42 @@ def get_var_range(var):
     return [minVar,maxVar,midVar]
 
 
-def get_mid_by_max_grad(domain_borders,phase_check=False):
+def get_max_grad(domain_borders):
     '''
-    @description: extract the mass density at the
-    interface between the liquid and vapor phases
-    by extracting the mass at the location where
-    the maximum mass density gradient is reached
+    @description: extract the maximum of the gradient norm
+    in the interior domain
     '''
 
-    # extract the location of the maximum gradient for the mass
+    visit.DefineScalarExpression("mass_grad_x", "gradient(mass)[0]")
+    visit.DefineScalarExpression("mass_grad_y", "gradient(mass)[1]")
+    visit.DefineScalarExpression("mass_grad"  , "sqrt(mass_grad_x^2+mass_grad_y^2)")
+    visit.AddPlot("Pseudocolor","mass_grad", 1, 1)
+
+    remove_boundary_pts(domain_borders,bc_size=3)
+
+    visit.DrawPlots()
+
+    if(add_sleep):
+        time.sleep(time_sleep)
+
+    gradMass = visit.Query('Max', use_actual_data=1)
+
+    coord1 = float(gradMass.split(',')[0].split('<')[1])
+    coord2 = float(gradMass.split(',')[1].split('>')[0])
+
+    gradMass = float(gradMass.split('=')[1].split('(')[0])
+
+    visit.DeleteActivePlots()
+
+    return [coord1,coord2,gradMass]
+
+
+def get_max_grad_at_wall(domain_borders):
+    '''
+    @description: extract the maximum of the gradient norm
+    in the interior domain near the wall
+    '''
+
     visit.DefineScalarExpression("mass_grad_x", "gradient(mass)[0]")
     visit.DefineScalarExpression("mass_grad_y", "gradient(mass)[1]")
     visit.DefineScalarExpression("mass_grad"  , "sqrt(mass_grad_x^2+mass_grad_y^2)")
@@ -235,11 +284,14 @@ def get_mid_by_max_grad(domain_borders,phase_check=False):
     BoxAtts.minx = domain_borders['x_min']+2.5*domain_borders['dx']
     BoxAtts.maxx = domain_borders['x_max']-2.5*domain_borders['dx']
     BoxAtts.miny = domain_borders['y_min']+2.5*domain_borders['dy']
-    BoxAtts.maxy = domain_borders['y_max']-2.5*domain_borders['dy']
+    BoxAtts.maxy = domain_borders['y_min']+4.5*domain_borders['dy']
     BoxAtts.inverse = 0
     visit.SetOperatorOptions(BoxAtts,1)
 
     visit.DrawPlots()
+
+    if(add_sleep):
+        time.sleep(time_sleep)
 
     gradMass = visit.Query('Max', use_actual_data=1)
 
@@ -250,62 +302,113 @@ def get_mid_by_max_grad(domain_borders,phase_check=False):
 
     visit.DeleteActivePlots()
 
+    return [coord1,coord2,gradMass]
 
-    if(gradMass!=0.0):
 
-        # extract the mass at the location of the maximum gradient
-        visit.AddPlot("Pseudocolor","mass", 1, 1)
+def get_mass_for_contour(coord1,coord2,gradMass,phase_check):
+    '''
+    @description: extraction of the mass at [coord1,coord2]
+    and phase verification if enabled
+    '''
+
+    # extract the mass at the location of the maximum gradient
+    visit.AddPlot("Pseudocolor","mass", 1, 1)
+    visit.DrawPlots()
+
+    if(add_sleep):
+        time.sleep(time_sleep)
+
+    midMass = visit.NodePick(coord=(coord1,coord2,0),
+                             vars=("default","mass"))
+    midMass = midMass['mass']
+
+    visit.DeleteActivePlots()
+
+
+    # if the phase check is enabled, determine whether the mass
+    # density extracted corresponds to a potential mass density
+    # at the location of the interface
+    if(phase_check):
+
+        # definition of the kortweg energy
+        visit.DefineScalarExpression("mass_grad_squared", "mass_grad_x^2+mass_grad_y^2")
+        visit.DefineScalarExpression("we", str(we))
+        visit.DefineScalarExpression("korteweg_energy", "0.5/we*mass_grad_squared")
+    
+        # definition of the kinetic energy
+        visit.DefineScalarExpression("velocity_x", "momentum_x/mass")
+        visit.DefineScalarExpression("velocity_y", "momentum_y/mass")
+        visit.DefineScalarExpression("kinetic_energy", "0.5*mass*(velocity_x^2+velocity_y^2)")
+    
+        # definition of the temperature
+        visit.DefineScalarExpression("cv_r", str(cv_r))
+        visit.DefineScalarExpression("temperature", "3/(8*cv_r)*(1/mass*(energy-kinetic_energy-korteweg_energy)+3*mass)")
+    
+        # draw the temperature and extract the temperature at the maximum gradient point
+        visit.AddPlot("Pseudocolor","temperature", 1, 1)
         visit.DrawPlots()
 
-        midMass = visit.NodePick(coord=(coord1,coord2,0),
-                                 vars=("default","mass"))
-        midMass = midMass['mass']
+        midTemperature = visit.NodePick(coord=(coord1,coord2,0), vars=("default","temperature"))
+        midTemperature = midTemperature['temperature']
+
+        if(add_sleep):
+            time.sleep(time_sleep)
+            print midTemperature
 
         visit.DeleteActivePlots()
+    
+        # deduce the mass densities of the liquid and vapor phases at this temperature
+        mass_vap = get_mass_density_vapor(midTemperature)
+        mass_liq = get_mass_density_liquid(midTemperature)
+    
+        # check whether the mass density extracted is close enough from the
+        # mid mass density
+        mid_mass_c = 0.5*(mass_vap+mass_liq)
+        check = abs((midMass-mid_mass_c)/(mass_liq-mass_vap)) < 0.4
+
+        if(add_sleep):
+            print 'check_mass: ', check
+    
+        # check by comparing the maximum gradient of the mass density
+        interface_lgh = get_interface_length(we,midTemperature)
+        mid_gradMass = abs((mass_liq-mass_vap)/interface_lgh)
+        check_grad = \
+            (abs((abs(gradMass) - mid_gradMass)/mid_gradMass) < 0.4) or\
+            (abs(gradMass)>mid_gradMass)
+
+        if(debug):
+            print 'check_md_grad : ', (abs((abs(gradMass) - mid_gradMass)/mid_gradMass) < 0.4)
+            print 'check_md_grad2: ', (abs(gradMass)>0.8*mid_gradMass)
+
+        check = check and check_grad
+
+        if(add_sleep):
+            print 'check_mass_grad: ', (abs((gradMass - mid_gradMass)/mid_gradMass) < 0.4)
+            print 'diff: ', abs((gradMass - mid_gradMass)/mid_gradMass)
+
+    else:
+        check = True
+
+    return [midMass,check]
 
 
-        # if the phase check is enabled, determine whether the mass
-        # density extracted corresponds to a potential mass density
-        # at the location of the interface
-        if(phase_check):
+def get_mid_by_max_grad(domain_borders,phase_check=False):
+    '''
+    @description: extract the mass density at the
+    interface between the liquid and vapor phases
+    by extracting the mass at the location where
+    the maximum mass density gradient is reached
+    '''
 
-            # definition of the kortweg energy
-    	    visit.DefineScalarExpression("mass_grad_squared", "mass_grad_x^2+mass_grad_y^2")
-    	    visit.DefineScalarExpression("we", str(we))
-    	    visit.DefineScalarExpression("korteweg_energy", "0.5/we*mass_grad_squared")
-    	
-    	    # definition of the kinetic energy
-    	    visit.DefineScalarExpression("velocity_x", "momentum_x/mass")
-    	    visit.DefineScalarExpression("velocity_y", "momentum_y/mass")
-    	    visit.DefineScalarExpression("kinetic_energy", "0.5*mass*(velocity_x^2+velocity_y^2)")
-    	
-    	    # definition of the temperature
-    	    visit.DefineScalarExpression("cv_r", str(cv_r))
-    	    visit.DefineScalarExpression("temperature", "3/(8*cv_r)*(1/mass*(energy-kinetic_energy-korteweg_energy)+3*mass)")
-    	
-    	    # draw the temperature and extract the temperature at the maximum gradient point
-    	    visit.AddPlot("Pseudocolor","temperature", 1, 1)
-    	    visit.DrawPlots()
-    	    midTemperature = visit.NodePick(coord=(coord1,coord2,0), vars=("default","temperature"))
-    	    midTemperature = midTemperature['temperature']
-    	    visit.DeleteActivePlots()
-    	
-    	    # deduce the mass densities of the liquid and vapor phases at this temperature
-    	    mass_vap = get_mass_density_vapor(midTemperature)
-    	    mass_liq = get_mass_density_liquid(midTemperature)
-    	
-    	    # check whether the mass density extracted is close enough from the
-    	    # mid mass density
-    	    mid_mass_c = 0.5*(mass_vap+mass_liq)
-    	    check = abs((midMass-mid_mass_c)/(mass_liq-mass_vap)) < 0.2
-    	
-    	    # check by comparing the maximum gradient of the mass density
-    	    interface_lgh = get_interface_length(we,midTemperature)
-    	    mid_gradMass = (mass_liq-mass_vap)/interface_lgh
-    	    check = check and (abs((gradMass - mid_gradMass)/mid_gradMass) < 0.4)
+    # extract the location of the maximum gradient for the mass
+    [coord1,coord2,gradMass] = get_max_grad(domain_borders)
 
-        else:
-            check = True
+
+    # extract the mass at the location of the maximum gradient
+    # and check whether it is an interface
+    if(gradMass!=0.0):
+
+        [midMass,check] = get_mass_for_contour(coord1,coord2,gradMass,phase_check)
 
     else:
         midMass = 0.0
@@ -323,144 +426,161 @@ def get_mid_by_max_grad_at_wall(domain_borders,phase_check=False):
     is reached    
     '''
 
-    visit.DefineScalarExpression("mass_grad_x", "gradient(mass)[0]")
-    visit.AddPlot("Pseudocolor","mass_grad_x", 1, 1)
+    # extract the location of the maximum gradient for the mass
+    [coord1,coord2,gradMass] = get_max_grad_at_wall(domain_borders)
 
-    visit.AddOperator("Box",1)
-    BoxAtts = visit.BoxAttributes()
-    BoxAtts.amount = BoxAtts.All
-    BoxAtts.minx = domain_borders['x_min']
-    BoxAtts.maxx = domain_borders['x_max']
-    BoxAtts.miny = domain_borders['y_min']+1.5*domain_borders['dy']
-    BoxAtts.maxy = domain_borders['y_min']+3.5*domain_borders['dy']
-    BoxAtts.inverse = 0
-    visit.SetOperatorOptions(BoxAtts,1)
 
-    visit.DrawPlots()
+    # extract the mass at the location of the maximum gradient
+    # and check whether it is an interface
+    if(gradMass!=0.0):
 
-    gradxMass = visit.Query('Max', use_actual_data=1)
-    coord1 = float(gradxMass.split(',')[0].split('<')[1])
-    coord2 = float(gradxMass.split(',')[1].split('>')[0])
-
-    grad_x_Mass = float(gradxMass.split('=')[1].split('(')[0])
-
-    visit.DeleteActivePlots()
-
-    linearInterpolation=(grad_x_Mass!=0.0)
-
-    if(grad_x_Mass!=0.0):       
-
-    	if(linearInterpolation):
-    	    # two points are needed for the linear interpolation
-    	    # these are the points next to the node where the maximum
-    	    # mass gradient along x is reached
-    	    coord1_int0 = coord1-domain_borders['dx']
-    	    coord1_int1 = coord1+domain_borders['dx']
-    	    
-    	    # we need to find the coordinates where the maximum
-    	    # gradient is reached by d2mass/dx2 = 0 using linear
-    	    # interpolation between the two previous points
-    	    visit.DefineScalarExpression("mass_grad_xx", "gradient(mass_grad_x)[0]")
-    	    visit.AddPlot("Pseudocolor","mass_grad_xx", 1, 1)
-    	    visit.DrawPlots()
-    	
-    	    massGradXX_0 = visit.NodePick(
-    	        coord=(coord1_int0,coord2,0),
-    	        vars=("default","mass_grad_xx"))
-    	    massGradXX_0 = massGradXX_0['mass_grad_xx']
-    	
-    	    massGradXX_1 = visit.NodePick(
-    	        coord=(coord1_int1,coord2,0),
-    	        vars=("default","mass_grad_xx"))
-    	    massGradXX_1 = massGradXX_1['mass_grad_xx']
-    	
-    	    coord1 = coord1_int0 - massGradXX_0*(coord1_int1-coord1_int0)/(massGradXX_1-massGradXX_0)
-    	    visit.DeleteActivePlots()
-    	
-    	    # we need to determine the mass at the coord1
-    	    # using linear interpolation
-    	    visit.AddPlot("Pseudocolor","mass", 1, 1)
-    	    visit.DrawPlots()
-    	
-    	    mass_0 = visit.NodePick(
-    	        coord=(coord1_int0,coord2,0),
-    	        vars=("default","mass"))
-            mass_0 = mass_0['mass']
-    	
-    	    mass_1 = visit.NodePick(
-    	        coord=(coord1_int1,coord2,0),
-    	        vars=("default","mass"))
-            mass_1 = mass_1['mass']
-    	
-    	    midMass = mass_0 + (mass_1-mass_0)/(coord1_int1-coord1_int0)*(coord1-coord1_int0)
-    	
-    	    visit.DeleteActivePlots()
-    	
-    	else:
-    	
-    	    midMass = visit.NodePick(coord=(coord1,coord2,0), vars=("default","mass"))        
-    	    midMass = midMass['mass']
-    	
-    	if(phase_check):
-    	
-    	    # definition of the kortweg energy
-    	    visit.DefineScalarExpression("mass_grad_y", "gradient(mass)[1]")
-    	    visit.DefineScalarExpression("mass_grad_squared", "mass_grad_x^2+mass_grad_y^2")
-    	    visit.DefineScalarExpression("we", str(we))
-    	    visit.DefineScalarExpression("korteweg_energy", "0.5/we*mass_grad_squared")
-    	
-    	    # definition of the kinetic energy
-    	    visit.DefineScalarExpression("velocity_x", "momentum_x/mass")
-    	    visit.DefineScalarExpression("velocity_y", "momentum_y/mass")
-    	    visit.DefineScalarExpression("kinetic_energy", "0.5*mass*(velocity_x^2+velocity_y^2)")
-    	
-    	    # definition of the temperature
-    	    visit.DefineScalarExpression("cv_r", str(cv_r))
-    	    visit.DefineScalarExpression("temperature", "3/(8*cv_r)*(1/mass*(energy-kinetic_energy-korteweg_energy)+3*mass)")
-    	
-    	    # draw the temperature and extract the temperature at the maximum gradient point
-    	    visit.AddPlot("Pseudocolor","temperature", 1, 1)
-    	    visit.DrawPlots()
-    	    midTemperature = visit.NodePick(coord=(coord1,coord2,0), vars=("default","temperature"))
-    	    midTemperature = midTemperature['temperature']
-    	    visit.DeleteActivePlots()
-    	
-    	    # deduce the mass densities of the liquid and vapor phases at this temperature
-    	    mass_vap = get_mass_density_vapor(midTemperature)
-    	    mass_liq = get_mass_density_liquid(midTemperature)
-    	
-    	    # check whether the mass density extracted is close enough from the
-    	    # mid mass density
-    	    mid_mass_c = 0.5*(mass_vap+mass_liq)
-    	    check = abs((midMass-mid_mass_c)/(mass_liq-mass_vap)) < 0.2
-    	
-    	    # check with the norm of the mass density gradient
-    	    visit.AddPlot("Pseudocolor","mass_grad_y", 1, 1)
-    	    visit.DrawPlots()
-    	    gradyMass = visit.NodePick(coord=(coord1,coord2,0), vars=("default","mass_grad_y"))
-    	    grad_y_Mass = gradyMass['mass_grad_y']
-    	    visit.DeleteActivePlots()
-    	
-    	    gradMassNorm = sqrt(grad_x_Mass**2+grad_y_Mass**2)
-    	
-    	    # check by comparing the maximum gradient of the mass density
-    	    interface_lgh = get_interface_length(we,midTemperature)
-    	    mid_gradMass = (mass_liq-mass_vap)/interface_lgh
-    	    check = abs((gradMassNorm - mid_gradMass)/mid_gradMass) < 0.4
-
-    	else:
-    	
-    	    check = True
-    	
-    	visit.RemoveOperator(0, 1)
-    	visit.DeleteActivePlots()
-    	visit.ClearPickPoints()
+        [midMass,check] = get_mass_for_contour(coord1,coord2,gradMass,phase_check)
 
     else:
         midMass = 0.0
         check = False
 
     return [midMass,check]
+
+
+    #visit.DefineScalarExpression("mass_grad_x", "gradient(mass)[0]")
+    #visit.AddPlot("Pseudocolor","mass_grad_x", 1, 1)
+    #
+    #visit.AddOperator("Box",1)
+    #BoxAtts = visit.BoxAttributes()
+    #BoxAtts.amount = BoxAtts.All
+    #BoxAtts.minx = domain_borders['x_min']
+    #BoxAtts.maxx = domain_borders['x_max']
+    #BoxAtts.miny = domain_borders['y_min']+1.5*domain_borders['dy']
+    #BoxAtts.maxy = domain_borders['y_min']+3.5*domain_borders['dy']
+    #BoxAtts.inverse = 0
+    #visit.SetOperatorOptions(BoxAtts,1)
+    #
+    #visit.DrawPlots()
+    #
+    #gradxMass = visit.Query('Max', use_actual_data=1)
+    #coord1 = float(gradxMass.split(',')[0].split('<')[1])
+    #coord2 = float(gradxMass.split(',')[1].split('>')[0])
+    #
+    #grad_x_Mass = float(gradxMass.split('=')[1].split('(')[0])
+    #
+    #visit.DeleteActivePlots()
+    #
+    #linearInterpolation=(grad_x_Mass!=0.0)
+    #
+    #if(grad_x_Mass!=0.0):       
+    #
+    #	if(linearInterpolation):
+    #	    # two points are needed for the linear interpolation
+    #	    # these are the points next to the node where the maximum
+    #	    # mass gradient along x is reached
+    #	    coord1_int0 = coord1-domain_borders['dx']
+    #	    coord1_int1 = coord1+domain_borders['dx']
+    #	    
+    #	    # we need to find the coordinates where the maximum
+    #	    # gradient is reached by d2mass/dx2 = 0 using linear
+    #	    # interpolation between the two previous points
+    #	    visit.DefineScalarExpression("mass_grad_xx", "gradient(mass_grad_x)[0]")
+    #	    visit.AddPlot("Pseudocolor","mass_grad_xx", 1, 1)
+    #	    visit.DrawPlots()
+    #	
+    #	    massGradXX_0 = visit.NodePick(
+    #	        coord=(coord1_int0,coord2,0),
+    #	        vars=("default","mass_grad_xx"))
+    #	    massGradXX_0 = massGradXX_0['mass_grad_xx']
+    #	
+    #	    massGradXX_1 = visit.NodePick(
+    #	        coord=(coord1_int1,coord2,0),
+    #	        vars=("default","mass_grad_xx"))
+    #	    massGradXX_1 = massGradXX_1['mass_grad_xx']
+    #	
+    #	    coord1 = coord1_int0 - massGradXX_0*(coord1_int1-coord1_int0)/(massGradXX_1-massGradXX_0)
+    #	    visit.DeleteActivePlots()
+    #	
+    #	    # we need to determine the mass at the coord1
+    #	    # using linear interpolation
+    #	    visit.AddPlot("Pseudocolor","mass", 1, 1)
+    #	    visit.DrawPlots()
+    #	
+    #	    mass_0 = visit.NodePick(
+    #	        coord=(coord1_int0,coord2,0),
+    #	        vars=("default","mass"))
+    #        mass_0 = mass_0['mass']
+    #	
+    #	    mass_1 = visit.NodePick(
+    #	        coord=(coord1_int1,coord2,0),
+    #	        vars=("default","mass"))
+    #        mass_1 = mass_1['mass']
+    #	
+    #	    midMass = mass_0 + (mass_1-mass_0)/(coord1_int1-coord1_int0)*(coord1-coord1_int0)
+    #	
+    #	    visit.DeleteActivePlots()
+    #	
+    #	else:
+    #	
+    #	    midMass = visit.NodePick(coord=(coord1,coord2,0), vars=("default","mass"))        
+    #	    midMass = midMass['mass']
+    #	
+    #	if(phase_check):
+    #	
+    #	    # definition of the kortweg energy
+    #	    visit.DefineScalarExpression("mass_grad_y", "gradient(mass)[1]")
+    #	    visit.DefineScalarExpression("mass_grad_squared", "mass_grad_x^2+mass_grad_y^2")
+    #	    visit.DefineScalarExpression("we", str(we))
+    #	    visit.DefineScalarExpression("korteweg_energy", "0.5/we*mass_grad_squared")
+    #	
+    #	    # definition of the kinetic energy
+    #	    visit.DefineScalarExpression("velocity_x", "momentum_x/mass")
+    #	    visit.DefineScalarExpression("velocity_y", "momentum_y/mass")
+    #	    visit.DefineScalarExpression("kinetic_energy", "0.5*mass*(velocity_x^2+velocity_y^2)")
+    #	
+    #	    # definition of the temperature
+    #	    visit.DefineScalarExpression("cv_r", str(cv_r))
+    #	    visit.DefineScalarExpression("temperature", "3/(8*cv_r)*(1/mass*(energy-kinetic_energy-korteweg_energy)+3*mass)")
+    #	
+    #	    # draw the temperature and extract the temperature at the maximum gradient point
+    #	    visit.AddPlot("Pseudocolor","temperature", 1, 1)
+    #	    visit.DrawPlots()
+    #	    midTemperature = visit.NodePick(coord=(coord1,coord2,0), vars=("default","temperature"))
+    #	    midTemperature = midTemperature['temperature']
+    #	    visit.DeleteActivePlots()
+    #	
+    #	    # deduce the mass densities of the liquid and vapor phases at this temperature
+    #	    mass_vap = get_mass_density_vapor(midTemperature)
+    #	    mass_liq = get_mass_density_liquid(midTemperature)
+    #	
+    #	    # check whether the mass density extracted is close enough from the
+    #	    # mid mass density
+    #	    mid_mass_c = 0.5*(mass_vap+mass_liq)
+    #	    check = abs((midMass-mid_mass_c)/(mass_liq-mass_vap)) < 0.2
+    #	
+    #	    # check with the norm of the mass density gradient
+    #	    visit.AddPlot("Pseudocolor","mass_grad_y", 1, 1)
+    #	    visit.DrawPlots()
+    #	    gradyMass = visit.NodePick(coord=(coord1,coord2,0), vars=("default","mass_grad_y"))
+    #	    grad_y_Mass = gradyMass['mass_grad_y']
+    #	    visit.DeleteActivePlots()
+    #	
+    #	    gradMassNorm = sqrt(grad_x_Mass**2+grad_y_Mass**2)
+    #	
+    #	    # check by comparing the maximum gradient of the mass density
+    #	    interface_lgh = get_interface_length(we,midTemperature)
+    #	    mid_gradMass = (mass_liq-mass_vap)/interface_lgh
+    #	    check = abs((gradMassNorm - mid_gradMass)/mid_gradMass) < 0.2
+    #
+    #	else:
+    #	
+    #	    check = True
+    #	
+    #	visit.RemoveOperator(0, 1)
+    #	visit.DeleteActivePlots()
+    #	visit.ClearPickPoints()
+    #
+    #else:
+    #    midMass = 0.0
+    #    check = False
+    #
+    #return [midMass,check]
 
 
 def add_contours(var,contourBorders):
@@ -500,10 +620,10 @@ def remove_boundary_pts(domain_borders,bc_size=2):
     computational domain
     '''
 
-    x_min_R = domain_borders['x_min']+bc_size*domain_borders['dx']
-    x_max_R = domain_borders['x_max']-bc_size*domain_borders['dx']
-    y_min_R = domain_borders['y_min']+bc_size*domain_borders['dy']
-    y_max_R = domain_borders['y_max']-bc_size*domain_borders['dy']
+    x_min_R = domain_borders['x_min']+(bc_size+0.5)*domain_borders['dx']
+    x_max_R = domain_borders['x_max']-(bc_size+0.5)*domain_borders['dx']
+    y_min_R = domain_borders['y_min']+(bc_size+0.5)*domain_borders['dy']
+    y_max_R = domain_borders['y_max']-(bc_size+0.5)*domain_borders['dy']
 
     visit.AddOperator("Box",1)
     BoxAtts = visit.BoxAttributes()
@@ -538,20 +658,21 @@ def generate_contours(var,domain_borders,contourBorders,reflection=False):
     of 'var' defined by contourBorders
     '''
 
-    bc_size=2
-
     # plot the contour
     add_contours(var,contourBorders)
 
     # remove the boundary
-    remove_boundary_pts(domain_borders,bc_size=bc_size)
+    #remove_boundary_pts(domain_borders,bc_size=bc_size)
 
     # if reflection added, add a reflection operator
     if(reflection):
-        x_reflection = domain_borders['x_min']+bc_size*domain_borders['dx']
+        x_reflection = get_x_reflection(domain_borders)
         add_reflection_x(x_reflection)
 
     visit.DrawPlots()
+
+    if(add_sleep):
+        time.sleep(time_sleep)
 
 
 def export_contours_to_vtk(vtkPath):
@@ -673,10 +794,10 @@ def generate_vtklines(ncPath,
             os.remove(os.path.basename(vtkPath)+'.vtk')
 
         #get the volume
-        volume = compute_volume(domain_borders, graph_data[0][:], graph_data[1][:])
+        volume = compute_volume(contourMin,domain_borders,reflection=reflection)
 
         #get the mass
-        mass = compute_mass(contourMin,domain_borders)
+        mass = compute_mass(contourMin,domain_borders,reflection=reflection)
 
     else:
         #no contours
@@ -789,7 +910,7 @@ def generate_time_contour_data(ncRootPath,
 
             # if this lowest point is above the wall limit,
             # then the bubble is detached from the wall
-            if(y_min>(domain_borders['y_min']+3.0*domain_borders['dy'])): #+2*domain_borders['dy']
+            if(y_min>(domain_borders['y_min']+2.0*domain_borders['dy'])): #+2*domain_borders['dy']
                 contact_lgh[i]=0.0
 
             # otherwise, the bubble is attached to the wall
