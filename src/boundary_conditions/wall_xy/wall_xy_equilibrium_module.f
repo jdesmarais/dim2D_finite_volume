@@ -41,6 +41,7 @@
 
         use parameters_constant, only :
      $       left,
+     $       right,
      $       
      $       uniform_surface,
      $       surface_with_heaters,
@@ -281,9 +282,9 @@
           flux_x(3) = -1.0d0/re*flux_x_viscid_momentum_y(nodes,s,i,j,dx)
      $                -1.0d0/we*flux_x_capillarity_momentum_y(nodes,s,i,j,dx,dy)
 
-             
-          flux_x(4) = -1.0d0/re*(-get_wall_heat_flux(t,x_map(i),y_map(j)))
-          if(side.eqv.left) then
+          flux_x(4) = get_wall_heat_flux(t,x_map(i),y_map(j))
+
+          if(side.eqv.right) then
              flux_x(4) = - flux_x(4)
           end if
 
@@ -292,9 +293,9 @@
              wall_extra_heat_flux = get_wall_extra_heat_flux(t,x_map(i),y_map(j))
 
              if(side.eqv.left) then
-                flux_x(4) = flux_x(4) - wall_extra_heat_flux
-             else
                 flux_x(4) = flux_x(4) + wall_extra_heat_flux
+             else
+                flux_x(4) = flux_x(4) - wall_extra_heat_flux
              end if
 
           end if
@@ -377,8 +378,9 @@
           flux_y(3) = flux_y_inviscid_momentum_y(t,x_map,y_map,nodes,dx,dy,i,j,side,gradient_x_proc)
      $                -1.0d0/we*flux_y_capillarity_momentum_y(nodes,s,i,j,dx,dy)
 
-          flux_y(4) = -1.0d0/re*(-get_wall_heat_flux(t,x_map(i),y_map(j)))
-          if(side.eqv.left) then
+          flux_y(4) = get_wall_heat_flux(t,x_map(i),y_map(j))
+
+          if(side.eqv.right) then
              flux_y(4) = - flux_y(4)
           end if
 
@@ -487,7 +489,7 @@
           end if
 
           !high temperature
-          Th = Tl + dx*Pr*get_wall_heat_flux(t,x_map(i),y_map(j))
+          Th = Tl + dx*3.0d0/(8.0d0*cv_r)*Re*Pr*get_wall_heat_flux(t,x_map(i),y_map(j))
 
           !temperature at (i-1/2,j)
           T_half = 0.5d0*(Tl+Th)
@@ -835,7 +837,7 @@
           end if
 
           !high temperature
-          Th = Tl + dy*Pr*get_wall_heat_flux(t,x_map(i),y_map(j))
+          Th = Tl + dy*Re*Pr*(3.0d0/(8.0d0*cv_r))*get_wall_heat_flux(t,x_map(i),y_map(j))
 
           !temperature at (i,j-1/2)
           T_half = 0.5d0*(Tl+Th)
@@ -2283,11 +2285,11 @@
           if(rkind.eq.8) then
              temperature_average =
      $            temperature0 +
-     $            0.5d0*delta_x*Pr*wall_heat_flux
+     $            0.5d0*delta_x*Re*Pr*3.0d0/(8.0d0*cv_r)*wall_heat_flux
           else
              temperature_average =
      $            temperature0 +
-     $            0.5*delta_x*Pr*wall_heat_flux
+     $            0.5*delta_x*Re*Pr*3.0/(8.0*cv_r)*wall_heat_flux
           end if
 
         end function temperature_average

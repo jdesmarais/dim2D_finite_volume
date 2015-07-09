@@ -134,7 +134,7 @@ def generate_wall_nonst_results_uniform_surface(
             gravity_ac                    = gravity_ac,
             gravity_amp                   = gravity_amp,
             wall_surface_type             = wall_surface_type,
-            wall_micro_contact_angle      = contact_angle,
+            wall_micro_contact_angle      = wall_micro_contact_angle,
             wall_heater_center            = wall_heater_center,
             wall_heater_length            = wall_heater_length,
             wall_heat_source_choice       = wall_heat_source_choice,
@@ -164,7 +164,7 @@ def generate_wall_nonst_results_uniform_surface(
             gravity_ac                    = gravity_ac,
             gravity_amp                   = gravity_amp,
             wall_surface_type             = wall_surface_type,
-            wall_micro_contact_angle      = contact_angle,
+            wall_micro_contact_angle      = wall_micro_contact_angle,
             wall_heater_center            = wall_heater_center,
             wall_heater_length            = wall_heater_length,
             wall_extra_heat_source_choice = wall_heat_source_choice,
@@ -201,39 +201,74 @@ def generate_wall_nonst_results_surface_with_heaters(
     spherical_cap,
     nucleation_in_flow,
     extra_domain,
-    adapt_domain):
+    adapt_domain,
+    conduction_heat=False):
     '''
     @description: generate the results for a surface with heaters
     '''
 
-    [destDir, nameRun] =\
-        \
-        generate_wall_nonst_results(
-        mainDir,
-        model_input,
-        PBSnameRun,
-        simulationDuration,
-        steady_state_ac                    = steady_state_ac,
-        temperature                        = temperature,
-        flow_velocity                      = flow_velocity,
-        flow_profile                       = flow_profile,
-        phase_at_center                    = phase_at_center,
-        ratio_bubble_interface             = ratio_bubble_interface,
-        gravity_ac                         = gravity_ac,
-        gravity_amp                        = gravity_amp,
-        wall_surface_type                  = wall_surface_type,
-        wall_heater_center                 = wall_heater_center,
-        wall_heater_length                 = wall_heater_length,
-        wall_heater_variation_angle_length = wall_heater_variation_angle_length,
-        wall_heater_micro_contact_angle    = wall_heater_micro_contact_angle,
-        wall_micro_contact_angle           = wall_micro_contact_angle,
-        wall_extra_heat_source_choice      = wall_heat_source_choice,
-        wall_maximum_extra_heat_flux       = wall_maximum_heat_flux,
-        total_nb_files                     = total_nb_files,
-        spherical_cap                      = spherical_cap,
-        nucleation_in_flow                 = nucleation_in_flow,
-        extra_domain                       = extra_domain,
-        adapt_domain                       = adapt_domain)
+    
+    if(conduction_heat):
+
+        [destDir, nameRun] =\
+            \
+            generate_wall_nonst_results(
+            mainDir,
+            model_input,
+            PBSnameRun,
+            simulationDuration,
+            steady_state_ac                    = steady_state_ac,
+            temperature                        = temperature,
+            flow_velocity                      = flow_velocity,
+            flow_profile                       = flow_profile,
+            phase_at_center                    = phase_at_center,
+            ratio_bubble_interface             = ratio_bubble_interface,
+            gravity_ac                         = gravity_ac,
+            gravity_amp                        = gravity_amp,
+            wall_surface_type                  = wall_surface_type,
+            wall_heater_center                 = wall_heater_center,
+            wall_heater_length                 = wall_heater_length,
+            wall_heater_variation_angle_length = wall_heater_variation_angle_length,
+            wall_heater_micro_contact_angle    = wall_heater_micro_contact_angle,
+            wall_micro_contact_angle           = wall_micro_contact_angle,
+            wall_heat_source_choice            = wall_heat_source_choice,
+            wall_maximum_heat_flux             = wall_maximum_heat_flux,
+            total_nb_files                     = total_nb_files,
+            spherical_cap                      = spherical_cap,
+            nucleation_in_flow                 = nucleation_in_flow,
+            extra_domain                       = extra_domain,
+            adapt_domain                       = adapt_domain)
+
+    else:
+
+        [destDir, nameRun] =\
+            \
+            generate_wall_nonst_results(
+            mainDir,
+            model_input,
+            PBSnameRun,
+            simulationDuration,
+            steady_state_ac                    = steady_state_ac,
+            temperature                        = temperature,
+            flow_velocity                      = flow_velocity,
+            flow_profile                       = flow_profile,
+            phase_at_center                    = phase_at_center,
+            ratio_bubble_interface             = ratio_bubble_interface,
+            gravity_ac                         = gravity_ac,
+            gravity_amp                        = gravity_amp,
+            wall_surface_type                  = wall_surface_type,
+            wall_heater_center                 = wall_heater_center,
+            wall_heater_length                 = wall_heater_length,
+            wall_heater_variation_angle_length = wall_heater_variation_angle_length,
+            wall_heater_micro_contact_angle    = wall_heater_micro_contact_angle,
+            wall_micro_contact_angle           = wall_micro_contact_angle,
+            wall_extra_heat_source_choice      = wall_heat_source_choice,
+            wall_maximum_extra_heat_flux       = wall_maximum_heat_flux,
+            total_nb_files                     = total_nb_files,
+            spherical_cap                      = spherical_cap,
+            nucleation_in_flow                 = nucleation_in_flow,
+            extra_domain                       = extra_domain,
+            adapt_domain                       = adapt_domain)
 
 
 if __name__=="__main__":
@@ -264,13 +299,13 @@ if __name__=="__main__":
 
     # choice of the results generated
     #------------------------------------------------------------
-    uniformNucleation_sourceHeatStudy     = True
+    uniformNucleation_sourceHeatStudy     = False
     uniformNucleation_contactAngleStudy   = False
     uniformNucleation_flowVelocityStudy   = False
 
     heaterNucleation_sourceHeatStudy   = False
-    heaterNucleation_contactAngleStudy = False
-    heaterNucleation_flowVelocityStudy = False
+    heaterNucleation_contactAngleStudy = True
+    heaterNucleation_flowVelocityStudy = True
 
     uniformSphericalC_flowVelocityStudy = False
     heaterSphericalC_flowVelocityStudy  = False
@@ -303,7 +338,7 @@ if __name__=="__main__":
     #        conduction heat or artifical heat
     #------------------------------------------------------------
     wall_micro_contact_angle_uniform_nucleation =  90.0 
-    wall_maximum_heat_flux_nucleation           = -0.02
+    wall_maximum_heat_flux_nucleation           =  0.02
     wall_micro_contact_angle_with_heaters       =  0.0
     flow_profile                                = 'parabolic_profile'
     extra_domain                                = 'None'
@@ -312,7 +347,7 @@ if __name__=="__main__":
             
 
     #============================================================
-    #2) source heat study for one contact angle
+    #1) source heat study for one contact angle
     #============================================================
     if(uniformNucleation_sourceHeatStudy or
        heaterNucleation_sourceHeatStudy):
@@ -330,16 +365,16 @@ if __name__=="__main__":
         gravity_amp              = 0.000
 
         wall_heater_center       = 0.0
-        wall_heater_length       = get_heater_length(Li)
+        wall_heater_length       = 4*Li
         wall_heat_source_choice  = 'gaussian_heat_source'
-        wall_max_heat_flux_array = [-0.02] #[-0.02,-0.04,-0.06,-0.08,-0.1]
+        wall_max_heat_flux_array = [0.04,0.06,0.08,0.1] #[-0.02,-0.04,-0.06,-0.08,-0.1]
         total_nb_files           = 500
 
         spherical_cap      = False
         nucleation_in_flow = False
 
         #-------------------------------------------------------------
-        #2.1) uniform surface: source heat study for one contact angle
+        #1.1) uniform surface: source heat study for one contact angle
         #-------------------------------------------------------------
         if(uniformNucleation_sourceHeatStudy):
             wall_surface_type        = 'uniform_surface'
@@ -377,7 +412,7 @@ if __name__=="__main__":
 
 
         #-------------------------------------------------------------
-        #2.2) surface with heaters: source heat study for one contact angle
+        #1.2) surface with heaters: source heat study for one contact angle
         #-------------------------------------------------------------
         if(heaterNucleation_sourceHeatStudy):
             wall_surface_type                  = 'surface_with_heaters'
@@ -419,12 +454,12 @@ if __name__=="__main__":
 
                 
     #============================================================
-    #3) contact angle study for fixed heat flux
+    #2) contact angle study for fixed heat flux
     #============================================================
     if(uniformNucleation_contactAngleStudy or
        heaterNucleation_contactAngleStudy):
 
-        simulationDuration  = 100
+        simulationDuration  = 20
         steady_state_ac     = 0
         temperature         = 0.95
         flow_velocity       = 0.0
@@ -436,9 +471,9 @@ if __name__=="__main__":
         gravity_ac               = 0
         gravity_amp              = 0.000
 
-        wall_micro_contact_angle = [135.0] #[22.5,45.0,67.5,112.5,135.0]
+        wall_micro_contact_angle = [22.5] #,45.0,67.5,112.5,135.0]
         wall_heater_center       = 0.0
-        wall_heater_length       = 4.0*Li
+        wall_heater_length       = get_heater_length(22.5,Li) #4.0*Li
         wall_heat_source_choice  = 'gaussian_heat_source'
         wall_maximum_heat_flux   = wall_maximum_heat_flux_nucleation
         total_nb_files           = 500
@@ -448,7 +483,7 @@ if __name__=="__main__":
 
     
         #-------------------------------------------------------------
-        #3.1) uniform surface: contact angle study for one heat flux
+        #2.1) uniform surface: contact angle study for one heat flux
         #-------------------------------------------------------------
         if(uniformNucleation_contactAngleStudy):
 
@@ -481,10 +516,11 @@ if __name__=="__main__":
                     spherical_cap,
                     nucleation_in_flow,
                     extra_domain,
-                    adapt_domain)
+                    adapt_domain,
+                    conduction_heat=conduction_heat)
 
         #-------------------------------------------------------------
-        #3.2) surface with heaters: contact angle study for one heat flux
+        #2.2) surface with heaters: contact angle study for one heat flux
         #-------------------------------------------------------------
         if(heaterNucleation_contactAngleStudy):
 
@@ -523,11 +559,12 @@ if __name__=="__main__":
                     spherical_cap,
                     nucleation_in_flow,
                     extra_domain,
-                    adapt_domain)
+                    adapt_domain,
+                    conduction_heat=conduction_heat)
 
 
     #============================================================
-    #4) flow velocity study for the bubble nucleation
+    #3) flow velocity study for the bubble nucleation
     #============================================================
     if(uniformNucleation_flowVelocityStudy or
        heaterNucleation_flowVelocityStudy):
@@ -540,8 +577,8 @@ if __name__=="__main__":
 
         contact_angle_array  = [22.5] #[22.5,45.0,67.5,112.5,135.0]
         phase_at_center      = 'vapor'
-        flow_velocity_array  = [0.4]
-        flow_profile         = 'parabolic_profile' #'linear_profile' 
+        flow_velocity_array  = [0.1,0.2,0.3,0.4,0.5]
+        flow_profile         = 'parabolic_profile' #'linear_profile'
 
         ratio_bubble_interface = 2.0
         gravity_ac             = 0
@@ -551,7 +588,7 @@ if __name__=="__main__":
         wall_heater_center       = 0.0
         wall_heater_length       = get_heater_length(22.5,Li)
         wall_heat_source_choice  = 'gaussian_heat_source'
-        max_heat_flux_array      = [-0.08,-0.1] #-0.08,-0.1,-0.12] #-0.04,-0.06]#-0.05,-0.06,-0.07] #,-0.06,-0.08,-0.1]#,-0.04] #[-0.04,-0.06,-0.08,-0.1]
+        max_heat_flux_array      = [0.04] #-0.08,-0.1] #-0.08,-0.1,-0.12] #-0.04,-0.06]#-0.05,-0.06,-0.07] #,-0.06,-0.08,-0.1]#,-0.04] #[-0.04,-0.06,-0.08,-0.1]
 
         total_nb_files           = 500
         spherical_cap            = False
@@ -559,7 +596,7 @@ if __name__=="__main__":
 
 
         #-------------------------------------------------------------
-        #4.1) uniform surface: flow velocity study
+        #3.1) uniform surface: flow velocity study
         #-------------------------------------------------------------
         if(uniformNucleation_flowVelocityStudy):
 
@@ -600,11 +637,12 @@ if __name__=="__main__":
                             spherical_cap,
                             nucleation_in_flow,
                             extra_domain,
-                            adapt_domain)
+                            adapt_domain,
+                            conduction_heat=conduction_heat)
 
 
         #-------------------------------------------------------------
-        #4.2) surface with heaters: flow velocity study
+        #3.2) surface with heaters: flow velocity study
         #-------------------------------------------------------------
         if(heaterNucleation_flowVelocityStudy):
 
@@ -651,11 +689,12 @@ if __name__=="__main__":
                             spherical_cap,
                             nucleation_in_flow,
                             extra_domain,
-                            adapt_domain)
+                            adapt_domain,
+                            conduction_heat=conduction_heat)
                             
                             
     #============================================================
-    #5) flow velocity study with a spherical cap approximation
+    #4) flow velocity study with a spherical cap approximation
     #   for the initial bubble: no heat flux
     #============================================================
     if(uniformSphericalC_flowVelocityStudy or
@@ -715,7 +754,7 @@ if __name__=="__main__":
 
 
         #-------------------------------------------------------------
-        #5.1) uniform surface: flow velocity study (spherical_cap)
+        #4.1) uniform surface: flow velocity study (spherical_cap)
         #-------------------------------------------------------------
         if(uniformSphericalC_flowVelocityStudy):
 
@@ -765,10 +804,11 @@ if __name__=="__main__":
                             spherical_cap,
                             nucleation_in_flow,
                             extra_domain,
-                            adapt_domain)
+                            adapt_domain,
+                            conduction_heat=conduction_heat)
 
         #-------------------------------------------------------------
-        #5.2) surface with heaters: flow velocity study (spherical cap)
+        #4.2) surface with heaters: flow velocity study (spherical cap)
         #-------------------------------------------------------------
         if(heaterSphericalC_flowVelocityStudy):
 
@@ -824,4 +864,5 @@ if __name__=="__main__":
                             spherical_cap,
                             nucleation_in_flow,
                             extra_domain,
-                            adapt_domain)
+                            adapt_domain,
+                            conduction_heat=conduction_heat)
