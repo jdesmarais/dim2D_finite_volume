@@ -115,7 +115,7 @@ def curves_to_volume(dirPath,yWall=0.0):
 
 
     # write the volume(t) in an output file
-    out = open(os.path.join(contourRootPath,'volume.txt'), 'w')
+    out = open(os.path.join(contourRootPath,'volume_contact.txt'), 'w')
     for (i,t,l) in zip(contactLghData[:,0],contactLghData[:,1],volumeData):
         out.write("%f %f %f\n" % (i,t,l))
     out.close()

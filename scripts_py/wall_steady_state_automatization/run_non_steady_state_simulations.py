@@ -304,7 +304,7 @@ if __name__=="__main__":
     uniformNucleation_flowVelocityStudy   = False
 
     heaterNucleation_sourceHeatStudy   = False
-    heaterNucleation_contactAngleStudy = True
+    heaterNucleation_contactAngleStudy = False
     heaterNucleation_flowVelocityStudy = True
 
     uniformSphericalC_flowVelocityStudy = False
@@ -473,7 +473,7 @@ if __name__=="__main__":
 
         wall_micro_contact_angle = [22.5] #,45.0,67.5,112.5,135.0]
         wall_heater_center       = 0.0
-        wall_heater_length       = get_heater_length(22.5,Li) #4.0*Li
+        wall_heater_length       = 4.0*Li
         wall_heat_source_choice  = 'gaussian_heat_source'
         wall_maximum_heat_flux   = wall_maximum_heat_flux_nucleation
         total_nb_files           = 500
@@ -577,8 +577,8 @@ if __name__=="__main__":
 
         contact_angle_array  = [22.5] #[22.5,45.0,67.5,112.5,135.0]
         phase_at_center      = 'vapor'
-        flow_velocity_array  = [0.1,0.2,0.3,0.4,0.5]
-        flow_profile         = 'parabolic_profile' #'linear_profile'
+        flow_velocity_array  = [0.0] #0.2,0.4]
+        flow_profile         = 'linear_profile' #'parabolic_profile'
 
         ratio_bubble_interface = 2.0
         gravity_ac             = 0
@@ -588,7 +588,7 @@ if __name__=="__main__":
         wall_heater_center       = 0.0
         wall_heater_length       = get_heater_length(22.5,Li)
         wall_heat_source_choice  = 'gaussian_heat_source'
-        max_heat_flux_array      = [0.04] #-0.08,-0.1] #-0.08,-0.1,-0.12] #-0.04,-0.06]#-0.05,-0.06,-0.07] #,-0.06,-0.08,-0.1]#,-0.04] #[-0.04,-0.06,-0.08,-0.1]
+        max_heat_flux_array      = [0.04] #[0.05,0.06,0.08,0.1]
 
         total_nb_files           = 500
         spherical_cap            = False

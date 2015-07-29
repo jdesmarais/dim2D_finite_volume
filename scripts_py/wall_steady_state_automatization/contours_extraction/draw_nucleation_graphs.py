@@ -21,10 +21,11 @@ from library_contours_graph import grayscale_to_RGB
 
 def get_nucleation_qties(simDirs):
 
-    l = len(os.path.basename(os.path.dirname(simDirs[0])))
+    l = 45 #len(os.path.basename(os.path.dirname(simDirs[0])))
 
     format = "%"+str(l)+"s | %11s | %20s"
 
+    print ''
     print(format % ('sim_dir', 'time', 'mass'))
     print(format % ('----------------', '-----------', '--------------------'))
 
@@ -36,7 +37,7 @@ def get_nucleation_qties(simDirs):
             if(mass[j,2]>0):
                 dt = 0.5*(mass[j+1,1]-mass[j,1])
                 dm = 0.5*(mass[j+1,2]-mass[j,2])
-                print("%32s | %4.2f - %4.2f | %3.2e - %3.2e" % (os.path.basename(os.path.dirname(simDirs[i])), mass[j,1], dt, mass[j,2], dm))
+                print("%40s | %4.2f - %4.2f | %3.2e - %3.2e" % (os.path.basename(os.path.dirname(simDirs[i])), mass[j,1], dt, mass[j,2], dm))
                 break
 
     print ''
@@ -50,7 +51,11 @@ def create_mass_graph(simDirs,
                       show=True,
                       figPath='',
                       add_zoom_above=False,
-                      step=1):
+                      add_linear_interpolation=True,
+                      borders_linear_interpolation='None',
+                      step=1,
+                      legendLoc='lower right',
+                      styleDashed=False):
     '''
     @description: create a graph with the vapor mass
     as function of time for different contact angles
@@ -67,10 +72,11 @@ def create_mass_graph(simDirs,
     # as the main plot
     ax = fig.add_subplot(111)
 
-    ini_time = [1.,0.]
+    ini_time = [100.,0.]
     ini_mass = [0.,0.]
 
-    end_i = np.empty([len(simDirs)])
+    start_i = np.empty([len(simDirs)])
+    end_i   = np.empty([len(simDirs)])
 
     max_mass = 0.0
 
@@ -81,14 +87,14 @@ def create_mass_graph(simDirs,
         max_mass = max(max_mass,max(mass[:,2]))
 
         # determine the last relevant step: timestep!=0
-        start_i=0
+        start_i[i]=0
         for j in range(0,len(mass[:,0])):
             if(mass[j,2]>0.0):
-                start_i=j
+                start_i[i]=j
                 break
 
         end_i[i]=len(mass[:,0])-1
-        for j in range(start_i,len(mass[:,0])):
+        for j in range(int(start_i[i]),len(mass[:,0])):
             if(mass[j,0]==0.0):
                 end_i[i]=j-1
                 break
@@ -106,16 +112,65 @@ def create_mass_graph(simDirs,
 
         # plot the mass as function
         # of time on the main graph
-        grayscale_value = 0.2+ 0.8*float(i)/float(len(simDirs))
+        if(styleDashed):
+            grayscale_value = 0.2+ 0.8*float((i-i%2)/2.0)/float(len(simDirs)/2.0)
+        else:
+            grayscale_value = 0.2+ 0.8*float(i)/float(len(simDirs))
         
+        if(styleDashed):
+            if(i%2==0):
+                style='-'
+            else:
+                style='--'
+        else:
+            style='-'
+
         plt.plot(mass[0:end_i[i]:step,1],
                  mass[0:end_i[i]:step,2],
-                 '-',
+                 style,
                  linewidth=width,
                  color=grayscale_to_RGB(grayscale_value))
 
     ax.set_xlabel(r''+xlabel)
     ax.set_ylabel(r''+ylabel)
+
+    # extract the linear growth rate
+    if(add_linear_interpolation):
+
+        for i in range(0,len(simDirs)):
+
+            mass = np.loadtxt(os.path.join(simDirs[i],'mass.txt'))
+
+            if(borders_linear_interpolation!='None'):
+                
+                i1 = borders_linear_interpolation[i][0]
+                i2 = borders_linear_interpolation[i][1]
+
+                xi = mass[i1:i2,1]
+                A  = np.array([xi, np.ones(len(xi))])
+                yi = mass[i1:i2,2]
+
+            else:
+                
+                xi = mass[int(start_i[i]):int(end_i[i]),1]
+                A  = np.array([xi, np.ones(len(xi))])
+                yi = mass[int(start_i[i]):int(end_i[i]),2]
+
+            #start_i[i]+=10
+
+            #end_i[4]=200
+            #end_i[5]=150
+
+            #end_i[1]-=20
+
+            
+            pi = np.linalg.lstsq(A.T,yi)[0] #least square approximation
+
+            line = pi[0]*xi + pi[1]
+
+            print("%40s | growthrate: %3.2e" % (os.path.basename(os.path.dirname(simDirs[i])), pi[0]))
+
+            plt.plot(xi,line,'r-')
 
     if(add_zoom_above):
         ax.set_ylim(0.0,max_mass*(1.0+0.2))
@@ -123,41 +178,44 @@ def create_mass_graph(simDirs,
         ax.set_ylim(0.0,max_mass)
 
     if(legend!='None'):
-        plt.legend(legend,loc='lower right')
+        plt.legend(legend,loc=legendLoc)
 
     # add a zoom where the initial bubble appears
     # on the lower right part of the plot
-    ax_x_lim = ax.get_xlim()
-    ax_y_lim = ax.get_ylim()
+    if(add_zoom_above):
+        ax_x_lim = ax.get_xlim()
+        ax_y_lim = ax.get_ylim()
 
-    ini_time[0] = ini_time[0]*(1.-0.60)
-    ini_time[1] = ini_time[1]*(1.+0.20)
+        border = 0.2*(ini_time[1]-ini_time[0])
 
-    ini_mass[0] = ini_mass[0]*(1.-0.1)
-    ini_mass[1] = ini_mass[0]+(ini_time[1]-ini_time[0])*(ax_y_lim[1]-ax_y_lim[0])/(ax_x_lim[1]-ax_x_lim[0])
-
-    width    = 0.5
-    height_p = width*((ini_mass[1]-ini_mass[0])/(ax_y_lim[1]-ax_y_lim[0]))/((ini_time[1]-ini_time[0])/(ax_x_lim[1]-ax_x_lim[0]))
-    height   = 0.2
-
-    ini_mass[1] = height/height_p*ini_mass[1]
-
-    ax_zoom = plt.axes([.15, .65, width, height]) #, axisbg='y')
-    for i in range(0,len(simDirs)):
-
-        mass = np.loadtxt(os.path.join(simDirs[i],'mass.txt'))
-
-        grayscale_value = 0.2+ 0.8*float(i)/float(len(simDirs))
-
-        p = plt.plot(mass[0:end_i[i]:step,1],
-                     mass[0:end_i[i]:step,2],
-                     '+-',
-                     linewidth=5*width,
-                     color=grayscale_to_RGB(grayscale_value))
-        plt.setp(ax_zoom, xticks=[], yticks=[])
-
-    ax_zoom.set_xlim(ini_time[0],ini_time[1])
-    ax_zoom.set_ylim(ini_mass[0],ini_mass[1])
+        ini_time[0]-= border
+        ini_time[1]+= border
+        
+        ini_mass[0] = ini_mass[0]*(1.-0.1)
+        ini_mass[1] = ini_mass[0]+(ini_time[1]-ini_time[0])*(ax_y_lim[1]-ax_y_lim[0])/(ax_x_lim[1]-ax_x_lim[0])
+        
+        width    = 0.5
+        height_p = width*((ini_mass[1]-ini_mass[0])/(ax_y_lim[1]-ax_y_lim[0]))/((ini_time[1]-ini_time[0])/(ax_x_lim[1]-ax_x_lim[0]))
+        height   = 0.2
+        
+        ini_mass[1] = height/height_p*ini_mass[1]
+        
+        ax_zoom = plt.axes([.15, .65, width, height]) #, axisbg='y')
+        for i in range(0,len(simDirs)):
+        
+            mass = np.loadtxt(os.path.join(simDirs[i],'mass.txt'))
+        
+            grayscale_value = 0.2+ 0.8*float(i)/float(len(simDirs))
+        
+            p = plt.plot(mass[0:end_i[i]:step,1],
+                         mass[0:end_i[i]:step,2],
+                         '+-',
+                         linewidth=5*width,
+                         color=grayscale_to_RGB(grayscale_value))
+            plt.setp(ax_zoom, xticks=[], yticks=[])
+        
+        ax_zoom.set_xlim(ini_time[0],ini_time[1])
+        ax_zoom.set_ylim(ini_mass[0],ini_mass[1])
 
     if(show):
         plt.show()
@@ -170,8 +228,7 @@ def create_mass_graph(simDirs,
 if __name__=='__main__':
 
     mainDir = os.path.join(os.getenv('HOME'),
-                           'projects',
-                           '20150624_dim2d_0.95_ca22.5-135.0_vap_sh-0.02-0.1')
+                           'projects')
 
     
     #=============================================================
@@ -186,7 +243,7 @@ if __name__=='__main__':
     
     for contactAngle in contactAngleArray:
     
-        simDir = 'dim2d_0.95_ca'+str(contactAngle)+'_vap'+'_sh-0.02'
+        simDir = 'dim2d_0.95_ca'+str(contactAngle)+'_vap'+'_fh0.02'
         simDirs.append(os.path.join(mainDir,simDir,'contours'))
     
     
@@ -208,14 +265,14 @@ if __name__=='__main__':
 
     # directories for the nucleation study with
     # different contact angles
-    heatFluxArray    = [-0.02,-0.04,-0.06,-0.08,-0.1]
+    heatFluxArray    = [ 0.02, 0.04, 0.06, 0.08, 0.1]
     heatFluxArrayLeg = [ 0.02, 0.04, 0.06, 0.08, 0.1]
 
     simDirs = []
 
     for heatFlux in heatFluxArray:
 
-        simDir = 'dim2d_0.95_ca90.0_vap_sh'+str(heatFlux)
+        simDir = 'dim2d_0.95_ca90.0_vap_fh'+str(heatFlux)
         simDirs.append(os.path.join(mainDir,simDir,'contours'))
 
 

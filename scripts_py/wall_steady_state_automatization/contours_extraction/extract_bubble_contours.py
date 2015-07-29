@@ -62,7 +62,7 @@ def usage():
     print '                             and vapor satured phases at the'
     print '                             simulation temperature'
     print '-r : reflection activated '
-    print '-e : select the final time'
+    print '-e : do not select the final time'
     print '        '
     print ''
     print 'ex: ./extract_bubble_contour.py -i <dir> -c <90.0> -t [0,100,10]'
@@ -348,11 +348,11 @@ def generate_st_graphs(ncFolder,
 
     end_i = len(volume[:,0])-1
     if(select_end_time):
-        for i in range(start_i,len(volume[:,0])):
-            if(volume[i,2]==0):
-                end_i = i-1
+        for i in range(len(volume[:,0])-1,start_i,-1):
+            if(volume[i,2]>0):
+                end_i = i
                 break
-    end_i = min(end_i,timeRange[1])    
+    end_i = min(end_i,timeRange[1])
     nt = len(volume[:,0])
 
 

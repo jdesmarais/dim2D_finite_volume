@@ -881,6 +881,8 @@ def generate_time_contour_data(ncRootPath,
         
         # save the volume at t
         volume[i]= volume_t
+        if(debug):
+            print 'volume: ', volume_t
 
         # save the mass at t
         mass[i] = mass_t

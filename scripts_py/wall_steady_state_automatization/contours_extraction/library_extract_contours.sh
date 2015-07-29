@@ -36,8 +36,7 @@ generate_st_contours(){
 # uniform surface at (T,ca,sh)
 get_nucleation_dir(){
     projectDir=/home/jdesmarais/projects/
-    projectDir+=20150624_dim2d_0.95_ca22.5-135.0_vap_sh-0.02-0.1/
-    dir="$projectDir/dim2d_"$1"_ca"$2"_vap_sh"$3
+    dir="$projectDir/dim2d_"$1"_ca"$2"_vap_fh"$3
     echo "$dir"
 }
 
@@ -54,10 +53,7 @@ generate_nucleation_contours(){
     #options="-i $inputDir -c $ca -t $4 -x $5 -y $6 -p -l wall_max_gradient -g -w -r"
     options="-i $inputDir -c $ca -t $4 -x $5 -y $6 -p -l wall_max_gradient -s -r"
 
-    ./extract_bubble_contours.py $options #-i $inputDir -c $ca -t $4 -p -g -w #>cur_contours.out 2>&1
-    #./extract_bubble_contours.py -i $inputDir -c $ca -t $4 -p -x $5 -y $6 -s #> cur_contours.out 2>&1
-
-    #mv cur_contours.out $inputDir/contours
+    ./extract_bubble_contours.py $options
 
     echo "=================================================="
     echo "generate_contours( "$1" , "$2" , "$3" ) : done"
@@ -125,8 +121,8 @@ generate_linear_inflow_sph_contours(){
     inputDir=$( get_linear_inflow_sph_dir $T $ca $v $hca)
 
     
-    options="-i $inputDir -c $ca -t $5 -x $6 -y $7 -p -l max_gradient -g -w"
-    #options="-i $inputDir -c $ca -t $5 -x $6 -y $7 -p -l max_gradient -s"
+    #options="-i $inputDir -c $ca -t $5 -x $6 -y $7 -p -l max_gradient -g -w"
+    options="-i $inputDir -c $ca -t $5 -x $6 -y $7 -p -l max_gradient -s"
 
     ./extract_bubble_contours.py  $options #>cur_contours.out 2>&1
 
@@ -142,7 +138,7 @@ generate_linear_inflow_sph_contours(){
 # uniform surface at (T,ca,sh)
 get_inflow_nucleation_dir(){
     projectDir=/home/jdesmarais/projects
-    dir="$projectDir/dim2d_"$1"_ca"$2"_vap_sh"$3"_v"$4"_hca"$5
+    dir="$projectDir/dim2d_"$1"_ca"$2"_vap_fh"$3"_v"$4"_hca"$5
     echo "$dir"
 }
 
@@ -162,8 +158,8 @@ generate_inflow_nucleation_contours(){
     inputDir=$( get_inflow_nucleation_dir $T $ca $sh $v $hca)
 
     
-    options="-i $inputDir -c $ca -t $6 -x $7 -y $8 -p -l max_gradient -g -w"
-    #options="-i $inputDir -c $ca -t $6 -x $7 -y $8 -p -l max_gradient -s"
+    #options="-i $inputDir -c $ca -t $6 -x $7 -y $8 -p -l max_gradient -g -w"
+    options="-i $inputDir -c $ca -t $6 -x $7 -y $8 -p -l max_gradient -s"
 
     ./extract_bubble_contours.py  $options #>cur_contours.out 2>&1
 
@@ -179,7 +175,13 @@ generate_inflow_nucleation_contours(){
 # uniform surface at (T,ca,sh)
 get_linear_inflow_nucleation_dir(){
     projectDir=/home/jdesmarais/projects
-    dir="$projectDir/dim2d_"$1"_ca"$2"_vap_sh"$3"_vl"$4"_hca"$5
+
+    if [ $4 != "0.0" ]
+    then
+	dir="$projectDir/dim2d_"$1"_ca"$2"_vap_fh"$3"_vl"$4"_hca"$5
+    else
+	dir="$projectDir/dim2d_"$1"_ca"$2"_vap_fh"$3"_hca"$5
+    fi
     echo "$dir"
 }
 
@@ -197,12 +199,11 @@ generate_linear_inflow_nucleation_contours(){
     hca=$5
 
     inputDir=$( get_linear_inflow_nucleation_dir $T $ca $sh $v $hca)
-
     
-    #options="-i $inputDir -c $ca -t $6 -x $7 -y $8 -p -l max_gradient -g -w"
-    options="-i $inputDir -c $ca -t $6 -x $7 -y $8 -p -l max_gradient -s -e"
+    options="-i $inputDir -c $ca -t $6 -x $7 -y $8 -p -l max_gradient -g -w -r"
+    #options="-i $inputDir -c $ca -t $6 -x $7 -y $8 -p -l max_gradient -s"
 
-    ./extract_bubble_contours.py  $options #>cur_contours.out 2>&1
+    ./extract_bubble_contours.py  $options
 
 
     echo "======================================================="

@@ -28,16 +28,16 @@
 
         !<computational field dimensions
         real(rkind), parameter :: x_min = 0.0000000000d0
-        real(rkind), parameter :: x_max = 0.1428000000d0
+        real(rkind), parameter :: x_max = 0.4284000000d0
         real(rkind), parameter :: y_min = 0.0000000000d0
-        real(rkind), parameter :: y_max = 0.1428000000d0
+        real(rkind), parameter :: y_max = 0.2495000000d0
         
         !<computational times
-        real(rkind), parameter :: t_max = 100.0000000000d0 !10.0d0
+        real(rkind), parameter :: t_max = 20.0000000000d0 !10.0d0
         real(rkind), parameter :: dt = 0.0000420000d0
         
         !<output writing
-        real(rkind), parameter :: detail_print = 0.0003000000d0
+        real(rkind), parameter :: detail_print = 0.0011000000d0
         logical    , parameter :: write_domain_extension = .true.
         logical    , parameter :: write_detectors = .true.
 
@@ -47,8 +47,8 @@
 
         !<size of the main tables
         !<careful, choose ne according to the physical model
-        integer(ikind), parameter :: ntx = 89
-        integer(ikind), parameter :: nty = 89
+        integer(ikind), parameter :: ntx = 257
+        integer(ikind), parameter :: nty = 152
 
         integer(ikind), parameter :: nx = ntx/npx
         integer(ikind), parameter :: ny = nty/npy
@@ -121,7 +121,7 @@
         real(rkind), parameter :: flow_x_side = 1.0000000000d0
         real(rkind), parameter :: flow_y_side = 1.0000000000d0
         real(rkind), parameter :: flow_velocity = 0.0000000000d0
-        integer    , parameter :: flow_profile = parabolic_profile
+        integer    , parameter :: flow_profile = linear_profile
         
         real(rkind), parameter :: T0 = 0.9500000000d0
 
@@ -230,7 +230,7 @@
         ! - surface_with_heaters : the contact angle varies at
         !                          the location of the heaters
         !-----------------------------------------------------
-        integer    , parameter :: wall_surface_type = uniform_surface
+        integer    , parameter :: wall_surface_type = surface_with_heaters
 
         
         !< wall contact angle parameters
@@ -239,7 +239,7 @@
         !-----------------------------------------------------
         ! contact angle at the wall
         !-----------------------------------------------------
-        real(rkind), parameter :: wall_micro_contact_angle = 135.0000000000d0
+        real(rkind), parameter :: wall_micro_contact_angle = 0.0000000000d0
 
 
         !< wall heater parameters
@@ -261,9 +261,9 @@
         ! contact angle at the heater
         !-----------------------------------------------------
         real(rkind), parameter :: wall_heater_center = 0.0000000000d0
-        real(rkind), parameter :: wall_heater_length = 0.0712945354d0
-        real(rkind), parameter :: wall_heater_variation_angle_length = 0.1000000000d0
-        real(rkind), parameter :: wall_heater_micro_contact_angle = 90.0000000000d0
+        real(rkind), parameter :: wall_heater_length = 0.0514777942d0
+        real(rkind), parameter :: wall_heater_variation_angle_length = 0.0178236339d0
+        real(rkind), parameter :: wall_heater_micro_contact_angle = 22.5000000000d0
 
 
         !< wall heat source parameters
@@ -288,7 +288,7 @@
         !wall_extra_heat_source_variance : variance if gaussian extra_heat source
         !-----------------------------------------------------
         integer    , parameter :: wall_heat_source_choice = gaussian_heat_source
-        real(rkind), parameter :: wall_maximum_heat_flux = 0.0200000000d0
+        real(rkind), parameter :: wall_maximum_heat_flux = 0.0400000000d0
         real(rkind), parameter :: wall_heat_source_center   = wall_heater_center
         real(rkind), parameter :: wall_heat_source_variance = 0.5d0*wall_heater_length
 
