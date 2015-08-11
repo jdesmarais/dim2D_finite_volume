@@ -231,8 +231,9 @@ def create_st_graph(dataRootPath,
             if(timestep==timestepExtracted[-1]):
                 ratio = 1
             else:
-                ratio = (float(timestep)-float(timestepExtracted[0]))/\
-                        (float(timestepExtracted[-1])-float(timestepExtracted[0]))
+                ratio = float(i)/float(len(timestepExtracted)-1)
+                # ratio = (float(timestep)-float(timestepExtracted[0]))/\
+                #         (float(timestepExtracted[-1])-float(timestepExtracted[0]))
 
             if(not (0<=ratio<=1)):
                 print 'timestep    ', timestep
@@ -374,7 +375,11 @@ def create_sph_graph(dataRootPath,
         
     else:
         sph_data = get_spherical_cap_data(y_min,x_min,x_max,Ri,theta,filled=False)
-        
+    
+
+    #eq_lgh = get_equilibrium_length(Ri,theta)
+    #print 'eq_lgh: ', 2.0*eq_lgh
+
     plt.plot(
         sph_data[0],
         sph_data[1],

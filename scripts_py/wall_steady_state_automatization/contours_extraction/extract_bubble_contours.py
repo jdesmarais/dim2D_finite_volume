@@ -30,6 +30,12 @@ import matplotlib.pyplot as plt
 from math import cos, sin, sqrt, pi
 
 
+def iround(x):
+    """iround(number) -> integer
+    Round a number to the nearest integer."""
+    return int(round(x) - .5) + (x > 0)
+
+
 def usage():
     '''
     @description:
@@ -63,6 +69,8 @@ def usage():
     print '                             simulation temperature'
     print '-r : reflection activated '
     print '-e : do not select the final time'
+    print '-a : scaling for the time steps: t**a'
+#    print '-v : re-compute the volumes'
     print '        '
     print ''
     print 'ex: ./extract_bubble_contour.py -i <dir> -c <90.0> -t [0,100,10]'
@@ -75,6 +83,7 @@ def usage():
 
     return
 
+
 def parse_opts(argv):
     '''
     @description:
@@ -83,7 +92,7 @@ def parse_opts(argv):
 
     try:
         opts, args = getopt.getopt(argv,
-                                   "hi:c:t:pgx:y:wsl:re",
+                                   "hi:c:t:pgx:y:wsl:rea:",
                                    ["help",
                                     "inputDir",
                                     "contactAngle=",
@@ -102,15 +111,16 @@ def parse_opts(argv):
     timeFrameProvided     = False
 
     options = {}
-    options['phaseCheck']      = False
-    options['genContours']     = False
-    options['show']            = False
-    options['x_limits']        = 'None'
-    options['y_limits']        = 'None'
-    options['no_window']       = False
-    options['contourType']     = 'wall_max_gradient' #'mass', 'gradient'
-    options['reflection']      = False
-    options['select_end_time'] = True
+    options['phaseCheck']        = False
+    options['genContours']       = False
+    options['show']              = False
+    options['x_limits']          = 'None'
+    options['y_limits']          = 'None'
+    options['no_window']         = False
+    options['contourType']       = 'wall_max_gradient' #'mass', 'gradient'
+    options['reflection']        = False
+    options['select_end_time']   = True
+    options['scaling_timesteps'] = 'None'
 
 
     for opt, arg in opts:
@@ -202,6 +212,10 @@ def parse_opts(argv):
             
             options['select_end_time'] = False
 
+        elif opt in ("-a"):
+
+            options['scaling_timesteps'] = int(arg)
+
 
     if(not(inputDirProvided and contactAngleProvided and timeFrameProvided)):
         print 'the options are not correctly provided'
@@ -234,7 +248,8 @@ def generate_st_graphs(ncFolder,
                        x_limits='None',
                        y_limits='None',
                        reflection=False,
-                       select_end_time=True):
+                       select_end_time=True,
+                       scalingTimesteps='None'):
     '''
     @description: generate the contours of the bubble
     at different timesteps, extract the contact length
@@ -279,14 +294,16 @@ def generate_st_graphs(ncFolder,
     volume_path      = os.path.join(contoursDir,'volume.txt')
     mass_path        = os.path.join(contoursDir,'mass.txt')
     contour_path     = os.path.join(contoursDir,'contour.txt')
+    temperature_path = os.path.join(contoursDir,'temperature.txt')
     dataRootPath     = contoursDir
 
-    contactLghFigPath = os.path.join(contoursDir,'contact_lgh.eps')
-    volumeFigPath     = os.path.join(contoursDir,'volume.eps')
-    massFigPath       = os.path.join(contoursDir,'mass.eps')
-    contourFigPath    = os.path.join(contoursDir,'mass_contour.eps')
-    contoursFigPath   = os.path.join(contoursDir,'contours.eps')
-    contoursStFigPath = os.path.join(contoursDir,'contours_st.eps')
+    contactLghFigPath  = os.path.join(contoursDir,'contact_lgh.eps')
+    volumeFigPath      = os.path.join(contoursDir,'volume.eps')
+    massFigPath        = os.path.join(contoursDir,'mass.eps')
+    contourFigPath     = os.path.join(contoursDir,'mass_contour.eps')
+    temperatureFigPath = os.path.join(contoursDir,'temperature.eps')
+    contoursFigPath    = os.path.join(contoursDir,'contours.eps')
+    contoursStFigPath  = os.path.join(contoursDir,'contours_st.eps')
 
 
     # plot the contact length as funtion of time
@@ -332,6 +349,16 @@ def generate_st_graphs(ncFolder,
                  logScale=False,
                  show=show)
 
+    # plot the temperature chosen to draw the
+    # contours as function of time
+    create_graph(temperature_path,
+                 xlabel='$t$',
+                 ylabel='$T$',
+                 figPath=temperatureFigPath,
+                 width=3,
+                 logScale=False,
+                 show=show)
+
 
     # plot the contour at different time steps:
     # choose the timesteps to have only maxNbBubbleContours
@@ -357,29 +384,64 @@ def generate_st_graphs(ncFolder,
 
 
     # select the timesteps
-    times = []
     if(maxNbBubbleContours=='None'):
-        step = 1
+        nbContours = end_i-start_i+1
     else:
-        step = int(float(end_i-start_i)/float(maxNbBubbleContours))
-    step = max(1,step)
+        nbContours = maxNbBubbleContours
 
-    for i in range(start_i,end_i,step):
-        times.append(int(volume[i,0]))
-    times.append(int(volume[end_i,0]))
-    #times[-2] = 304 #for 0.95_ca135.0_vl0.4_sph to see the bubble expulsed
+    if(scalingTimesteps=='None'):
+        scaling=1.0
+    else:
+        scaling=scalingTimesteps
 
+
+    # extraction of the timesteps to
+    # display the contours
+    times   = []
     times_t = []
-    for i in range(start_i,end_i,step):
-        times_t.append(volume[i,1])
-    times_t.append(volume[end_i,1])
+
+    #times.append(start_i)
+    #times_t.append(volume[start_i,1])
+
+    for i in range(0,nbContours):
+
+        step = float(end_i-start_i)*(float(i)/float(nbContours-1))**scaling
+        if(step>0):
+            step = max(1,iround(step))
+        else:
+            step = 0
+
+        timestep = start_i + step
+
+        times.append(timestep)
+        times_t.append(volume[timestep,1])
+
+    #times.append(end_i)
+    #times_t.append(volume[end_i,1])
+
+#    times = []
+#    if(maxNbBubbleContours=='None'):
+#        step = 1
+#    else:
+#        step = int(float(end_i-start_i)/float(maxNbBubbleContours))
+#    step = max(1,step)
+#
+#    for i in range(start_i,end_i,step):
+#        times.append(int(volume[i,0]))
+#    times.append(int(volume[end_i,0]))
+#    #times[-2] = 304 #for 0.95_ca135.0_vl0.4_sph to see the bubble expulsed
+#
+#    times_t = []
+#    for i in range(start_i,end_i,step):
+#        times_t.append(volume[i,1])
+#    times_t.append(volume[end_i,1])
 
     times_p = np.array(times_t)
-    np.set_printoptions(precision=3)
+    np.set_printoptions(precision=5)
     print 'Timesteps for contours: '
     print times
     print 'Time extracted for contours: '
-    print(times_p)
+    print times_p
 
     # create the graph with only the contours at different
     # relevant times
@@ -482,6 +544,10 @@ def generate_contact_length_variation(contoursDir,
     contoursNPath    = os.path.join(contoursDir,'contact_lgh_n.txt')
     contoursNFigPath = os.path.join(contoursDir,'contact_lgh_n.eps')
 
+    # extract the contact length:
+    contactLgh = np.loadtxt(contoursNPath)
+    print 'contact_lgh: ', contactLgh[-1]
+
     create_graph(contoursNPath,
                  xlabel='$t$',
                  ylabel='contact length difference',
@@ -519,12 +585,13 @@ if __name__=='__main__':
                        phase_check=options['phaseCheck'],
                        genContours=options['genContours'],
                        contourPer=0.1,
-                       maxNbBubbleContours=5,
+                       maxNbBubbleContours=7,
                        show=options['show'],
                        x_limits=options['x_limits'],
                        y_limits=options['y_limits'],
                        reflection=options['reflection'],
-                       select_end_time=options['select_end_time'])
+                       select_end_time=options['select_end_time'],
+                       scalingTimesteps=options['scaling_timesteps'])
 
     [t_i,r_i] = find_initial_bubble(os.path.join(contoursPath,'volume.txt'))
 

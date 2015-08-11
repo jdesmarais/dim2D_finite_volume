@@ -26,28 +26,12 @@ from library_sm_lg_inputs import (get_mass_density_vapor,
 
 from automatization_contours_csts import cv_r,we
 
+from library_messages import create_mg_progress, create_mg_final
+
+
 debug = False
 add_sleep  = debug
-time_sleep = 5.0
-
-
-def create_mg_progress(mg_progress):
-    '''
-    @description:
-    print a message which is overwritten
-    '''
-    sys.stdout.write('%s\r' % mg_progress)
-    sys.stdout.flush()
-
-
-def create_mg_final(mg_progress):
-    '''
-    @description:
-    print a message which is not overwritten
-    '''
-    sys.stdout.write('%s' % mg_progress)
-    sys.stdout.flush()
-    print '\n'
+time_sleep = 3.0
 
 
 def get_x_reflection(domain_borders,bc_size=2):
@@ -63,7 +47,7 @@ def compute_volume(massLim,domain_borders,reflection=False):
     the contours using trapezoid rule
     '''
 
-    # create a variable which is equal to the mass
+    # create a variable which is equal to the 1.0
     # inside the vapor phase and equal to 0 in the
     # liquid phase
     visit.DefineScalarExpression("vap_phase", "if( le(mass,"+str(massLim)+") , 1, 0)")
@@ -80,8 +64,8 @@ def compute_volume(massLim,domain_borders,reflection=False):
     if(add_sleep):
         time.sleep(time_sleep)
 
-    # in this way the mass contained in the "bubble"
-    # is simply the sum of the mass over the entire
+    # in this way the volume contained in the "bubble"
+    # is simply the sum of the volume over the entire
     # domain
     totalVolume = visit.Query("Weighted Variable Sum")
     try:
@@ -248,7 +232,7 @@ def get_max_grad(domain_borders):
     visit.DefineScalarExpression("mass_grad"  , "sqrt(mass_grad_x^2+mass_grad_y^2)")
     visit.AddPlot("Pseudocolor","mass_grad", 1, 1)
 
-    remove_boundary_pts(domain_borders,bc_size=3)
+    remove_boundary_pts(domain_borders,bc_size=2)
 
     visit.DrawPlots()
 
@@ -311,7 +295,9 @@ def get_mass_for_contour(coord1,coord2,gradMass,phase_check):
     and phase verification if enabled
     '''
 
+    #=========================================================
     # extract the mass at the location of the maximum gradient
+    #=========================================================
     visit.AddPlot("Pseudocolor","mass", 1, 1)
     visit.DrawPlots()
 
@@ -325,37 +311,65 @@ def get_mass_for_contour(coord1,coord2,gradMass,phase_check):
     visit.DeleteActivePlots()
 
 
+    #====================================================
+    # determine the temperature at the interface location
+    #====================================================
+    # definition of the kortweg energy
+    visit.DefineScalarExpression("mass_grad_squared", "mass_grad_x^2+mass_grad_y^2")
+    visit.DefineScalarExpression("we", str(we))
+    visit.DefineScalarExpression("korteweg_energy", "0.5/we*mass_grad_squared")
+    
+    # definition of the kinetic energy
+    visit.DefineScalarExpression("velocity_x", "momentum_x/mass")
+    visit.DefineScalarExpression("velocity_y", "momentum_y/mass")
+    visit.DefineScalarExpression("kinetic_energy", "0.5*mass*(velocity_x^2+velocity_y^2)")
+    
+    # definition of the temperature
+    visit.DefineScalarExpression("cv_r", str(cv_r))
+    visit.DefineScalarExpression("temperature", "3/(8*cv_r)*(1/mass*(energy-kinetic_energy-korteweg_energy)+3*mass)")
+    
+    # draw the temperature and extract the temperature at the maximum gradient point
+    visit.AddPlot("Pseudocolor","temperature", 1, 1)
+    visit.DrawPlots()
+
+    midTemperature = visit.NodePick(coord=(coord1,coord2,0), vars=("default","temperature"))
+    midTemperature = midTemperature['temperature']
+
+    if(add_sleep):
+        time.sleep(time_sleep)
+        print midTemperature
+
+    visit.DeleteActivePlots()
+
+
+    #====================================================
+    # determine the norm of the temperature gradient
+    # at the interface location
+    #====================================================
+    # definition of the temperature gradient
+    visit.DefineScalarExpression("dTdx", "gradient(temperature)[0]")
+    visit.DefineScalarExpression("dTdy", "gradient(temperature)[1]")
+    visit.DefineScalarExpression("temperature_grad_norm", "sqrt(dTdx^2+dTdy^2)")
+
+    visit.AddPlot("Pseudocolor","temperature_grad_norm", 1, 1)
+    visit.DrawPlots()
+
+    midTemperatureGrad = visit.NodePick(coord=(coord1,coord2,0), vars=("default","temperature_grad_norm"))
+    midTemperatureGrad = midTemperatureGrad['temperature_grad_norm']
+
+    if(add_sleep):
+        time.sleep(time_sleep)
+        print midTemperatureGrad
+
+    visit.DeleteActivePlots()
+
+
+    #==========================================================
     # if the phase check is enabled, determine whether the mass
     # density extracted corresponds to a potential mass density
     # at the location of the interface
+    #==========================================================
     if(phase_check):
-
-        # definition of the kortweg energy
-        visit.DefineScalarExpression("mass_grad_squared", "mass_grad_x^2+mass_grad_y^2")
-        visit.DefineScalarExpression("we", str(we))
-        visit.DefineScalarExpression("korteweg_energy", "0.5/we*mass_grad_squared")
-    
-        # definition of the kinetic energy
-        visit.DefineScalarExpression("velocity_x", "momentum_x/mass")
-        visit.DefineScalarExpression("velocity_y", "momentum_y/mass")
-        visit.DefineScalarExpression("kinetic_energy", "0.5*mass*(velocity_x^2+velocity_y^2)")
-    
-        # definition of the temperature
-        visit.DefineScalarExpression("cv_r", str(cv_r))
-        visit.DefineScalarExpression("temperature", "3/(8*cv_r)*(1/mass*(energy-kinetic_energy-korteweg_energy)+3*mass)")
-    
-        # draw the temperature and extract the temperature at the maximum gradient point
-        visit.AddPlot("Pseudocolor","temperature", 1, 1)
-        visit.DrawPlots()
-
-        midTemperature = visit.NodePick(coord=(coord1,coord2,0), vars=("default","temperature"))
-        midTemperature = midTemperature['temperature']
-
-        if(add_sleep):
-            time.sleep(time_sleep)
-            print midTemperature
-
-        visit.DeleteActivePlots()
     
         # deduce the mass densities of the liquid and vapor phases at this temperature
         mass_vap = get_mass_density_vapor(midTemperature)
@@ -372,24 +386,19 @@ def get_mass_for_contour(coord1,coord2,gradMass,phase_check):
         # check by comparing the maximum gradient of the mass density
         interface_lgh = get_interface_length(we,midTemperature)
         mid_gradMass = abs((mass_liq-mass_vap)/interface_lgh)
-        check_grad = \
-            (abs((abs(gradMass) - mid_gradMass)/mid_gradMass) < 0.4) or\
-            (abs(gradMass)>mid_gradMass)
+        check_grad = (abs(gradMass)>0.95*mid_gradMass) #0.9
 
         if(debug):
-            print 'check_md_grad : ', (abs((abs(gradMass) - mid_gradMass)/mid_gradMass) < 0.4)
-            print 'check_md_grad2: ', (abs(gradMass)>0.8*mid_gradMass)
+            print 'check_md_grad: ', (abs(gradMass)>0.9*mid_gradMass)
+            print 'diff: ', abs(gradMass)/mid_gradMass
 
         check = check and check_grad
 
-        if(add_sleep):
-            print 'check_mass_grad: ', (abs((gradMass - mid_gradMass)/mid_gradMass) < 0.4)
-            print 'diff: ', abs((gradMass - mid_gradMass)/mid_gradMass)
-
     else:
         check = True
+    
 
-    return [midMass,check]
+    return [midMass,check,midTemperature,midTemperatureGrad]
 
 
 def get_mid_by_max_grad(domain_borders,phase_check=False):
@@ -408,13 +417,15 @@ def get_mid_by_max_grad(domain_borders,phase_check=False):
     # and check whether it is an interface
     if(gradMass!=0.0):
 
-        [midMass,check] = get_mass_for_contour(coord1,coord2,gradMass,phase_check)
+        [midMass,check,temperature,temperatureGrad] = get_mass_for_contour(coord1,coord2,gradMass,phase_check)
 
     else:
         midMass = 0.0
         check = False
+        temperature=0.0
+        temperatureGrad=0.0
 
-    return [midMass,check]
+    return [midMass,check,temperature,temperatureGrad]
 
 
 def get_mid_by_max_grad_at_wall(domain_borders,phase_check=False):
@@ -434,13 +445,15 @@ def get_mid_by_max_grad_at_wall(domain_borders,phase_check=False):
     # and check whether it is an interface
     if(gradMass!=0.0):
 
-        [midMass,check] = get_mass_for_contour(coord1,coord2,gradMass,phase_check)
+        [midMass,check,temperature,temperatureGrad] = get_mass_for_contour(coord1,coord2,gradMass,phase_check)
 
     else:
         midMass = 0.0
         check = False
+        temperature=0.0
+        temperatureGrad=0.0
 
-    return [midMass,check]
+    return [midMass,check,temperature,temperatureGrad]
 
 
     #visit.DefineScalarExpression("mass_grad_x", "gradient(mass)[0]")
@@ -620,10 +633,10 @@ def remove_boundary_pts(domain_borders,bc_size=2):
     computational domain
     '''
 
-    x_min_R = domain_borders['x_min']+(bc_size+0.5)*domain_borders['dx']
-    x_max_R = domain_borders['x_max']-(bc_size+0.5)*domain_borders['dx']
-    y_min_R = domain_borders['y_min']+(bc_size+0.5)*domain_borders['dy']
-    y_max_R = domain_borders['y_max']-(bc_size+0.5)*domain_borders['dy']
+    x_min_R = domain_borders['x_min']+(bc_size)*domain_borders['dx']
+    x_max_R = domain_borders['x_max']-(bc_size)*domain_borders['dx']
+    y_min_R = domain_borders['y_min']+(bc_size)*domain_borders['dy']
+    y_max_R = domain_borders['y_max']-(bc_size)*domain_borders['dy']
 
     visit.AddOperator("Box",1)
     BoxAtts = visit.BoxAttributes()
@@ -733,14 +746,20 @@ def generate_vtklines(ncPath,
 
     elif(contourType=='wall_max_gradient'):
                 
-        [contourMin,generateContours] = get_mid_by_max_grad_at_wall(domain_borders,
-                                                                    phase_check=phase_check)
+        [contourMin,
+         generateContours,
+         temperature,
+         temperatureGrad] = get_mid_by_max_grad_at_wall(domain_borders,
+                                                        phase_check=phase_check)
         contourMax = contourMin
 
     elif(contourType=='max_gradient'):
                 
-        [contourMin,generateContours] = get_mid_by_max_grad(domain_borders,
-                                                            phase_check=phase_check)
+        [contourMin,
+         generateContours,
+         temperature,
+         temperatureGrad] = get_mid_by_max_grad(domain_borders,
+                                                phase_check=phase_check)
         contourMax = contourMin
 
     else:
@@ -811,7 +830,28 @@ def generate_vtklines(ncPath,
 
     visit.DeleteActivePlots()
 
-    return [graph_data, volume, mass, contourMin, domain_borders]
+    return [graph_data,
+            volume,
+            mass,
+            temperature,
+            temperatureGrad,
+            contourMin,
+            domain_borders]
+
+
+def write_in_output_file(file_id,
+                         time,
+                         data,
+                         filepath):
+    '''
+    @description: write the content of the table
+    in an output file
+    '''
+
+    out = open(filepath, 'w')
+    for (i,t,v) in zip(file_id,time,data):
+        out.write("%f %f %f\n" % (i,t,v))
+    out.close()
 
 
 def generate_time_contour_data(ncRootPath,
@@ -834,12 +874,14 @@ def generate_time_contour_data(ncRootPath,
     # of the bubble
     nt = int(float(timeRange[1]-timeRange[0])/float(timeRange[2]))
 
-    file_id     = np.empty([nt])
-    time        = np.empty([nt])
-    contact_lgh = np.empty([nt])
-    volume      = np.empty([nt])
-    mass        = np.empty([nt])
-    contour     = np.empty([nt])
+    file_id          = np.empty([nt])
+    time             = np.empty([nt])
+    contact_lgh      = np.empty([nt])
+    volume           = np.empty([nt])
+    mass             = np.empty([nt])
+    temperature      = np.empty([nt])
+    temperature_grad = np.empty([nt])
+    contour          = np.empty([nt])
 
     mg_progress = 'generating contour files: ...'
     create_mg_progress(mg_progress)
@@ -868,6 +910,8 @@ def generate_time_contour_data(ncRootPath,
         [graph_data_t,
          volume_t,
          mass_t,
+         temperature_t,
+         temperature_grad_t,
          contour_t,
          domain_borders] = generate_vtklines(
             ncPath,
@@ -886,6 +930,12 @@ def generate_time_contour_data(ncRootPath,
 
         # save the mass at t
         mass[i] = mass_t
+
+        # save the temperature at t
+        temperature[i] = temperature_t
+
+        # save the temperature gradient at t
+        temperature_grad[i] = temperature_grad_t
 
         # save the mass density chosen
         # for the contour
@@ -939,32 +989,52 @@ def generate_time_contour_data(ncRootPath,
 
 
     # write the volume(t) on an output file
-    out = open(os.path.dirname(contourRootPath)+'/volume.txt', 'w')
-    for (i,t,v) in zip(file_id,time,volume):
-        out.write("%f %f %f\n" % (i,t,v))
-    out.close()
+    write_in_output_file(
+        file_id,
+        time,
+        volume,
+        os.path.dirname(contourRootPath)+'/volume.txt')
 
 
     # write the mass(t) on an output file
-    out = open(os.path.dirname(contourRootPath)+'/mass.txt', 'w')
-    for (i,t,v) in zip(file_id,time,mass):
-        out.write("%f %f %f\n" % (i,t,v))
-    out.close()
+    write_in_output_file(
+        file_id,
+        time,
+        mass,
+        os.path.dirname(contourRootPath)+'/mass.txt')
+
+
+    # write the temperature(t) on an output file
+    write_in_output_file(
+        file_id,
+        time,
+        temperature,
+        os.path.dirname(contourRootPath)+'/temperature.txt')
+
+
+    # write the temperature_grad(t) on an output file
+    write_in_output_file(
+        file_id,
+        time,
+        temperature_grad,
+        os.path.dirname(contourRootPath)+'/temperature_grad.txt')
 
 
     # write the length(t) on an output file
-    out = open(os.path.dirname(contourRootPath)+'/contact_lgh.txt', 'w')
-    for (i,t,l) in zip(file_id,time,contact_lgh):
-        out.write("%f %f %f\n" % (i,t,l))
-    out.close()
+    write_in_output_file(
+        file_id,
+        time,
+        contact_lgh,
+        os.path.dirname(contourRootPath)+'/contact_lgh.txt')
 
 
     # write the mass density chosen to draw the contour
     # on an output file
-    out = open(os.path.dirname(contourRootPath)+'/contour.txt', 'w')
-    for (i,t,l) in zip(file_id,time,contour):
-        out.write("%f %f %f\n" % (i,t,l))
-    out.close()
+    write_in_output_file(
+        file_id,
+        time,
+        contour,
+        os.path.dirname(contourRootPath)+'/contour.txt')
 
 
     # write the domain borders on an output file

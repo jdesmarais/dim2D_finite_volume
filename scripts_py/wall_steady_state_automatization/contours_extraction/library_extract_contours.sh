@@ -4,7 +4,7 @@ pythonDir=/home/jdesmarais/Code/augeanstables/scripts_py
 
 # directory for the simulation at (T,ca)
 get_st_dir(){
-    projectDir=/home/jdesmarais/projects
+    projectDir=/home/jdesmarais/projects/20150708_dim2d_0.95_ca22.5-135.0_vap
     dir="$projectDir/dim2d_"$1"_ca"$2"_vap"
     echo "$dir"
 }
@@ -17,9 +17,10 @@ generate_st_contours(){
 
     inputDir=$( get_st_dir $1 $2)
     ca=$2
+    scaling=$6
 
     options="-i $inputDir -c $ca -t $3 -p -g -r -w -l max_gradient"
-    #options="-i $inputDir -c $ca -t $3 -r -l max_gradient -s -x $4 -y $5"
+    #options="-i $inputDir -c $ca -t $3 -r -l max_gradient -s -x $4 -y $5 -a $scaling"
 
     ./extract_bubble_contours.py $options #> cur_st_contours.out 2>&1
 
@@ -50,7 +51,7 @@ generate_nucleation_contours(){
     inputDir=$( get_nucleation_dir $1 $2 $3 )
     ca=$2
 
-    #options="-i $inputDir -c $ca -t $4 -x $5 -y $6 -p -l wall_max_gradient -g -w -r"
+    #options="-i $inputDir -c $ca -t $4 -x $5 -y $6 -p -l max_gradient -g -r -w"
     options="-i $inputDir -c $ca -t $4 -x $5 -y $6 -p -l wall_max_gradient -s -r"
 
     ./extract_bubble_contours.py $options

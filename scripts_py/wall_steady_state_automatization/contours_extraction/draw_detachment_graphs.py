@@ -143,7 +143,8 @@ def generate_detachment_data(
 
 if __name__=='__main__':
 
-    mainDir = os.path.join(os.getenv('HOME'),'projects')
+    mainDir = os.path.join(os.getenv('HOME'),
+                           'projects')
 
     #=============================================================
     # Detachment study at different contact angle and flow
@@ -152,8 +153,8 @@ if __name__=='__main__':
 
     # directories for the detachment study
     # with different contact angles
-    contactAngleArray = [112.5] #[,45.0,67.5,90.0,112.5,135.0]
-    flowVelocityArray = [0.5]#,0.2,0.3,0.4,0.5]
+    contactAngleArray = [45.0] #,45.0,67.5,90.0,112.5,135.0]
+    flowVelocityArray = [0.1,0.2,0.3,0.4,0.5]
 
     simDirs = []
 
@@ -163,8 +164,9 @@ if __name__=='__main__':
 
             # directory analyzed
             #=================================================================
-            simDir = 'dim2d_0.95_ca'+str(contactAngle)+\
-                     '_vap_vl'+str(flowVelocity)+'_hca0.0_sph'
+            simDir = os.path.join(
+                '20150708_dim2d_0.95_ca22.5-135.0_vap_vl0.1-0.5_hca0.0_sph',
+                'dim2d_0.95_ca'+str(contactAngle)+'_vap_vl'+str(flowVelocity)+'_hca0.0_sph')
 
 
             # generate the detachement data corresponding to the simulation

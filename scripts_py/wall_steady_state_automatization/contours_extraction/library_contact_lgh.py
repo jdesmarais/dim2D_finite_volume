@@ -125,6 +125,6 @@ def curves_to_contact_lgh(dirPath,yWall=0.0):
 
 if __name__=='__main__':
     
-    dirPath = os.path.join('/home/jdesmarais/projects','dim2d_0.95_ca67.5_vap')
+    dirPath = os.path.join('/home/jdesmarais/projects','dim2d_0.95_ca22.5_vap')
 
     curves_to_contact_lgh(dirPath)
