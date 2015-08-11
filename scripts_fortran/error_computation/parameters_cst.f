@@ -8,6 +8,8 @@
         integer, parameter :: N=1
         integer, parameter :: S=2
         integer, parameter :: E=3
-        integer, parameter :: W=4        
+        integer, parameter :: W=4
+
+        integer, parameter :: bc_size=2
 
       end module parameters_cst

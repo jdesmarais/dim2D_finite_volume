@@ -19,7 +19,8 @@
       module energyTr_computation_module
       
         use parameters_cst, only :
-     $       N,S,E,W
+     $       N,S,E,W,
+     $       bc_size
 
         use parameters_kind, only :
      $     rkind
@@ -83,8 +84,52 @@
 
           energyTr = 0.0d0
 
-        end function compute_EnergyTr        
+          
+          ! South edge
+          if(borders_opt(S)) then
+             energyTr = energyTr - compute_EnergyTr_across_x_edge(
+     $            x_map,
+     $            nodes,
+     $            bc_size+1,
+     $            size(x_map,1)-bc_size,
+     $            bc_size)
+          end if
 
+
+          ! West edge
+          if(borders_opt(W)) then
+             energyTr = energyTr - compute_EnergyTr_across_y_edge(
+     $            y_map,
+     $            nodes,
+     $            bc_size,
+     $            bc_size+1,
+     $            size(y_map,1)-bc_size)
+          end if
+
+
+          ! East edge
+          if(borders_opt(E)) then
+             energyTr = energyTr + compute_EnergyTr_across_y_edge(
+     $            y_map,
+     $            nodes,
+     $            size(x_map)-bc_size,
+     $            bc_size+1,
+     $            size(y_map,1)-bc_size)
+
+          end if
+
+
+          ! North edge
+          if(borders_opt(N)) then
+             energyTr = energyTr + compute_EnergyTr_across_x_edge(
+     $            x_map,
+     $            nodes,
+     $            bc_size+1,
+     $            size(x_map,1)-bc_size,
+     $            size(y_map)-bc_size)
+          end if
+
+        end function compute_EnergyTr
 
 
         !---------------------------------------------------------------------------  
@@ -213,7 +258,7 @@
           do j=j_min, j_max
 
              energy_av   = 0.5d0*(nodes(i,j,4) + nodes (i+1,j,4))
-             velocity_av = 0.5d0*(nodes(i,j,2)/nodes(i,j,1) + nodes(i+1,j+1,2)/nodes(i+1,j,1))
+             velocity_av = 0.5d0*(nodes(i,j,2)/nodes(i,j,1) + nodes(i+1,j,2)/nodes(i+1,j,1))
 
              energyTr = energyTr + 0.5d0*(energy_av*velocity_av)*(y_map(j+1)-y_map(j-1))
 
