@@ -3,6 +3,9 @@
         use cmd_operators_extract_class, only :
      $       cmd_operators_extract
 
+        use energyTr_computation_module, only :
+     $       compute_energyTr
+
         use nf90_operators_error_module, only :
      $       nf90_get_maps,
      $       nf90_get_gov_var
@@ -23,6 +26,8 @@
         real(rkind), dimension(:)    , allocatable :: x_map
         real(rkind), dimension(:)    , allocatable :: y_map
         real(rkind), dimension(:,:,:), allocatable :: nodes
+
+        real(rkind) :: energyTr
 
         integer :: ierror
         
@@ -51,8 +56,14 @@
 
 
         ! extract the energy balance through the domain borders
-        
+        energyTr = compute_energyTr(
+     $       x_map,
+     $       y_map,
+     $       nodes,
+     $       borders=[.true.,.false.,.true.,.true.])
+
 
         ! output the energy balance
+        print *, 'energyTr: ', energyTr
 
       end program extract_energyTr

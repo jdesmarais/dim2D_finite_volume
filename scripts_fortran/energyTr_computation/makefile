@@ -30,12 +30,15 @@ energyTr_computation_module.o:			$(param_dir)/parameters_kind.o\
 # main files
 #-----------------------------------------------------------------------
 extract_energyTr.o:		cmd_operators_extract_class.o\
-				parameters_kind.o\
-				$(error_dir)/nf90_operators_error_module.o
+				energyTr_computation_module.o\
+				$(error_dir)/nf90_operators_error_module.o\
+				$(error_dir)/parameters_cst.o\
+				parameters_kind.o
 
 extract_energyTr:		cmd_operators_extract_class.o\
-				parameters_kind.o\
+				energyTr_computation_module.o\
 				nf90_operators_error_module.o\
+				parameters_kind.o\
 				compare_type_module.o\
 				parameters_cst.o
 

@@ -58,7 +58,7 @@
         !>@param[in,opt] : borders  : [N,S,E,W] to say check to compute the energy for this border
         !>@param[out]    : energyTr : energy transported flowing through the borders
         !---------------------------------------------------------------------------
-        function compute_EnergyTr(
+        function compute_energyTr(
      $       x_map,
      $       y_map,
      $       nodes,
@@ -87,7 +87,7 @@
           
           ! South edge
           if(borders_opt(S)) then
-             energyTr = energyTr - compute_EnergyTr_across_x_edge(
+             energyTr = energyTr - compute_energyTr_across_x_edge(
      $            x_map,
      $            nodes,
      $            bc_size+1,
@@ -98,7 +98,7 @@
 
           ! West edge
           if(borders_opt(W)) then
-             energyTr = energyTr - compute_EnergyTr_across_y_edge(
+             energyTr = energyTr - compute_energyTr_across_y_edge(
      $            y_map,
      $            nodes,
      $            bc_size,
@@ -109,7 +109,7 @@
 
           ! East edge
           if(borders_opt(E)) then
-             energyTr = energyTr + compute_EnergyTr_across_y_edge(
+             energyTr = energyTr + compute_energyTr_across_y_edge(
      $            y_map,
      $            nodes,
      $            size(x_map)-bc_size,
@@ -121,7 +121,7 @@
 
           ! North edge
           if(borders_opt(N)) then
-             energyTr = energyTr + compute_EnergyTr_across_x_edge(
+             energyTr = energyTr + compute_energyTr_across_x_edge(
      $            x_map,
      $            nodes,
      $            bc_size+1,
@@ -129,7 +129,7 @@
      $            size(y_map)-bc_size)
           end if
 
-        end function compute_EnergyTr
+        end function compute_energyTr
 
 
         !---------------------------------------------------------------------------  
@@ -151,7 +151,7 @@
         !>@param[in]     : j        : y-index identifying the x-edge location at [j+1/2]
         !>@param[out]    : energyTr : energy transported flowing through the borders
         !---------------------------------------------------------------------------
-        function compute_EnergyTr_across_x_edge(
+        function compute_energyTr_across_x_edge(
      $     x_map,
      $     nodes,
      $     i_min,
@@ -195,7 +195,7 @@
           end do
 
 
-        end function compute_EnergyTr_across_x_edge
+        end function compute_energyTr_across_x_edge
 
 
         !---------------------------------------------------------------------------  
@@ -217,7 +217,7 @@
         !>@param[in]     : j_max    : max y-index identifying the y-edge location
         !>@param[out]    : energyTr : energy transported flowing through the borders
         !---------------------------------------------------------------------------
-        function compute_EnergyTr_across_y_edge(
+        function compute_energyTr_across_y_edge(
      $     y_map,
      $     nodes,
      $     i,
@@ -265,7 +265,7 @@
           end do
 
 
-        end function compute_EnergyTr_across_y_edge
+        end function compute_energyTr_across_y_edge
 
 
       end module energyTr_computation_module
