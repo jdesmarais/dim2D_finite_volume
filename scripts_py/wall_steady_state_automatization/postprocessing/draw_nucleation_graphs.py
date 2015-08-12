@@ -19,14 +19,8 @@ import matplotlib.pyplot as plt
 from library_contours_graph import grayscale_to_RGB
 from math import sqrt
 
-
-def compute_latent_heat(T):
-    '''
-    @description: approximate the latent close to the critical
-    temperature
-    '''
-
-    return 15.08*sqrt(1.0-T)
+from library_van_der_waals import compute_latent_heat
+from library_van_der_waals import compute_latent_heat
 
 
 def get_nucleation_qties(simDirs):

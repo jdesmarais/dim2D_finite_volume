@@ -297,4 +297,3 @@
         end function get_filename
 
       end module cmd_operators_extract_class
-      

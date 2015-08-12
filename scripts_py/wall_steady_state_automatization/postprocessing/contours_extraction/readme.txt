@@ -1,9 +1,9 @@
 ============================================================
-Author: J.L. Desmarais
+Author: J.L. Desmarais (desmaraisjulien@gmail.com)
 Date  : 16/06/2015
 ============================================================
 python files written to create and extract the bubble
-contours from the netcdf files
+contours from netcdf files
 
 procedure sumary:
 -----------------

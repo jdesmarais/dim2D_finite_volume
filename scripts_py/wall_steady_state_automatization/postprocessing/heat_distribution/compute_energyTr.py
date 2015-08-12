@@ -1,11 +1,21 @@
 #!/usr/bin/python
 
+'''
+@description: compute the energy flowing across the domain
+borders of the computational domain
+'''
+
 import sys
 import os
 import getopt
 import subprocess
 import shlex
 import shutil
+
+from library_messages import\
+    print_mg_error,\
+    print_mg_progress,\
+    print_mg_final
 
 fortranEnergyTrExe='extract_energyTr'
 
@@ -14,31 +24,6 @@ fortranEnergyTrExePath=os.path.join(os.getenv(
         'scripts_fortran',
         'energyTr_computation',
         fortranEnergyTrExe)
-
-
-# error message print
-def print_mg_error(error_mg):
-    sys.stdout.write('****'+error_mg+'**** \n')
-
-
-# progress message print
-def print_mg_progress(mg_progress):
-    '''
-    @description:
-    print a message which is overwritten
-    '''
-    sys.stdout.write('%s\r' % mg_progress)
-    sys.stdout.flush()
-
-
-# final progress message print
-def print_mg_final(mg_progress):
-    '''
-    @description:
-    print a message which is not overwritten
-    '''
-    sys.stdout.write('%s' % mg_progress+'\n')
-    sys.stdout.flush()
 
 
 # display the help for the program
@@ -172,7 +157,7 @@ def generate_fortran_exe():
         # generate the executable
         exeOpt = os.getenv('AUGEANSTABLES_PROFILE')
         os.environ['AUGEANSTABLES_PROFILE']= 'false'
-        cmd='make cleanall && make '+fortranEnergyTrExe+' make clean'
+        cmd='make cleanall && make '+fortranEnergyTrExe+' && make clean'
         subprocess.call(cmd, shell=True)
         os.environ['AUGEANSTABLES_PROFILE']= exeOpt
 
@@ -247,11 +232,14 @@ def extract_time(ncFile):
     return time
 
 
-if __name__=="__main__":
-
-    # extract the options from the command line
-    mainDir, outputFile = parse_argv(sys.argv[1:])
-
+# extract the energy flowing across the domain borders
+# for all the netcdf files in the directory
+def compute_energyTr(mainDir, outputFile):
+    '''
+    @description: extract the energy flowing across
+    the domain borders for all the netcdf files in
+    the directory and save it in the output file
+    '''
 
     # determine the number of netcdf files in dir
     tmin,tmax = find_netcdf_data_files_in_dir(mainDir)
@@ -297,4 +285,16 @@ if __name__=="__main__":
 
     # remove the fortran exe
     os.remove(fortranEnergyTrExe)
+
+
+if __name__=="__main__":
+
+    # extract the options from the command line
+    mainDir, outputFile = parse_argv(sys.argv[1:])
+
+    # extract the energy flowing across the domain
+    # borders for all the netcdf files in the
+    # directory
+    compute_energyTr(mainDir, outputFile)
+    
     
