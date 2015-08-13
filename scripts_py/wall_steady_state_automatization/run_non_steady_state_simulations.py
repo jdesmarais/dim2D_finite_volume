@@ -577,7 +577,7 @@ if __name__=="__main__":
 
         contact_angle_array  = [22.5] #[22.5,45.0,67.5,112.5,135.0]
         phase_at_center      = 'vapor'
-        flow_velocity_array  = [0.0] #0.2,0.4]
+        flow_velocity_array  = [0.1,0.2,0.3,0.4,0.5] #0.2,0.4]
         flow_profile         = 'linear_profile' #'parabolic_profile'
 
         ratio_bubble_interface = 2.0
@@ -593,6 +593,12 @@ if __name__=="__main__":
         total_nb_files           = 500
         spherical_cap            = False
         nucleation_in_flow       = True
+
+        extra_domain           = [[0 for x in range(2)] for x in range(2)]
+        extra_domain[0][0]     =-3.0
+        extra_domain[1][0]     = 3.0
+        extra_domain[0][1]     = 0.0
+        extra_domain[1][1]     = 0.0
 
 
         #-------------------------------------------------------------

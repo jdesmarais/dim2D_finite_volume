@@ -1,6 +1,8 @@
 #!/bin/bash
 
-pythonDir=/home/jdesmarais/Code/augeanstables/scripts_py
+pythonDir=$augeanstables/scripts_py
+postprocessingDir=$pythonDir/wall_steady_state_automatization/postprocessing/contours_extraction
+
 
 # directory for the simulation at (T,ca)
 get_st_dir(){
@@ -147,8 +149,7 @@ get_inflow_nucleation_dir(){
 # generate the contours for the uniform surface nucleation simulations
 generate_inflow_nucleation_contours(){
 
-    cd $pythonDir
-    cd wall_steady_state_automatization/contours_extraction
+    cd $postprocessingDir
 
     T=$1
     ca=$2
@@ -159,8 +160,8 @@ generate_inflow_nucleation_contours(){
     inputDir=$( get_inflow_nucleation_dir $T $ca $sh $v $hca)
 
     
-    #options="-i $inputDir -c $ca -t $6 -x $7 -y $8 -p -l max_gradient -g -w"
-    options="-i $inputDir -c $ca -t $6 -x $7 -y $8 -p -l max_gradient -s"
+    options="-i $inputDir -c $ca -t $6 -x $7 -y $8 -p -l max_gradient -g -w"
+    #options="-i $inputDir -c $ca -t $6 -x $7 -y $8 -p -l max_gradient -s"
 
     ./extract_bubble_contours.py  $options #>cur_contours.out 2>&1
 

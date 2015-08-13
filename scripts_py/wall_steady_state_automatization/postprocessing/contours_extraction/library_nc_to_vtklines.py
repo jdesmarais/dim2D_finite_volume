@@ -16,7 +16,7 @@ import numpy as np
 # add the python files from sm_lg_automatization
 cmd_subfolder = os.path.realpath(os.path.abspath(os.path.join(\
     os.path.split(
-    inspect.getfile( inspect.currentframe() ))[0],"../../sm_lg_domain_automatization")))
+    inspect.getfile( inspect.currentframe() ))[0],"../../../sm_lg_domain_automatization")))
 if cmd_subfolder not in sys.path:
     sys.path.insert(0, cmd_subfolder)
 
