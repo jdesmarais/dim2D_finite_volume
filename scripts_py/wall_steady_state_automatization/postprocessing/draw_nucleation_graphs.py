@@ -16,11 +16,10 @@ mass = f(t), at different contact angles
 import os
 import numpy as np
 import matplotlib.pyplot as plt
-from library_contours_graph import grayscale_to_RGB
+from library_colors import grayscale_to_RGB
 from math import sqrt
 
-from library_van_der_waals import compute_latent_heat
-from library_van_der_waals import compute_latent_heat
+from library_van_der_waals import compute_latentHeat
 
 
 def get_nucleation_qties(simDirs):
@@ -232,14 +231,17 @@ def create_mass_graph(simDirs,
         ini_time[0]-= border
         ini_time[1]+= border
         
-        ini_mass[0] = ini_mass[0]*(1.-0.1)
-        ini_mass[1] = ini_mass[0]+(ini_time[1]-ini_time[0])*(ax_y_lim[1]-ax_y_lim[0])/(ax_x_lim[1]-ax_x_lim[0])
+        ini_mass[0]  = ini_mass[0]*(1.-0.1)
+        ini_mass_tmp = ini_mass[0]+(ini_time[1]-ini_time[0])*(ax_y_lim[1]-ax_y_lim[0])/(ax_x_lim[1]-ax_x_lim[0])
         
         width    = 0.5
-        height_p = width*((ini_mass[1]-ini_mass[0])/(ax_y_lim[1]-ax_y_lim[0]))/((ini_time[1]-ini_time[0])/(ax_x_lim[1]-ax_x_lim[0]))
+        height_p = width*((ini_mass_tmp-ini_mass[0])/(ax_y_lim[1]-ax_y_lim[0]))/((ini_time[1]-ini_time[0])/(ax_x_lim[1]-ax_x_lim[0]))
         height   = 0.2
         
-        ini_mass[1] = height/height_p*ini_mass[1]
+        ini_mass_tmp = height/height_p*ini_mass_tmp
+
+        if(ini_mass_tmp>ini_mass[1]):
+            ini_mass[1] = ini_mass_tmp
         
         ax_zoom = plt.axes([.15, .65, width, height]) #, axisbg='y')
         for i in range(0,len(simDirs)):
@@ -438,7 +440,7 @@ def compute_phase_transition_energy_supplied_rate(
 
 	for j in range(borders[i][0],borders[i][1]):
 	    T = temperature[j,2]
-	    latent_heat+= compute_latent_heat(T)
+	    latent_heat+= compute_latentHeat(T)
             T_av+= T
 	
 	# average latent heat: latent heat power per unit mass

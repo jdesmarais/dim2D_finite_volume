@@ -27,17 +27,17 @@
         logical    , parameter :: debug = .true.        
 
         !<computational field dimensions
-        real(rkind), parameter :: x_min = 0.0000000000d0
-        real(rkind), parameter :: x_max = 0.4284000000d0
+        real(rkind), parameter :: x_min = -0.5712000000d0
+        real(rkind), parameter :: x_max = 0.8568000000d0
         real(rkind), parameter :: y_min = 0.0000000000d0
         real(rkind), parameter :: y_max = 0.2495000000d0
         
         !<computational times
         real(rkind), parameter :: t_max = 20.0000000000d0 !10.0d0
-        real(rkind), parameter :: dt = 0.0000420000d0
+        real(rkind), parameter :: dt = 0.0000330000d0
         
         !<output writing
-        real(rkind), parameter :: detail_print = 0.0011000000d0
+        real(rkind), parameter :: detail_print = 0.0009000000d0
         logical    , parameter :: write_domain_extension = .true.
         logical    , parameter :: write_detectors = .true.
 
@@ -47,7 +47,7 @@
 
         !<size of the main tables
         !<careful, choose ne according to the physical model
-        integer(ikind), parameter :: ntx = 257
+        integer(ikind), parameter :: ntx = 845
         integer(ikind), parameter :: nty = 152
 
         integer(ikind), parameter :: nx = ntx/npx
@@ -120,7 +120,7 @@
         integer    , parameter :: flow_direction = x_direction
         real(rkind), parameter :: flow_x_side = 1.0000000000d0
         real(rkind), parameter :: flow_y_side = 1.0000000000d0
-        real(rkind), parameter :: flow_velocity = 0.0000000000d0
+        real(rkind), parameter :: flow_velocity = 0.5000000000d0
         integer    , parameter :: flow_profile = linear_profile
         
         real(rkind), parameter :: T0 = 0.9500000000d0
@@ -143,26 +143,26 @@
         integer    , parameter :: wave_forcing = no_wave_forcing
 
         !<boundary conditions choice
-        integer, parameter :: bc_choice = half_wall_S_open_choice
+        integer, parameter :: bc_choice = wall_S_open_choice
 
         integer, parameter :: bc_N_choice = hedstrom_choice
         integer, parameter :: bc_S_choice = wall_choice
         integer, parameter :: bc_E_choice = hedstrom_choice
-        integer, parameter :: bc_W_choice = reflection_x_choice
+        integer, parameter :: bc_W_choice = hedstrom_choice
 
-        integer, parameter :: bc_NW_choice = reflection_x_choice
+        integer, parameter :: bc_NW_choice = hedstrom_choice
         integer, parameter :: bc_NE_choice = hedstrom_choice
         integer, parameter :: bc_SE_choice = wall_choice
-        integer, parameter :: bc_SW_choice = reflection_x_choice        
+        integer, parameter :: bc_SW_choice = wall_choice        
 
-        integer, parameter :: bc_order1 = W_edge_type
+        integer, parameter :: bc_order1 = SW_corner_type
         integer, parameter :: bc_order2 = S_edge_type
         integer, parameter :: bc_order3 = SE_corner_type
-        integer, parameter :: bc_order4 = SW_corner_type
+        integer, parameter :: bc_order4 = W_edge_type
         integer, parameter :: bc_order5 = E_edge_type
-        integer, parameter :: bc_order6 = N_edge_type
-        integer, parameter :: bc_order7 = NE_corner_type
-        integer, parameter :: bc_order8 = NW_corner_type
+        integer, parameter :: bc_order6 = NW_corner_type
+        integer, parameter :: bc_order7 = N_edge_type
+        integer, parameter :: bc_order8 = NE_corner_type
         
 
         !<output choice
@@ -203,12 +203,12 @@
         integer, parameter :: bc_N_type_choice = bc_timedev_choice
         integer, parameter :: bc_S_type_choice = bc_flux_and_node_choice
         integer, parameter :: bc_E_type_choice = bc_timedev_choice
-        integer, parameter :: bc_W_type_choice = bc_nodes_choice
+        integer, parameter :: bc_W_type_choice = bc_timedev_choice
 
-        integer, parameter :: bc_NW_type_choice = bc_nodes_choice
+        integer, parameter :: bc_NW_type_choice = bc_timedev_choice
         integer, parameter :: bc_NE_type_choice = bc_timedev_choice
         integer, parameter :: bc_SE_type_choice = bc_flux_and_node_choice
-        integer, parameter :: bc_SW_type_choice = bc_nodes_choice
+        integer, parameter :: bc_SW_type_choice = bc_flux_and_node_choice
 
 
         !< bubble collapse ic parameters
@@ -461,7 +461,7 @@
         integer, parameter :: adapt_N_choice = adapt_domain_choice
         integer, parameter :: adapt_S_choice = fixed_domain_choice
         integer, parameter :: adapt_E_choice = adapt_domain_choice
-        integer, parameter :: adapt_W_choice = fixed_domain_choice
+        integer, parameter :: adapt_W_choice = adapt_domain_choice
 
 
         !------------------------------------------------------------

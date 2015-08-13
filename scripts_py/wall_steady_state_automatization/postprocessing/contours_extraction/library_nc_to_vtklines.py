@@ -386,7 +386,7 @@ def get_mass_for_contour(coord1,coord2,gradMass,phase_check):
         # check by comparing the maximum gradient of the mass density
         interface_lgh = get_interface_length(we,midTemperature)
         mid_gradMass = abs((mass_liq-mass_vap)/interface_lgh)
-        check_grad = (abs(gradMass)>0.95*mid_gradMass) #0.9
+        check_grad = (abs(gradMass)>0.9*mid_gradMass) #0.9
 
         if(debug):
             print 'check_md_grad: ', (abs(gradMass)>0.9*mid_gradMass)

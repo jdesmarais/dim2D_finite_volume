@@ -6,7 +6,7 @@ true="true"
 false="false"
 
 
-steadyState_homogeneous=$false    # 1) steady state on homogeneous surface
+steadyState_Homogeneous=$false    # 1) steady state on homogeneous surface
 
 nucleation_Homogeneous=$false     # 2) nucleation on homogenenous surface
 
@@ -22,18 +22,23 @@ nucleation_LinearInflow=$false    # 6) nucleation linear velocity profile
 #============================================================
 # 1) steady state on homogeneous surface
 #============================================================
-T=0.95
+if [ "$steadyState_Homogeneous" = "$true" ]
+then
 
-for ca in 22.5 45.0 67.5 90.0 112.5 135.0
-do
-    generate_st_contours $T $ca [0,125,1] [-0.15,0.15] [0,0.15] 3
-done
+    T=0.95
+
+    for ca in 22.5 45.0 67.5 90.0 112.5 135.0
+    do
+	generate_st_contours $T $ca [0,125,1] [-0.15,0.15] [0,0.15] 3
+    done
+
+fi
 
 
 #============================================================
 # 2) nucleation on homogeneous surface
 #============================================================
-if [ "$nucleation_Homogeneous" = "true" ]
+if [ "$nucleation_Homogeneous" = "$true" ]
 then
 
     T=0.95
@@ -80,6 +85,8 @@ then
 	done
     done
 
+fi
+
 
 #============================================================
 # 4) detachment with incoming linear velocity profile
@@ -99,32 +106,36 @@ then
 	done
     done
 
+fi
+
 
 #============================================================
 # 5) nucleation with incoming parabolic velocity profile
 #============================================================
-if [ "$nucleation_ParabolicInflow" = "true" ]
+if [ "$nucleation_ParabolicInflow" = "$true" ]
 then
 
     T=0.95
     ca=22.5
     hca=0.0
+    xlimits=[-0.1,0.425]
+    ylimits=[0,0.125]
 
     # constant heat flux, varying maximum velocity
-    fh=0.04    
-    
-    for v in 0.1 0.2 0.3 0.4 0.5
-    do
-	options="$T $ca $fh $v $hca [0,500,1] [-0.1,0.225] [0,0.125]"
-	generate_inflow_nucleation_contours $options
-    done
+    #fh=0.04    
+    #
+    #for v in 0.1 0.2 0.3 0.4 0.5
+    #do
+    #	options="$T $ca $fh $v $hca [0,500,1] $xlimits $ylimits"
+    #	generate_inflow_nucleation_contours $options
+    #done
 
     # constant maximum velocity, varying heat flux
     v=0.4
     
-    for fh in 0.05 0.06 0.08 0.1
+    for fh in 0.06 #0.05 0.06 0.08 0.1
     do
-    	options="$T $ca $fh $v $hca [0,500,1] [-0.1,0.225] [0,0.125]"
+    	options="$T $ca $fh $v $hca [0,500,1] $xlimits $ylimits"
     	generate_inflow_nucleation_contours $options
     done
     
@@ -134,7 +145,7 @@ fi
 #============================================================
 # 6) nucleation with incoming linear velocity profile
 #============================================================
-if [ "$nucleation_LinearInflow" = "true" ]
+if [ "$nucleation_LinearInflow" = "$true" ]
 then
 
     T=0.95
@@ -160,3 +171,4 @@ then
     done
     
 fi
+

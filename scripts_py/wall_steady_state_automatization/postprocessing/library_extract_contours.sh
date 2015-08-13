@@ -141,7 +141,9 @@ generate_linear_inflow_sph_contours(){
 # uniform surface at (T,ca,sh)
 get_inflow_nucleation_dir(){
     projectDir=/home/jdesmarais/projects
-    dir="$projectDir/dim2d_"$1"_ca"$2"_vap_fh"$3"_v"$4"_hca"$5
+    mainDir=jmf2015_submission/20151308_dim2d_0.95_ca22.5_vap_fh0.04-0.1_v0.1-0.5_hca0.0
+
+    dir="$projectDir/$mainDir/dim2d_"$1"_ca"$2"_vap_fh"$3"_v"$4"_hca"$5
     echo "$dir"
 }
 

@@ -1,13 +1,34 @@
 #!/usr/bin/python
 
-from draw_nucleation_graphs import create_mass_graph, get_nucleation_qties
-from library_contours_graph import create_st_graph
+import sys
 import os
+import inspect
+
+
+# python path
+#------------------------------------------------------------
+cmd_subfolder = os.path.realpath(os.path.abspath(os.path.join(\
+    os.path.split(
+    inspect.getfile( inspect.currentframe() ))[0],"./contours_extraction")))
+if cmd_subfolder not in sys.path:
+    sys.path.insert(0, cmd_subfolder)
+
+# library imports
+#------------------------------------------------------------
+from draw_nucleation_graphs import \
+    create_mass_graph,\
+    get_nucleation_qties
+
+from library_contours_graph import \
+    create_st_graph
+
 import numpy as np
 import matplotlib.pyplot as plt
-from library_contours_graph import grayscale_to_RGB
+from library_colors import grayscale_to_RGB
 
 
+# functions
+#------------------------------------------------------------
 def create_nucleation_time_graph(dirs,
                                  velocities,
                                  styles,
@@ -188,15 +209,17 @@ def create_nucleation_time_graph2(dirsPar,
 if __name__=='__main__':
     
     drawNucleationInflowPar = True  #v \in \{0.1-0.5/}, fh=0.04 (parabolic)
-    drawNucleationInflowLin = True  #v \in \{0.1-0.5/}, fh=0.04 (linear)
+    drawNucleationInflowLin = False #v \in \{0.1-0.5/}, fh=0.04 (linear)
     drawNucleationFluxPar   = True  #v \in \{0.2,0.4/}, fh\in\{0.04,0.1/} (parabolic)
-    drawNucleationFluxLin   = True  #v \in \{0.2,0.4/}, fh\in\{0.04,0.1/} (linear)
+    drawNucleationFluxLin   = False #v \in \{0.2,0.4/}, fh\in\{0.04,0.1/} (linear)
 
     drawNucleationTimePar = False
     drawNucleationTimeLin = False
 
     mainDir = os.path.join(os.getenv('HOME'),
-                           'projects')    
+                           'projects',
+                           'jmf2015_submission',
+                           '20151308_dim2d_0.95_ca22.5_vap_fh0.04-0.1_v0.1-0.5_hca0.0')
     
     # directories for the nucleation study with
     # different contact angles
@@ -242,12 +265,12 @@ if __name__=='__main__':
         
         # borders for extracting the mass growth rate
         growthRateBorders = []
-        growthRateBorders.append([90 ,400]) #v=0.0
-        growthRateBorders.append([100,280]) #v=0.1
-        growthRateBorders.append([100,260]) #v=0.2
-        growthRateBorders.append([100,240]) #v=0.3
-        growthRateBorders.append([100,220]) #v=0.4
-        growthRateBorders.append([100,200]) #v=0.5
+        growthRateBorders.append([[90 ,400]]) #v=0.0
+        growthRateBorders.append([[100,280]]) #v=0.1
+        growthRateBorders.append([[100,260]]) #v=0.2
+        growthRateBorders.append([[100,240]]) #v=0.3
+        growthRateBorders.append([[100,220]]) #v=0.4
+        growthRateBorders.append([[100,200]]) #v=0.5
 
         # create the graph with mass = f(t)
         create_mass_graph(simDirsPar,
@@ -270,12 +293,12 @@ if __name__=='__main__':
 
         # borders for extracting the mass growth rate
         growthRateBorders = []
-        growthRateBorders.append([90 ,400]) #v=0.0
-        growthRateBorders.append([100,280]) #v=0.1
-        growthRateBorders.append([110,240]) #v=0.2
-        growthRateBorders.append([110,200]) #v=0.3
-        growthRateBorders.append([140,200]) #v=0.4
-        growthRateBorders.append([255,300]) #v=0.5
+        growthRateBorders.append([[90 ,400]]) #v=0.0
+        growthRateBorders.append([[100,280]]) #v=0.1
+        growthRateBorders.append([[110,240]]) #v=0.2
+        growthRateBorders.append([[110,200]]) #v=0.3
+        growthRateBorders.append([[140,200]]) #v=0.4
+        growthRateBorders.append([[255,300]]) #v=0.5
         
         # create the graph with mass = f(t)
         create_mass_graph(simDirsLin,
@@ -324,11 +347,11 @@ if __name__=='__main__':
 
         # borders for extracting the mass growth rate
         growthRateBorders = []
-        growthRateBorders.append([100,180]) #fh=0.04
-        growthRateBorders.append([60,190])  #fh=0.05
-        growthRateBorders.append([45,160])  #fh=0.06
-        growthRateBorders.append([25,140])  #fh=0.08
-        growthRateBorders.append([20,45])   #fh=0.1
+        growthRateBorders.append([[100,180]]) #fh=0.04
+        growthRateBorders.append([[ 60,190]]) #fh=0.05
+        growthRateBorders.append([[ 45,160]]) #fh=0.06
+        growthRateBorders.append([[ 25,140]]) #fh=0.08
+        growthRateBorders.append([[ 20, 45]]) #fh=0.1
 
         # graph with the vapor mass
         create_mass_graph(simDirsPar,
@@ -350,11 +373,11 @@ if __name__=='__main__':
 
         # borders for extracting the mass growth rate
         growthRateBorders = []
-        growthRateBorders.append([140,200]) #fh=0.04
-        growthRateBorders.append([70,150])  #fh=0.05
-        growthRateBorders.append([45,140])  #fh=0.06
-        growthRateBorders.append([25,120])  #fh=0.08
-        growthRateBorders.append([20,70])   #fh=0.1
+        growthRateBorders.append([[140,200]]) #fh=0.04
+        growthRateBorders.append([[ 70,150]]) #fh=0.05
+        growthRateBorders.append([[ 45,140]]) #fh=0.06
+        growthRateBorders.append([[ 25,120]]) #fh=0.08
+        growthRateBorders.append([[ 20, 70]]) #fh=0.1
 
         # graph with the vapor mass
         create_mass_graph(simDirsLin,
