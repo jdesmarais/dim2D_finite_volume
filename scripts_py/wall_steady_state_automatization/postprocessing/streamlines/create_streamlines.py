@@ -32,6 +32,7 @@ from library_messages import\
     print_mg_final
 
 import numpy as np
+from matplotlib.pyplot import cm
 import matplotlib.pyplot as plt
 
 
@@ -146,6 +147,28 @@ def extract_netcdf_var(fileName,var):
     return output
 
 
+# extract governing variables from a netcdf file
+def extract_govvar_data(fileName):
+    '''
+    @description: extract the x-coordinates, y-coordinates
+    and (mass,momentum_x,momentum_y,energy)
+    '''
+
+    x      = extract_netcdf_var(fileName,'x')
+    y      = extract_netcdf_var(fileName,'y')
+    mass   = extract_netcdf_var(fileName,'mass')
+    qx     = extract_netcdf_var(fileName,'momentum_x')
+    qy     = extract_netcdf_var(fileName,'momentum_y')
+    energy = extract_netcdf_var(fileName,'energy')
+
+    mass       = np.reshape(mass,(len(y),len(x)))
+    momentum_x = np.reshape(momentum_x,(len(y),len(x)))
+    momentum_y = np.reshape(momentum_y,(len(y),len(x)))
+    energy     = np.reshape(energy,(len(y),len(x)))
+
+    return x,y,mass,momentum_x,momentum_y,energy
+
+
 # extract the x-coordinates, y-coordinates and velocity vector fields
 # from a netcdf file
 def extract_streamline_data(fileName):
@@ -154,16 +177,11 @@ def extract_streamline_data(fileName):
     and velocity vector fields from a netcdf file
     '''
 
-    x     = extract_netcdf_var(fileName,'x')
-    y     = extract_netcdf_var(fileName,'y')
-    mass  = extract_netcdf_var(fileName,'mass')
-    qx    = extract_netcdf_var(fileName,'momentum_x')
-    qy    = extract_netcdf_var(fileName,'momentum_y')
+    x,y,mass,momentum_x,momentum_y,energy =\
+        extract_govvar_data(fileName)
+
     vx    = qx/mass
     vy    = qy/mass
-
-    vx = np.reshape(vx,(len(y),len(x)))
-    vy = np.reshape(vy,(len(y),len(x)))
 
     return x,y,vx,vy
 
@@ -177,6 +195,7 @@ if __name__=="__main__":
     # extract the streamlines data from the netcdf file
     x,y,vx,vy = extract_streamline_data(inputFile)
 
+    v = np.sqrt(vx**2 + vy**2)
 
     # plot the streamlines
     plt.close("all")
@@ -187,5 +206,15 @@ if __name__=="__main__":
 
     ax = fig.add_subplot(111)
     
-    plt.streamplot(x, y, vx[2:,:], vy[2:,:], color=U, linewidth=2, cmap=plt.cm.autumn)
-    plt.colorbar()
+    ax.plot(y[2:],vx[2:,0])
+
+    plt.show()
+
+    #plt.quiver(x, y[2:], vx[2:,:], vy[2:,:],        # data
+    #           v[2:,:],                   # colour the arrows based on this array
+    #           cmap=cm.Blues)        # length of the arrows
+    #
+    #plt.colorbar()                  # adds the colour bar
+    #
+    #plt.title('Quive Plot, Dynamic Colours')
+    #plt.show()

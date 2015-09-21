@@ -121,7 +121,7 @@
         real(rkind), parameter :: flow_x_side = 1.0000000000d0
         real(rkind), parameter :: flow_y_side = 1.0000000000d0
         real(rkind), parameter :: flow_velocity = 0.5000000000d0
-        integer    , parameter :: flow_profile = linear_profile
+        integer    , parameter :: flow_profile = parabolic_profile
         
         real(rkind), parameter :: T0 = 0.9500000000d0
 

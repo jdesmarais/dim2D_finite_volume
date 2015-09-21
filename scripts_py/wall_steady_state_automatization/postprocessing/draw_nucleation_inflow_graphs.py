@@ -208,10 +208,10 @@ def create_nucleation_time_graph2(dirsPar,
 
 if __name__=='__main__':
     
-    drawNucleationInflowPar = True  #v \in \{0.1-0.5/}, fh=0.04 (parabolic)
-    drawNucleationInflowLin = False #v \in \{0.1-0.5/}, fh=0.04 (linear)
-    drawNucleationFluxPar   = True  #v \in \{0.2,0.4/}, fh\in\{0.04,0.1/} (parabolic)
-    drawNucleationFluxLin   = False #v \in \{0.2,0.4/}, fh\in\{0.04,0.1/} (linear)
+    drawNucleationInflowPar = False  #v \in \{0.1-0.5/}, fh=0.04 (parabolic)
+    drawNucleationInflowLin = True   #v \in \{0.1-0.5/}, fh=0.04 (linear)
+    drawNucleationFluxPar   = False  #v \in \{0.2,0.4/}, fh\in\{0.04,0.1/} (parabolic)
+    drawNucleationFluxLin   = True   #v \in \{0.2,0.4/}, fh\in\{0.04,0.1/} (linear)
 
     drawNucleationTimePar = False
     drawNucleationTimeLin = False
@@ -219,7 +219,7 @@ if __name__=='__main__':
     mainDir = os.path.join(os.getenv('HOME'),
                            'projects',
                            'jmf2015_submission',
-                           '20151308_dim2d_0.95_ca22.5_vap_fh0.04-0.1_v0.1-0.5_hca0.0')
+                           '20150904_dim2d_0.95_ca22.5_vap_fh0.04-0.1_vl0.1-0.5_hca0.0')
     
     # directories for the nucleation study with
     # different contact angles
@@ -230,8 +230,8 @@ if __name__=='__main__':
     velocityLegArrayPar = ['0.0','0.1','0.2','0.3','0.4','0.5']
     velocityLegArrayLin = velocityLegArrayPar
     
-    heatFluxArray    = [0.04,0.05,0.06,0.08,0.1]
-    heatFluxLegArray = [0.04,0.05,0.06,0.08,0.1]
+    heatFluxArray    = [0.04,0.05,0.06,0.08]
+    heatFluxLegArray = [0.04,0.05,0.06,0.08]
 
     simDirsPar = []
     simDirsLin = []
@@ -240,6 +240,7 @@ if __name__=='__main__':
     # directories for the simulations with the linear
     # or parabolic profiles and nucleation: varying velocity
     if(drawNucleationInflowPar or drawNucleationInflowLin):
+
 
         for velocity in velocityArray:
     
@@ -265,25 +266,27 @@ if __name__=='__main__':
         
         # borders for extracting the mass growth rate
         growthRateBorders = []
-        growthRateBorders.append([[90 ,400]]) #v=0.0
-        growthRateBorders.append([[100,280]]) #v=0.1
-        growthRateBorders.append([[100,260]]) #v=0.2
-        growthRateBorders.append([[100,240]]) #v=0.3
-        growthRateBorders.append([[100,220]]) #v=0.4
-        growthRateBorders.append([[100,200]]) #v=0.5
+        growthRateBorders.append([[110,400]]) #v=0.0
+        growthRateBorders.append([[110,200]]) #v=0.1
+        growthRateBorders.append([[110,240]]) #v=0.2
+        growthRateBorders.append([[110,180]]) #v=0.3
+        growthRateBorders.append([[120,200]]) #v=0.4
+        growthRateBorders.append([[130,200]]) #v=0.5
 
         # create the graph with mass = f(t)
         create_mass_graph(simDirsPar,
-                          legend=velocityLegArrayPar,
                           width=3,
                           xlabel='t',
                           ylabel='mass(t)',
                           show=True,
-                          add_zoom_above=True,
+                          add_zoom_above=False,
                           add_linear_interpolation=True,
                           borders_linear_interpolation=growthRateBorders,
                           legendLoc='upper right',
                           styleDashed=False)
+#                          xlim=[0,10],
+#                          ylim=[0,0.0040])
+#                          legend=velocityLegArrayPar,)
 
         # extract time+mass nucleation
         get_nucleation_qties(simDirsPar)
@@ -390,7 +393,9 @@ if __name__=='__main__':
                           add_linear_interpolation=True,
                           borders_linear_interpolation=growthRateBorders,
                           legendLoc='upper right',
-                          styleDashed=False)
+                          styleDashed=False,
+                          xlim=[0.,12.],
+                          ylim=[0.,0.0115])
 
         # extract time+mass nucleation
         get_nucleation_qties(simDirsLin)

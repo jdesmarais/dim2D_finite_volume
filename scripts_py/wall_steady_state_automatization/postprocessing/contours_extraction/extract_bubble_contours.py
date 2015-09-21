@@ -101,26 +101,37 @@ def parse_opts(argv):
                                     "genContours",
                                     "show",
                                     "no_window",
-                                    "reflection"])
+                                    "reflection",
+                                    "x_figsize=",
+                                    "y_figsize=",
+                                    "maxNbBubbleContours=",
+                                    "select_detach_time"])
     except getopt.GetoptError:
+        print argv
         usage()
         sys.exit(2)
         
+    print argv
+
     inputDirProvided      = False
     contactAngleProvided  = False
     timeFrameProvided     = False
 
     options = {}
-    options['phaseCheck']        = False
-    options['genContours']       = False
-    options['show']              = False
-    options['x_limits']          = 'None'
-    options['y_limits']          = 'None'
-    options['no_window']         = False
-    options['contourType']       = 'wall_max_gradient' #'mass', 'gradient'
-    options['reflection']        = False
-    options['select_end_time']   = True
-    options['scaling_timesteps'] = 'None'
+    options['phaseCheck']          = False
+    options['genContours']         = False
+    options['show']                = False
+    options['x_limits']            = 'None'
+    options['y_limits']            = 'None'
+    options['x_figsize']           = 12
+    options['y_figsize']           = 6
+    options['no_window']           = False
+    options['contourType']         = 'wall_max_gradient' #'mass', 'gradient'
+    options['reflection']          = False
+    options['select_end_time']     = True
+    options['select_detach_time']  = False
+    options['scaling_timesteps']   = 'None'
+    options['maxNbBubbleContours'] = 7
 
 
     for opt, arg in opts:
@@ -212,9 +223,22 @@ def parse_opts(argv):
             
             options['select_end_time'] = False
 
+        elif opt in ("--select_detach_time"):
+            
+            options['select_detach_time'] = True
+
         elif opt in ("-a"):
 
             options['scaling_timesteps'] = int(arg)
+
+        elif opt in ("--x_figsize"):
+            options['x_figsize'] = int(arg)
+
+        elif opt in ("--y_figsize"):
+            options['y_figsize'] = int(arg)
+
+        elif opt in ("--maxNbBubbleContours"):
+            options['maxNbBubbleContours'] = int(arg)
 
 
     if(not(inputDirProvided and contactAngleProvided and timeFrameProvided)):
@@ -222,15 +246,20 @@ def parse_opts(argv):
         usage()
         sys.exit(2)
 
-    print 'input_dir     : ', options['inputDir']
-    print 'contact_angle : ', options['contactAngle']
-    print 'time_frame    : ', options['timeFrame']
-    print 'phase_check   : ', options['phaseCheck']
-    print 'gen_contours  : ', options['genContours']
-    print 'show          : ', options['show']
-    print 'x_limits      : ', options['x_limits']
-    print 'y_limits      : ', options['y_limits']
-    print 'no_window     : ', options['no_window']
+    print 'input_dir           : ', options['inputDir']
+    print 'contact_angle       : ', options['contactAngle']
+    print 'time_frame          : ', options['timeFrame']
+    print 'phase_check         : ', options['phaseCheck']
+    print 'gen_contours        : ', options['genContours']
+    print 'show                : ', options['show']
+    print 'x_limits            : ', options['x_limits']
+    print 'y_limits            : ', options['y_limits']
+    print 'x_figsize           : ', options['x_figsize']
+    print 'y_figsize           : ', options['y_figsize']
+    print 'maxNbBubbleContours : ', options['maxNbBubbleContours']
+    print 'no_window           : ', options['no_window']
+    print 'select_end_time     : ', options['select_end_time']
+    print 'select_detach_time  : ', options['select_detach_time']
     print ''
     
     return options
@@ -247,8 +276,11 @@ def generate_st_graphs(ncFolder,
                        show=True,
                        x_limits='None',
                        y_limits='None',
+                       x_figsize=12,
+                       y_figsize=6,
                        reflection=False,
                        select_end_time=True,
+                       select_detach_time=False,
                        scalingTimesteps='None'):
     '''
     @description: generate the contours of the bubble
@@ -302,62 +334,74 @@ def generate_st_graphs(ncFolder,
     massFigPath        = os.path.join(contoursDir,'mass.eps')
     contourFigPath     = os.path.join(contoursDir,'mass_contour.eps')
     temperatureFigPath = os.path.join(contoursDir,'temperature.eps')
+
     contoursFigPath    = os.path.join(contoursDir,'contours.eps')
     contoursStFigPath  = os.path.join(contoursDir,'contours_st.eps')
 
+    contoursFigPath = os.path.join(
+        '/home/jdesmarais/Code/augeanstables/scripts_py/wall_steady_state_automatization/postprocessing',
+        'figs',
+        'fig'+os.path.basename(ncFolder).replace('dim2d','').replace('hca0.0_','')+'_approx.eps')
+    
+    draw_other_than_contour = False
+
 
     # plot the contact length as funtion of time
-    curves_to_contact_lgh(ncFolder)
-    curves_to_volume(ncFolder)
+    if(draw_other_than_contour):
 
-    create_graph(contact_lgh_path,
-                 contactAngle=contactAngle,
-                 xlabel='$t$',
-                 ylabel='contact length',
-                 figPath=contactLghFigPath,
-                 width=3,
-                 logScale=False,
-                 show=show,
-                 plotLengthEq=add_spherical_cap_approx,
-                 volumePath=volume_path)
+        # plot the contact length
+        curves_to_contact_lgh(ncFolder)
+        curves_to_volume(ncFolder)
+
+        create_graph(contact_lgh_path,
+                     contactAngle=contactAngle,
+                     xlabel='$t$',
+                     ylabel='contact length',
+                     figPath=contactLghFigPath,
+                     width=3,
+                     logScale=False,
+                     show=show,
+                     plotLengthEq=add_spherical_cap_approx,
+                     volumePath=volume_path)
     
-    # plot the volume as function of time
-    create_graph(volume_path,
-                 xlabel='$t$',
-                 ylabel='volume',
-                 figPath=volumeFigPath,
-                 width=3,
-                 logScale=False,
-                 show=False)
+        # plot the volume as function of time
+        create_graph(volume_path,
+                     xlabel='$t$',
+                     ylabel='volume',
+                     figPath=volumeFigPath,
+                     width=3,
+                     logScale=False,
+                     show=False)
 
-    # plot the mass as function of time
-    create_graph(mass_path,
-                 xlabel='$t$',
-                 ylabel='mass',
-                 figPath=massFigPath,
-                 width=3,
-                 logScale=False,
-                 show=False)
+        # plot the mass as function of time
+        create_graph(mass_path,
+                     xlabel='$t$',
+                     ylabel='mass',
+                     figPath=massFigPath,
+                     width=3,
+                     logScale=False,
+                     show=False)
 
-    # plot the mass chosen to draw the
-    # contours as function of time
-    create_graph(contour_path,
-                 xlabel='$t$',
-                 ylabel='mass',
-                 figPath=contourFigPath,
-                 width=3,
-                 logScale=False,
-                 show=show)
+        # plot the mass chosen to draw the
+        # contours as function of time
+        create_graph(contour_path,
+                     xlabel='$t$',
+                     ylabel='mass',
+                     figPath=contourFigPath,
+                     width=3,
+                     logScale=False,
+                     show=show)
 
-    # plot the temperature chosen to draw the
-    # contours as function of time
-    create_graph(temperature_path,
-                 xlabel='$t$',
-                 ylabel='$T$',
-                 figPath=temperatureFigPath,
-                 width=3,
-                 logScale=False,
-                 show=show)
+        # plot the temperature chosen to draw the
+        # contours as function of time
+        if(os.path.isfile(temperature_path)):
+            create_graph(temperature_path,
+                         xlabel='$t$',
+                         ylabel='$T$',
+                         figPath=temperatureFigPath,
+                         width=3,
+                         logScale=False,
+                         show=show)
 
 
     # plot the contour at different time steps:
@@ -373,14 +417,37 @@ def generate_st_graphs(ncFolder,
             break
     start_i = max(start_i,timeRange[0])
 
+
+    # select the last timestep before the volume is zero
     end_i = len(volume[:,0])-1
     if(select_end_time):
         for i in range(len(volume[:,0])-1,start_i,-1):
             if(volume[i,2]>0):
-                end_i = i
+                end_i = volume[i,0]
                 break
     end_i = min(end_i,timeRange[1])
+    end_i_time = end_i
+    
     nt = len(volume[:,0])
+
+
+    # select the last timestep before the contact length
+    # is zero (detachment)
+    if(select_detach_time):
+        contact_lgh = np.loadtxt(contact_lgh_path)
+        end_i = len(contact_lgh[:,0])-1
+
+        for i in range(len(contact_lgh[:,0])-1,start_i,-1):
+            if(contact_lgh[i,2]>0):
+                end_i = contact_lgh[i,0]
+                break
+
+        end_i*=1.3
+        end_i = int(end_i)
+
+        end_i = min(end_i,end_i_time)
+
+    print 'end_i: ', end_i
 
 
     # select the timesteps
@@ -408,33 +475,16 @@ def generate_st_graphs(ncFolder,
         step = float(end_i-start_i)*(float(i)/float(nbContours-1))**scaling
         if(step>0):
             step = max(1,iround(step))
+            step-= step%2
         else:
             step = 0
 
         timestep = start_i + step
 
         times.append(timestep)
-        times_t.append(volume[timestep,1])
+        times_t.append(volume[timestep/timeRange[2],1])
 
-    #times.append(end_i)
-    #times_t.append(volume[end_i,1])
-
-#    times = []
-#    if(maxNbBubbleContours=='None'):
-#        step = 1
-#    else:
-#        step = int(float(end_i-start_i)/float(maxNbBubbleContours))
-#    step = max(1,step)
-#
-#    for i in range(start_i,end_i,step):
-#        times.append(int(volume[i,0]))
-#    times.append(int(volume[end_i,0]))
-#    #times[-2] = 304 #for 0.95_ca135.0_vl0.4_sph to see the bubble expulsed
-#
-#    times_t = []
-#    for i in range(start_i,end_i,step):
-#        times_t.append(volume[i,1])
-#    times_t.append(volume[end_i,1])
+    #times = [0,82,166,248,300,400,498] #to see the break-up for 135.0, ux=0.4
 
     times_p = np.array(times_t)
     np.set_printoptions(precision=5)
@@ -454,7 +504,9 @@ def generate_st_graphs(ncFolder,
                     width=3,
                     show=show,
                     x_limits=x_limits,
-                    y_limits=y_limits)
+                    y_limits=y_limits,
+                    x_figsize=x_figsize,
+                    y_figsize=y_figsize)
 
     # create the graph with only the last contours and the
     # spherical cap approximation
@@ -585,12 +637,15 @@ if __name__=='__main__':
                        phase_check=options['phaseCheck'],
                        genContours=options['genContours'],
                        contourPer=0.1,
-                       maxNbBubbleContours=7,
+                       maxNbBubbleContours=options['maxNbBubbleContours'],
                        show=options['show'],
                        x_limits=options['x_limits'],
                        y_limits=options['y_limits'],
+                       x_figsize=options['x_figsize'],
+                       y_figsize=options['y_figsize'],
                        reflection=options['reflection'],
                        select_end_time=options['select_end_time'],
+                       select_detach_time=options['select_detach_time'],
                        scalingTimesteps=options['scaling_timesteps'])
 
     [t_i,r_i] = find_initial_bubble(os.path.join(contoursPath,'volume.txt'))

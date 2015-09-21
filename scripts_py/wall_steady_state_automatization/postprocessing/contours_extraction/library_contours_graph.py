@@ -200,7 +200,9 @@ def create_st_graph(dataRootPath,
                     width=3,
                     show=True,
                     x_limits='None',
-                    y_limits='None'):
+                    y_limits='None',
+                    x_figsize=12,
+                    y_figsize=6):
     '''
     description: create a graph with the bubble contours
     at several timesteps
@@ -210,7 +212,7 @@ def create_st_graph(dataRootPath,
 
     plt.rc('text', usetex=True)
     plt.rc('font', family='serif')
-    fig = plt.figure(figsize=(12,6))
+    fig = plt.figure(figsize=(x_figsize,y_figsize))
 
     ax = fig.add_subplot(111,aspect='equal')
 
@@ -270,6 +272,9 @@ def create_st_graph(dataRootPath,
             y_min = min(y_min,min(data[:,1]))
             y_max = max(y_max,max(data[:,1]))
 
+        else:
+            print 'path not found: '+dataPath
+
     y_max = 1.05*y_max
 
     plt.ylim([y_min,y_max])
@@ -285,16 +290,16 @@ def create_st_graph(dataRootPath,
     if(y_limits!='None'):
         plt.ylim(y_limits)
 
+
+    # save in .eps format
+    if(not figPath==''):
+        plt.savefig(figPath)
             
     # show the graph
     if(show):
         plt.show()
-        plt.close()
 
-                
-    # save in .eps format
-    if(not figPath==''):
-        plt.savefig(figPath)
+    plt.close()
 
 
 def create_sph_graph(dataRootPath,

@@ -14,11 +14,10 @@ import os
 import sys
 import numpy as np
 import matplotlib.pyplot as plt
-from library_contours_graph import grayscale_to_RGB
+from library_colors import grayscale_to_RGB
 from library_contours_detachment import (find_detachment_time,
                                          find_bubble_extent)
     
-
 def generate_detachment_data(
     simDir,
     legend='None',
@@ -144,7 +143,8 @@ def generate_detachment_data(
 if __name__=='__main__':
 
     mainDir = os.path.join(os.getenv('HOME'),
-                           'projects')
+                           'projects',
+                           'jmf2015_submission')
 
     #=============================================================
     # Detachment study at different contact angle and flow
@@ -153,7 +153,7 @@ if __name__=='__main__':
 
     # directories for the detachment study
     # with different contact angles
-    contactAngleArray = [45.0] #,45.0,67.5,90.0,112.5,135.0]
+    contactAngleArray = [22.5,45.0,67.5,90.0,112.5,135.0]
     flowVelocityArray = [0.1,0.2,0.3,0.4,0.5]
 
     simDirs = []

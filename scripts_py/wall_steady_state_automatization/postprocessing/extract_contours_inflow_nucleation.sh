@@ -12,9 +12,9 @@ nucleation_Homogeneous=$false     # 2) nucleation on homogenenous surface
 
 detachment_ParabolicInflow=$false # 3) detachment induced by parabolic inflow
 
-detachment_LinearInflow=$false    # 4) detachment induced by linear inflow
+detachment_LinearInflow=$true     # 4) detachment induced by linear inflow
 
-nucleation_ParabolicInflow=$true  # 5) nucleation parabolic velocity profile
+nucleation_ParabolicInflow=$false # 5) nucleation parabolic velocity profile
 
 nucleation_LinearInflow=$false    # 6) nucleation linear velocity profile
 
@@ -96,12 +96,15 @@ then
 
     T=0.95
     hca=0.0
+    nbContours=7
+    xFigsize=12
+    yFigsize=2
 
-    for v in 0.1 0.2 0.3 0.4 0.5
+    for v in 0.4 #0.1 0.2 0.3 0.4 0.5
     do
-	for ca in 22.5 45.0 67.5 90.0 112.5 135.0
+	for ca in 135.0 #22.5 45.0 67.5 90.0 112.5 135.0
 	do
-	    options="$T $ca $v $hca [0,502,2] [-0.15,0.80] [0,0.25]"
+	    options="$T $ca $v $hca [0,502,2] [-0.15,0.80] [0,0.2] $nbContours $xFigsize $yFigsize"
 	    generate_linear_inflow_sph_contours $options
 	done
     done
@@ -151,24 +154,26 @@ then
     T=0.95
     ca=22.5
     hca=0.0
+    xlimits=[-0.1,0.425]
+    ylimits=[0,0.135]
+    tlimits=[0,325,1]
 
     # constant heat flux, varying maximum velocity
-    fh=0.04    
-    
-    for v in 0.1 0.2 0.3 0.4 0.5
-    do
-	options="$T $ca $fh $v $hca [0,500,1] [-0.1,0.225] [0,0.125]"
-	generate_linear_inflow_nucleation_contours $options
-    done
+    #fh=0.04
+    #
+    #for v in 0.1 0.2 0.3 0.4 0.5
+    #do
+    #	options="$T $ca $fh $v $hca $tlimits $xlimits $ylimits"
+    #	generate_linear_inflow_nucleation_contours $options
+    #done
 
     # constant maximum velocity, varying heat flux
     v=0.4
 
-    for fh in 0.05 0.06 0.08 0.1
+    for fh in 0.04 0.05 0.06 0.08
     do
-	options="$T $ca $fh $v $hca [0,500,1] [-0.1,0.225] [0,0.125]"
+	options="$T $ca $fh $v $hca $tlimits $xlimits $ylimits"
 	generate_linear_inflow_nucleation_contours $options
     done
     
 fi
-
