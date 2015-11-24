@@ -1,12 +1,13 @@
       !> @file
-      !> module containing the user choices defined as constants
-      !> and propagated at compilation time
+      !> module containing the user input choices defined
+      !> as constants and propagated at compilation time
       !
       !> @author
       !> Julien L. Desmarais
       !
       !> @brief
-      !> user choices required at compilation time
+      !> module containing the user input choices defined
+      !> as constants and propagated at compilation time
       !
       !> @date
       !> 20_08_2013 - initial version   - J.L. Desmarais
@@ -23,514 +24,800 @@
 
         implicit none
 
-        !< debug option allowing extra checks in the code
+        !>@brief debug
+        !> debug option allowing extra checks in the code
+        !> \li .true.: extra checks
+        !> \li .false.: no checks
+        !--------------------------------------------------
         logical    , parameter :: debug = .true.        
 
-        !<computational field dimensions
-        real(rkind), parameter :: x_min = -0.5712000000d0
-        real(rkind), parameter :: x_max = 0.8568000000d0
-        real(rkind), parameter :: y_min = 0.0000000000d0
-        real(rkind), parameter :: y_max = 0.2495000000d0
+        ! computational field dimensions
+        !--------------------------------------------------
+        real(rkind), parameter :: x_min = -0.5712000000d0 !<@brief minimum x-coordinate for the x-map
+        real(rkind), parameter :: x_max = 0.8568000000d0  !<@brief maximum x-coordinate for the x-map
+        real(rkind), parameter :: y_min = 0.0000000000d0  !<@brief minimum y-coordinate for the y-map
+        real(rkind), parameter :: y_max = 0.2495000000d0  !<@brief maximum y-coordinate for the y-map
         
-        !<computational times
-        real(rkind), parameter :: t_max = 20.0000000000d0 !10.0d0
-        real(rkind), parameter :: dt = 0.0000330000d0
+        ! computational times
+        real(rkind), parameter :: t_max = 20.0000000000d0 !<@brief maximum simulation time
+        real(rkind), parameter :: dt = 0.0000330000d0     !<@brief time step
         
-        !<output writing
-        real(rkind), parameter :: detail_print = 0.0009000000d0
-        logical    , parameter :: write_domain_extension = .true.
-        logical    , parameter :: write_detectors = .true.
+        ! output writing
+        real(rkind), parameter :: detail_print = 0.0009000000d0   !<@brief percentage of time steps written in output: 0.0d0=no file writen, 0.5=write output every two time steps, 1.0=write all the time steps
+        logical    , parameter :: write_domain_extension = .true. !<@brief write the buffer layers (domain extension)
 
-        !<mpi choice
-        integer, parameter :: npx = 1 !<number of processors along x
-        integer, parameter :: npy = 1 !<number of processors along y
+        ! mpi choice
+        integer, parameter :: npx = 1 !<@brief number of tiles along x when the domain is computed by several processors: domain=(npx x npy) tiles
+        integer, parameter :: npy = 1 !<@brief number of tiles along y when the domain is computed by several processors: domain=(npx x npy) tiles
 
-        !<size of the main tables
-        !<careful, choose ne according to the physical model
-        integer(ikind), parameter :: ntx = 845
-        integer(ikind), parameter :: nty = 152
+        ! size of the main tables
+        ! careful, choose ne according to the physical model
+        integer(ikind), parameter :: ntx = 845 !<@brief total number of grid-points along the x-direction for the computational domain
+        integer(ikind), parameter :: nty = 152 !<@brief total number of grid-points along the y-direction for the computational domain
 
-        integer(ikind), parameter :: nx = ntx/npx
-        integer(ikind), parameter :: ny = nty/npy
-        integer       , parameter :: ne = 4
-        integer       , parameter :: bc_size = 2
+        integer(ikind), parameter :: nx = ntx/npx !<@brief number of grid-points along the x-direction for one tile
+        integer(ikind), parameter :: ny = nty/npy !<@brief number of grid-points along the y-direction for one tile
+        integer       , parameter :: ne = 4       !<@brief number of governing equations for the physical model chosen: for DIM, 4 governing equations \f$(\rho,q_x,q_y,\rho E)\f$
+        integer       , parameter :: bc_size = 2  !<@brief number of ghost grid points for the boundary (depends on the space discretization operators chosen)
 
-        !<initial conditions choice
+        ! initial conditions choice
         !--------------------------------------------
-        !flow_direction:
-        !--------------------------------------------
-        !x_direction  : from left to right
-        !y_direction  : from bottom to up
-        !xy_direction : from SW to NE corner
-        !
-        !--------------------------------------------
-        !flow_x_side:
-        !--------------------------------------------
-        !-1.0d0 : from right to left
-        !+1.0d0 : from left  to right
-        !
-        !--------------------------------------------
-        !flow_y_side:
-        !--------------------------------------------
-        !-1.0d0 : from top to bottom
-        !+1.0d0 : from bottom to top
-        !
-        !--------------------------------------------
-        !flow_velocity:
-        !--------------------------------------------
-        !reduced velocity of the mean flow
-        !
-        !--------------------------------------------
-        !T0:
-        !--------------------------------------------
-        !reduced temperature of the mean flow
-        !
-        !--------------------------------------------
-        !ic_choice:
-        !--------------------------------------------
-        !
-        !for wave2d equations
-        !--------------------------------------------
-        !peak               : peak in the center of the domain
-        !negative_spot      : negative field in the center of the domain
-        !
-        !for NS equations
-        !--------------------------------------------
-        !steady_state       : constant everywhere
-        !peak               : peak in the center of the domain
-        !vortex             : vortex in the center of the domain
-        !sym_x              : symmetry compared to the y-axis
-        !sym_y              : symmetry compared to the x-axis
-        !
-        !for DIM equations
-        !--------------------------------------------
-        !steady_state       : constant everywhere
-        !drop_retraction    : ellipsoidal droplet
-        !bubble_ascending   : initial bubble
-        !homogeneous_liquid : constant liquid density
-        !phase_separation   : unstable mass density
-        !
-        !--------------------------------------------
-        !dim2d_lowTemperature:
-        !--------------------------------------------
-        !option to force the use of low temperature laws
-        !for the saturated liquid and vapor mass densities
-        !and the interface length
-        !--------------------------------------------
+        ! flow direction
+        ! flow_x_side
+        ! flow_y_side
+        ! flow_velocity
+        ! T0
+        ! ic_choice
+
+
+        !>@brief
+        !> direction of the main flow
+        !> - x_direction  : from left to right
+        !> - y_direction  : from bottom to up
+        !> - xy_direction : from SW to NE corner
+        !--------------------------------------------------
         integer    , parameter :: flow_direction = x_direction
+
+        !> @brief
+        !> direction of the main flow along the x-direction
+        !> - \f$-1.0d0\f$ : from right to left
+        !> - \f$+1.0d0\f$ : from left to right
+        !--------------------------------------------------
         real(rkind), parameter :: flow_x_side = 1.0000000000d0
+
+        !> @brief
+        !> direction of the main flow along the y-direction
+        !> - \f$-1.0d0\f$ : from top to bottom
+        !> - \f$+1.0d0\f$ : from bottom to top
+        !--------------------------------------------------
         real(rkind), parameter :: flow_y_side = 1.0000000000d0
+        
+
+        !> @brief
+        !> velocity of the mean flow
+        !--------------------------------------------------
         real(rkind), parameter :: flow_velocity = 0.5000000000d0
+
+
+        !> @brief profile of the flow
+        !> - linear_profile: linear velocity profile
+        !> - parabolic profile: parabolic velocity profile
+        !--------------------------------------------------
         integer    , parameter :: flow_profile = parabolic_profile
         
+
+        !>@brief
+        !> temperature of the mean flow
+        !--------------------------------------------------
         real(rkind), parameter :: T0 = 0.9500000000d0
 
+        
+        !>@brief initial conditions
+        !> - for wave2d equations
+        !>      - peak          : peak in the center of the domain
+        !>      - negative_spot : negative field in the center of the domain
+        !> - for NS equations
+        !>      - steady_state  : constant everywhere
+        !>      - peak          : peak in the center of the domain
+        !>      - vortex        : vortex in the center of the domain
+        !>      - sym_x         : symmetry compared to the y-axis
+        !>      - sym_y         : symmetry compared to the x-axis
+        !> - for DIM equations
+        !>      - steady_state       : constant everywhere
+        !>      - drop_retraction    : ellipsoidal droplet
+        !>      - bubble_ascending   : initial bubble
+        !>      - homogeneous_liquid : constant liquid density
+        !>      - phase_separation   : unstable mass density
+        !--------------------------------------------------
         integer    , parameter :: ic_choice = bubble_nucleation
 
+
+        !>@brief
+        !> phase present in the center of the bubble/droplet
+        !> - vapor : create a bubble in saturated liquid 
+        !> - liquid : create a droplet in saturated vapor 
+        !--------------------------------------------------
         integer    , parameter :: phase_at_center = vapor
 
+        
+        !> @brief
+        !> activate the superposition of perturbations
+        !> over the initial conditions
+        !> \li .false. : no perturbation
+        !> \li .true. : additional perturbations
+        !--------------------------------------------------
         logical    , parameter :: ic_perturbation_ac = .false.
+
+
+        !> @brief
+        !> amplitude of the perturbations imposed over
+        !> the initial conditions
+        !--------------------------------------------------
         real(rkind), parameter :: ic_perturbation_amp = 0.0000000000d0
 
+
+        !>@brief
+        !> activate the superposition of perturbations
+        !> over the width of the interface initially prescribed
+        !> \li .false. : no perturbation
+        !> \li .true. : perturbation activated
+        !--------------------------------------------------
         logical    , parameter :: li_perturbation_ac = .false.
+
+
+        !>@brief
+        !> amplitude of the perturbations imposed over
+        !> the width of the interface
+        !> \f[ \tilde{L_i} = (1.0+\textrm{li\_perturbation\_ac})*L_i \f]
+        !> where \f$ \tilde{L_i} \f$ is the perturbed width of the interface and 
+        !> \f$ L_i \f$ is the theoretical width of the interface
+        !--------------------------------------------------
         real(rkind), parameter :: li_perturbation_amp = 0.0000000000d0
 
+
+        !>@brief
+        !> range over the interpolation for the mass densities
+        !> of the vapor and liquid phases and the width of the
+        !> interface is valid:
+        !> \li .false.: \f$ T \in [0.995,0.999]\f$
+        !> \li .true.: \f$ T \in [0.95,0.995]\f$
+        !--------------------------------------------------
         logical    , parameter :: dim2d_lowTemperature = .false.
 
-        !<body forces choice
+        !>@brief 
+        !> add gravitational forces in the governing equations
+        !--------------------------------------------------
         logical    , parameter :: gravity_ac = .false.
+
+        !>@brief
+        !> amplitude of the gravitional acceleration imposed
+        !--------------------------------------------------
         real(rkind), parameter :: gravity_amp = 0.0000000000d0
+
+
+        !>@brief 
+        !> source term for the wave physical model to
+        !> generate waves in the center of the computational
+        !> domain
+        !> - no_wave_forcing : no source term
+        !> - oscillatory_forcing : sinusoid forcing
+        !> - intermittent_oscillatory_forcing : sinusoid forcing then nothing
+        !> - moving_oscillatory_forcing : sinusoid forcing and the center of the source is moving spatially
+        !--------------------------------------------------
         integer    , parameter :: wave_forcing = no_wave_forcing
 
-        !<boundary conditions choice
+
+        ! boundary conditions
+        !==================================================
+
+        !> @brief
+        !> configuration for the boundary conditions
+        !> - periodic_xy_choice : periodic along x and y directions
+        !> - reflection_xy_choice : reflection along x and y directions
+        !> - hedstrom_xy_choice : open (hedstrom type) along x and y directions
+        !> - poinsot_xy_choice : open (Poinsot and Lele type) along x and y directions
+        !> - yoolodato_xy_choice : open (Yoo and Lodato type) along x and y directions
+        !> - wall_xy_choice : wall along the x and y directions
+        !> - wall_S_reflection_choice : wall on the bottom, reflection for the N,E,W borders
+        !> - wall_S_open_choice : wall on the bottom, open for the N,E,W borders
+        !> - half_wall_S_open_choice : wall on the bottom, open on the E and N, reflection for W 
+        !
+        !> @warning
+        !> since only a limited number of configuration can
+        !> be implemented in this way, a new implementation is
+        !> modifying how boundary conditions are chosen. Now, the
+        !> boundary conditions are specified for each boundary
+        !> layer (N,S,E,W,SE,SW,NE,NW)
+        !--------------------------------------------------
         integer, parameter :: bc_choice = wall_S_open_choice
 
+
+        !> @brief boundary condition configuration for
+        !> the North layer
+        !--------------------------------------------------
         integer, parameter :: bc_N_choice = hedstrom_choice
+
+
+        !> @brief boundary condition configuration for
+        !> the South layer
+        !--------------------------------------------------
         integer, parameter :: bc_S_choice = wall_choice
+
+
+        !> @brief boundary condition configuration for
+        !> the East layer
+        !--------------------------------------------------
         integer, parameter :: bc_E_choice = hedstrom_choice
+
+
+        !> @brief boundary condition configuration for
+        !> the West layer
+        !--------------------------------------------------
         integer, parameter :: bc_W_choice = hedstrom_choice
 
+
+        !> @brief boundary condition configuration for
+        !> the North-West corner
+        !--------------------------------------------------
         integer, parameter :: bc_NW_choice = hedstrom_choice
+
+
+        !> @brief boundary condition configuration for
+        !> the North-East corner
+        !--------------------------------------------------
         integer, parameter :: bc_NE_choice = hedstrom_choice
+
+
+        !> @brief boundary condition configuration for
+        !> the South-East corner
+        !--------------------------------------------------
         integer, parameter :: bc_SE_choice = wall_choice
+
+
+        !> @brief boundary condition configuration for
+        !> the South-West corner
+        !--------------------------------------------------
         integer, parameter :: bc_SW_choice = wall_choice        
 
+
+        !> @brief specify the order in which the boundary
+        !> conditions are applied (to avoid conflicts):
+        !> first boundary layer computed
+        !--------------------------------------------------
         integer, parameter :: bc_order1 = SW_corner_type
+
+
+        !> @brief specify the order in which the boundary
+        !> conditions are applied (to avoid conflicts):
+        !> second boundary layer computed
+        !--------------------------------------------------
         integer, parameter :: bc_order2 = S_edge_type
+
+
+        !> @brief specify the order in which the boundary
+        !> conditions are applied (to avoid conflicts):
+        !> third boundary layer computed
+        !--------------------------------------------------
         integer, parameter :: bc_order3 = SE_corner_type
+
+
+        !> @brief specify the order in which the boundary
+        !> conditions are applied (to avoid conflicts):
+        !> fourth boundary layer computed
+        !--------------------------------------------------
         integer, parameter :: bc_order4 = W_edge_type
+
+
+        !> @brief specify the order in which the boundary
+        !> conditions are applied (to avoid conflicts):
+        !> fifth boundary layer computed
+        !--------------------------------------------------
         integer, parameter :: bc_order5 = E_edge_type
+
+
+        !> @brief specify the order in which the boundary
+        !> conditions are applied (to avoid conflicts):
+        !> sixth boundary layer computed
+        !--------------------------------------------------
         integer, parameter :: bc_order6 = NW_corner_type
+
+
+        !> @brief specify the order in which the boundary
+        !> conditions are applied (to avoid conflicts):
+        !> seventh boundary layer computed
+        !--------------------------------------------------
         integer, parameter :: bc_order7 = N_edge_type
+
+
+        !> @brief specify the order in which the boundary
+        !> conditions are applied (to avoid conflicts):
+        !> eighth boundary layer computed
+        !--------------------------------------------------
         integer, parameter :: bc_order8 = NE_corner_type
         
 
-        !<output choice
+        !> @brief type of i/o operators
+        !> - nectdf_choice : netcdf files as output
+        !--------------------------------------------------
         integer, parameter :: io_choice = netcdf_choice
+
+
+        !> @brief depending on the file system, it is possible
+        !> that all processors access the same file at the same
+        !> time (parallel file system), otherwise, to prevent
+        !> the i/o overhead, every processor is writing its own
+        !> file
+        !> \li .true.: one file per processor
+        !> \li .false.: one major file (parallel file system)
+        !--------------------------------------------------        
         logical, parameter :: io_onefile_per_proc = .true.
 
 
-        !< type of boundary conditions
+        !  type of boundary conditions
         !------------------------------------------------------
-        !type of boundary conditions applied at the edge
-        !(constrained by the bc_choice parameter)
+        !> in order to align correctly the subroutines at
+        !> compilation time, it is important to specify
+        !> type of boundary conditions applied at the edge
+        !> (constrained by the bc_choice parameter)
         !------------------------------------------------------
-        !
-        !bc_N_type_choice  : type of boundary condition applied
-        !                    at the North boundary
-        !
-        !bc_S_type_choice  : type of boundary condition applied
-        !                    at the South boundary
-        !
-        !bc_E_type_choice  : type of boundary condition applied
-        !                    at the East boundary
-        !
-        !bc_W_type_choice  : type of boundary condition applied
-        !                    at the West boundary
-        !
-        !bc_NW_type_choice : type of boundary condition applied
-        !                    at the North-West corner boundary
-        !
-        !bc_NE_type_choice : type of boundary condition applied
-        !                    at the North-East corner boundary
-        !
-        !bc_SE_type_choice : type of boundary condition applied
-        !                    at the South-East corner boundary
-        !
-        !bc_SW_type_choice : type of boundary condition applied
-        !                    at the South-West corner boundary
-        !------------------------------------------------------
+
+        !> @brief type of boundary condition applied at
+        !> the North boundary (bc_nodes_choice, bc_fluxes_choice,
+        !> bc_timedev_choice, bc_flux_and_node_choice)
+        !--------------------------------------------------
         integer, parameter :: bc_N_type_choice = bc_timedev_choice
+
+
+        !> @brief type of boundary condition applied at
+        !> the South boundary (bc_nodes_choice, bc_fluxes_choice,
+        !> bc_timedev_choice, bc_flux_and_node_choice)
+        !--------------------------------------------------
         integer, parameter :: bc_S_type_choice = bc_flux_and_node_choice
+
+
+        !> @brief type of boundary condition applied at
+        !> the East boundary (bc_nodes_choice, bc_fluxes_choice,
+        !> bc_timedev_choice, bc_flux_and_node_choice)
+        !--------------------------------------------------
         integer, parameter :: bc_E_type_choice = bc_timedev_choice
+
+        
+        !> @brief type of boundary condition applied at
+        !> the West boundary (bc_nodes_choice, bc_fluxes_choice,
+        !> bc_timedev_choice, bc_flux_and_node_choice)
+        !--------------------------------------------------
         integer, parameter :: bc_W_type_choice = bc_timedev_choice
 
+        
+        !> @brief type of boundary condition applied at
+        !> the North-West boundary (bc_nodes_choice, bc_fluxes_choice,
+        !> bc_timedev_choice, bc_flux_and_node_choice)
+        !--------------------------------------------------
         integer, parameter :: bc_NW_type_choice = bc_timedev_choice
+
+
+        !> @brief type of boundary condition applied at
+        !> the North-East boundary (bc_nodes_choice, bc_fluxes_choice,
+        !> bc_timedev_choice, bc_flux_and_node_choice)
+        !--------------------------------------------------
         integer, parameter :: bc_NE_type_choice = bc_timedev_choice
-        integer, parameter :: bc_SE_type_choice = bc_flux_and_node_choice
+
+
+        !> @brief type of boundary condition applied at
+        !> the South-West boundary (bc_nodes_choice, bc_fluxes_choice,
+        !> bc_timedev_choice, bc_flux_and_node_choice)
+        !--------------------------------------------------
         integer, parameter :: bc_SW_type_choice = bc_flux_and_node_choice
 
 
-        !< bubble collapse ic parameters
-        !-----------------------------------------------------
-        !ratio_bubble_interface: ratio between the radius of
-        !                        the initial bubble and the
-        !                        interafce width
+        !> @brief type of boundary condition applied at
+        !> the South-East boundary (bc_nodes_choice, bc_fluxes_choice,
+        !> bc_timedev_choice, bc_flux_and_node_choice)
+        !--------------------------------------------------
+        integer, parameter :: bc_SE_type_choice = bc_flux_and_node_choice
+
+
+        !> @brief ratio between the radius of the initial
+        !> bubble and the width of the interface
         !-----------------------------------------------------
         real(rkind), parameter :: ratio_bubble_interface = 2.0000000000d0
 
 
-        !< wall surface parameters
-        !-----------------------------------------------------
-        !surface_type : type of surface imposed
-        !-----------------------------------------------------
-        ! - uniform surface      : the contact angle is the
-        !                          same everywhere
-        !
-        ! - surface_with_heaters : the contact angle varies at
-        !                          the location of the heaters
+        !> @brief type of wall surface
+        !> - uniform_surface : the contact angle is the same everywhere
+        !> - surface_with_heaters : the contact angle varies at the location of the heaters
         !-----------------------------------------------------
         integer    , parameter :: wall_surface_type = surface_with_heaters
 
         
-        !< wall contact angle parameters
-        !-----------------------------------------------------
-        ! wall_micro_contact_angle
-        !-----------------------------------------------------
-        ! contact angle at the wall
+        !> @brief wall micro contact angle (in degrees)
         !-----------------------------------------------------
         real(rkind), parameter :: wall_micro_contact_angle = 0.0000000000d0
 
 
-        !< wall heater parameters
-        !-----------------------------------------------------
-        !
-        !-----------------------------------------------------
-        ! wall_heater_center
-        !-----------------------------------------------------
-        ! location of the heater
-        !
-        !-----------------------------------------------------
-        ! wall_heater_length
-        !-----------------------------------------------------
-        ! size of the heater
-        !
-        !-----------------------------------------------------
-        ! wall_heater_micro_contact_angle
-        !-----------------------------------------------------
-        ! contact angle at the heater
-        !-----------------------------------------------------
+        !  wall heater parameters
+        !==================================================
+
+        !> @brief location of the center of the heater, \f$ x_c \f$
+        !--------------------------------------------------
         real(rkind), parameter :: wall_heater_center = 0.0000000000d0
+
+        
+        !> @brief extent of the wall heater, \f$ l_h\f$
+        !> Therefore, the heater corresponds to:
+        !> \f[ x \in [ x_c-l_h, x_c+l_h] \f]
+        !--------------------------------------------------
         real(rkind), parameter :: wall_heater_length = 0.0514777942d0
+
+
+        !> @brief characteristic length over which the contact
+        !> length is varying at the wall
+        !--------------------------------------------------
         real(rkind), parameter :: wall_heater_variation_angle_length = 0.0178236339d0
+
+ 
+        !> @brief contact angle imposed on the heater (in degrees)
+        !--------------------------------------------------
         real(rkind), parameter :: wall_heater_micro_contact_angle = 22.5000000000d0
 
 
-        !< wall heat source parameters
-        !-----------------------------------------------------
+        !  wall heat source parameters
+        !==================================================
         !wall heat flux related to the temperature
         !gradient imposed at the wall
-        !-----------------------------------------------------
-        !wall_heat_source_choice   : choice of heat source at the wall
-        !wall_maximum_heat_flux    : maximum heat flux at the
-        !                            wall
-        !wall_heat_source_center   : center if gaussian heat source
-        !wall_heat_source_variance : variance if gaussian heat source
-        !
-        !-----------------------------------------------------
-        !wall heat flux independant of the temperature
-        !gradient at the wall
-        !-----------------------------------------------------
-        !wall_extra_heat_source_choice   : choice of extra heat source at the wall
-        !wall_maximum_extra_heat_flux    : maximum extra heat flux at the
-        !                                  wall
-        !wall_extra_heat_source_center   : center if gaussian extra_heat source
-        !wall_extra_heat_source_variance : variance if gaussian extra_heat source
-        !-----------------------------------------------------
+        !==================================================
+
+        !>@brief choice of heat source at the wall to impose
+        !> the heat flux at the wall, \f$ Q_w\f$
+        !> - no_heat_source       : no heat is provided \f$ Q_w=0 \f$
+        !> - constant_heat_source : the heat sourcve is constant, \f$ Q_w= Q_{w,m} \f$
+        !> - gaussian_heat_source : Gaussian profile for the heat source, \f$ Q_w(x) = \frac{Q_{w,m}}{\sigma_w \sqrt{2 \pi}} \exp\left( \frac{-(x-x_{w,c})^2}{2 \sigma_w^2} \right) \f$
+        !--------------------------------------------------
         integer    , parameter :: wall_heat_source_choice = gaussian_heat_source
+
+        
+        !>@brief maximum heat flux at the wall,
+        !> \f$ Q_{w,m} \f$
+        !--------------------------------------------------
         real(rkind), parameter :: wall_maximum_heat_flux = 0.0400000000d0
+        
+
+        !>@brief center if gaussian heat source,
+        !> \f$ x_{c,w}\f$
+        !--------------------------------------------------
         real(rkind), parameter :: wall_heat_source_center   = wall_heater_center
+
+
+        !>@brief variance if gaussian heat source,
+        !> \f$ \sigma_{w,m}\f$
+        !--------------------------------------------------
         real(rkind), parameter :: wall_heat_source_variance = 0.5d0*wall_heater_length
 
+
+        !==================================================
+        ! wall heat flux independant of the temperature
+        ! gradient at the wall
+        !==================================================
+
+        !> @brief choice of extra heat source at the wall
+        !--------------------------------------------------
         integer    , parameter :: wall_extra_heat_source_choice = no_heat_source
+
+
+        !> @brief maximum extra heat flux at the wall
+        !--------------------------------------------------
         real(rkind), parameter :: wall_maximum_extra_heat_flux = 0.0000000000d0
+
+
+        !> @brief center if gaussian extra_heat source
+        !--------------------------------------------------
         real(rkind), parameter :: wall_extra_heat_source_center   = wall_heater_center
+
+
+        !> @brief variance if gaussian extra_heat source
+        !-----------------------------------------------------
         real(rkind), parameter :: wall_extra_heat_source_variance = 0.5d0*wall_heater_length
 
 
-        !< wall inflow bubble parameters
-        !-----------------------------------------------------
+        !==================================================
+        ! wall inflow bubble parameters
+        !==================================================
         !parameters related to the inflow bubble
         !that can be introduced in the bubble nucleation i.c.
-        !-----------------------------------------------------
-        !inflow_bubble_ac : logical
-        !
-        !  .true.  : add a bubble in the inflow for the bubble
-        !            nucleation i.c.
-        !  .false. : do not add a bubble in the inflow for the
-        !            bubble nucleation i.c.
-        !
-        !inflow_bubble_x_center : real
-        !   position of the inflow bubble along the x-axis
-        !
-        !inflow_bubble_y_center : real
-        !   position of the inflow bubble along the y-axis
-        !
-        !inflow_bubble_radius : real
-        !   radius of the inflow bubble
-        !-----------------------------------------------------
-        logical    , parameter :: inflow_bubble_ac = .false.
-        real(rkind), parameter :: inflow_bubble_x_center = 0.0d0
-        real(rkind), parameter :: inflow_bubble_y_center = 0.125d0
-        real(rkind), parameter :: inflow_bubble_radius   = 0.05d0
+        !==================================================
 
+        !>@brief add a bubble in the flow around the
+        !> nucleation spot as an attempt to reproduce bubble jet
+        !  - .true.  : add a bubble in the inflow for the bubble nucleation i.c.
+        !  - .false. : do not add a bubble in the inflow for the bubble nucleation i.c.
+        !--------------------------------------------------
+        logical    , parameter :: inflow_bubble_ac = .false.
+
+
+        !> @brief position of the inflow bubble along the x-axis
+        !--------------------------------------------------
+        real(rkind), parameter :: inflow_bubble_x_center = 0.0d0
         
-        !-----------------------------------------------------
+
+        !> @brief position of the inflow bubble along the y-axis
+        !--------------------------------------------------
+        real(rkind), parameter :: inflow_bubble_y_center = 0.125d0
+
+
+        !>@brief radius of the inflow bubble
+        !--------------------------------------------------
+        real(rkind), parameter :: inflow_bubble_radius   = 0.05d0
+        
+
+        !==================================================
         !for the open boundary conditions
-        !-----------------------------------------------------
-        !obc_eigenqties_strategy : control how the eigenquantities
-        !                          are computed at the edge for the
-        !                          open boundary conditions:
-        ! 
-        !                          1) obc_eigenqties_bc
-        !                          2) obc_eigenqties_lin
-        !
-        !obc_edge_xy_strategy : control which strategy is used
-        !                       when computing the gridpoints
-        !                       at the anti-corner boundary
-        !                       section
-        !
-        !                       1) obc_edge_xy_corner
-        !                       2) obc_edge_xy_flux
-        !                       3) obc_edge_xy_diag_flux
-        !
-        !
-        !obc_edge_flux_strategy: control whether the capillarity
-        !                        terms are included when computing
-        !                        the one-side fluxes used for the
-        !                        open boundary conditions
-        !
-        !                        1) obc_edge_flux_capillarity
-        !                        2) obc_edge_flux_no_capillarity
-        !
-        !------------------------------------------------------------
-        !openbc_perturbation_T0_ac : integer
-        !------------------------------------------------------------
-        ! 1: activate the perturbation of the temperature used to 
-        !    determine the far field values
-        ! 0: do not activate the perturbation of the temperature used
-        !    to determine the far field values
-        !
-        !------------------------------------------------------------
-        !openbc_perturbation_vx0_ac : integer
-        !------------------------------------------------------------
-        ! 1: activate the perturbation of the x-component of the
-        !    velocity used to determine the far field values
-        ! 0: do not activate the perturbation of the x-component of
-        !    the velocity used to determine the far field values
-        !
-        !------------------------------------------------------------
-        !openbc_perturbation_vy0_ac : integer
-        !------------------------------------------------------------
-        ! 1: activate the perturbation of the y-component of the
-        !    velocity used to determine the far field values
-        ! 0: do not activate the perturbation of the y-component of
-        !    the velocity used to determine the far field values
-        !
-        !------------------------------------------------------------
-        !openbc_perturbation_T0_amp : real
-        !------------------------------------------------------------
-        ! amplitude of the perturbation applied to the temperature
-        ! used to compute the far field values
-        !
-        !------------------------------------------------------------
-        !openbc_perturbation_vx0_amp : real
-        !------------------------------------------------------------
-        ! amplitude of the perturbation applied to the x-component of
-        ! the velocity used to compute the far field values
-        !
-        !------------------------------------------------------------
-        !openbc_perturbation_vy0_amp : real
-        !------------------------------------------------------------
-        ! amplitude of the perturbation applied to the y-component of
-        ! the velocity used to compute the far field values
-        !------------------------------------------------------------
+        !==================================================
+        !>@brief control how the eigenquantities are computed
+        !> at the edge for the open boundary conditions:
+        !> - obc_eigenqties_bc: using the value at the boundary points
+        !> - obc_eigenqties_lin: using the value in the far field
+        !--------------------------------------------------
         integer    , parameter :: obc_eigenqties_strategy = obc_eigenqties_bc
+
+
+        !> @brief control which strategy is used when computing
+        !> the gridpoints at the anti-corner boundary section
+        !> - obc_edge_xy_corner: as a corner
+        !> - obc_edge_xy_flux: some points as a corner, some points as an edge
+        !> - obc_edge_xy_diag_flux: computing the fluxes using diagonal fluxes
+        !--------------------------------------------------
         integer    , parameter :: obc_edge_xy_strategy    = obc_edge_xy_flux
+
+
+        !>@brief control whether the capillarity terms are included when computing
+        !> the one-side fluxes used for the open boundary conditions
+        !> - obc_edge_flux_capillarity: add the capillary terms
+        !> - obc_edge_flux_no_capillarity: remove the capillary terms
+        !--------------------------------------------------
         integer    , parameter :: obc_edge_flux_strategy  = obc_edge_flux_capillarity
+
+
+        !>@brief control whether bc_sections are rearranged to
+        !> combined edge and anti-corner types of bc_sections
+        !--------------------------------------------------
         logical    , parameter :: obc_edge_overlap_ac     = .true.
+
+
+        !>@brief control whether bc_sections are rearranged to
+        !> remove crenel overlap
+        !--------------------------------------------------
         logical    , parameter :: obc_crenel_removal_ac   = .true. !no_edge_limit (pb at interfaces between bf_layers)
+
+
+        !> @brief control the distance between the detectors
+        !> and the edge of the computational domain
+        !--------------------------------------------------
         integer    , parameter :: obc_dct_distance = 5
 
+
+        !>@brief activate or not the perturbation of the temperature
+        !> imposed in the far field compared to the initial conditions
+        !------------------------------------------------------------
         logical    , parameter :: obc_perturbation_T0_ac = .false.
+
+
+        !> @brief activate or not the perturbation of the velocity along
+        !> the x-direction imposed in the far field compared to the
+        !> initial conditions
+        !------------------------------------------------------------
         logical    , parameter :: obc_perturbation_vx0_ac = .false.
+
+
+        !> @brief activate or not the perturbation of the velocity along
+        !> the y-direction imposed in the far field compared to the
+        !> initial conditions
+        !------------------------------------------------------------
         logical    , parameter :: obc_perturbation_vy0_ac = .false.
 
+
+        !> @brief amplitude of the perturbation for the temperature
+        !> imposed in the far field
+        !> \f[ \tilde{T}_f = (1.0 + \epsilon_T)*T_f \f]
+        !> where \f$T_f\f$ is the temperature for the initial
+        !> conditions, and \f$\epsilon_T\f$ is the amplitude of
+        !> the perturbations imposed
+        !------------------------------------------------------------
         real(rkind), parameter :: obc_perturbation_T0_amp = 0.0000000000d0
+
+
+        !> @brief amplitude of the perturbation for the velocity
+        !> in the x-direction imposed in the far field
+        !> \f[ \tilde{v_x}_f = (1.0 + \epsilon_vx)*{v_x}_f \f]
+        !> where \f${v_x}_f\f$ is the veloity in the x-direction
+        !> for the initial conditions, and \f$\epsilon_{vx}\f$ is
+        !> the amplitude of the perturbations imposed
+        !------------------------------------------------------------
         real(rkind), parameter :: obc_perturbation_vx0_amp = 0.0000000000d0
+
+
+        !> @brief amplitude of the perturbation for the velocity
+        !> in the y-direction imposed in the far field
+        !> \f[ \tilde{v_y}_f = (1.0 + \epsilon_vy)*{v_y}_f \f]
+        !> where \f${v_y}_f\f$ is the veloity in the y-direction
+        !> for the initial conditions, and \f$\epsilon_{vy}\f$ is
+        !> the amplitude of the perturbations imposed
+        !------------------------------------------------------------
         real(rkind), parameter :: obc_perturbation_vy0_amp = 0.0000000000d0
 
 
-        !------------------------------------------------------------
+        !==================================================
         !for the Yoo and Lodato open boundary conditions
-        !------------------------------------------------------------
-        !
-        !sigma_P    : relaxation coefficient used when
-        !             applying the non-reflecting outflow
-        !             pressure b.c.
-        !
-        !obc_type_N : type of boundary condition applied
-        !             at the North boundary (always_outflow,
-        !             always_inflow, ask_flow)
-        !obc_type_S : type of boundary condition applied
-        !             at the South boundary (always_outflow,
-        !             always_inflow, ask_flow)
-        !obc_type_E : type of boundary condition applied
-        !             at the East boundary (always_outflow,
-        !             always_inflow, ask_flow)
-        !obc_type_W : type of boundary condition applied
-        !             at the West boundary (always_outflow,
-        !             always_inflow, ask_flow)
-        !------------------------------------------------------------
+        !==================================================
+
+        !>@brief relaxation coefficient used when applying the
+        !> non-reflecting outflow pressure b.c.
+        !> \f[ \sigma_P (P - P_{\infty}) \f]
+        !--------------------------------------------------
         real(rkind), parameter :: sigma_P = 0.25d0 !0.278d0
-        
+
+
+        !>@brief type of boundary condition applied at the
+        !> North boundary
+        !> - always_outflow: imposed outflow
+        !> - always_inflow: imposed inflow
+        !> - ask_flow: check whether the boundary is of outflow of inflow type using the velocity at the boundary
+        !--------------------------------------------------
         integer    , parameter :: obc_type_N = always_outflow
+
+
+        !>@brief type of boundary condition applied at the
+        !> South boundary
+        !> - always_outflow: imposed outflow
+        !> - always_inflow: imposed inflow
+        !> - ask_flow: check whether the boundary is of outflow of inflow type using the velocity at the boundary
+        !--------------------------------------------------
         integer    , parameter :: obc_type_S = always_outflow
+
+
+        !>@brief type of boundary condition applied at the
+        !> East boundary
+        !> - always_outflow: imposed outflow
+        !> - always_inflow: imposed inflow
+        !> - ask_flow: check whether the boundary is of outflow of inflow type using the velocity at the boundary
+        !--------------------------------------------------
         integer    , parameter :: obc_type_E = always_outflow
+
+
+        !>@brief type of boundary condition applied at the
+        !> West boundary
+        !> - always_outflow: imposed outflow
+        !> - always_inflow: imposed inflow
+        !> - ask_flow: check whether the boundary is of outflow of inflow type using the velocity at the boundary
+        !--------------------------------------------------
         integer    , parameter :: obc_type_W = always_inflow
 
 
-        !< domain adaptation parameters
-        !-----------------------------------------------------
+        !==================================================
+        ! domain adaptation parameters
+        !==================================================
         !determination of the directiosn in which the
         !computational domain can be extended
-        !-----------------------------------------------------
-        !
-        !adapt_N_choice : choose whether the North boundary 
-        !                 can be extended
-        !
-        !adapt_S_choice : choose whether the South boundary 
-        !                 can be extended
-        !
-        !adapt_E_choice : choose whether the East boundary 
-        !                 can be extended
-        !
-        !adapt_W_choice : choose whether the West boundary 
-        !                 can be extended
-        !-----------------------------------------------------
+        !==================================================
+
+        !> @brief choose whether the North boundary can be
+        !> extended
+        !> - fixed_domain_choice: no boundary adaptation
+        !> - adapt_domain_choice: adapt the boundary to the needs
+        !--------------------------------------------------
         integer, parameter :: adapt_N_choice = adapt_domain_choice
-        integer, parameter :: adapt_S_choice = fixed_domain_choice
+
+        
+        !> @brief choose whether the South boundary can be
+        !> extended
+        !> - fixed_domain_choice: no boundary adaptation
+        !> - adapt_domain_choice: adapt the boundary to the needs
+        !--------------------------------------------------
+        integer, parameter :: adapt_S_choice = adapt_domain_choice
+
+
+        !> @brief choose whether the East boundary can be
+        !> extended
+        !> - fixed_domain_choice: no boundary adaptation
+        !> - adapt_domain_choice: adapt the boundary to the needs
+        !--------------------------------------------------
         integer, parameter :: adapt_E_choice = adapt_domain_choice
+
+
+        !> @brief choose whether the West boundary can be
+        !> extended
+        !> - fixed_domain_choice: no boundary adaptation
+        !> - adapt_domain_choice: adapt the boundary to the needs
+        !--------------------------------------------------
         integer, parameter :: adapt_W_choice = adapt_domain_choice
 
 
-        !------------------------------------------------------------
+        !==================================================
         ! criterion to decide whether nodes are activated
-        !------------------------------------------------------------
-        !bf_openbc_md_threshold_ac : control whether the increase
-        !                            of the computational domain
-        !                            is also activated by the
-        !                            value of the mass density at
-        !                            the edge
-        !
-        !bf_openbc_md_threshold : the increase of the computational
-        !                         domain is triggered if the mass
-        !                         density is inside
-        !                         mid = (\rho_vap+\rho_liq)/2
-        !                         thr_vap = threshold*(mid-\rho_vap)
-        !                         thr_liq = threshold*(\rho_liq-mid)
-        !                         [\rho_vap+thr_vap, \rho_liq-thr_liq]
-        !
-        !------------------------------------------------------------
+        ! for the extension of the computational domain
+        !==================================================
+
+        !>@brief control whether the increase of the computational
+        !> domain is also activated by the value of the mass density
+        !> at the edge and not just whether the speed of sound is
+        !> negative
+        !--------------------------------------------------
         logical    , parameter :: bf_openbc_md_threshold_ac = .false.
+
+
+        !>@brief the increase of the computational domain is
+        !> triggered if:
+        !> \f[ \rho \in [\rho_{\textrm{vap}}+\epsilon_{\textrm{vap}},
+        !>               \rho_{\textrm{liq}}-\epsilon_{\textrm{liq}}]
+        !> \f]
+        !> where
+        !> \f[ \rho_{\textrm{mid}} = \frac{\rho_{\textrm{liq}}+\rho_{\textrm{vap}}}{2} \f]
+        !> \f[ \epsilon_{\textrm{vap}} = \epsilon*(\rho_{\textrm{mid}}-\rho_\textrm{vap}) \f]
+        !> \f[ \epsilon_{\textrm{liq}} = \epsilon*(\rho_{\textrm{liq}}-\rho_\textrm{mid}) \f]
+        !> and \f$ \epsilon \f$ is bf_openbc_md_threshold
+        !------------------------------------------------------------
         real(rkind), parameter :: bf_openbc_md_threshold = 0.0000000000d0
 
 
-        !------------------------------------------------------------
+        !==================================================
         !debugging options
-        !------------------------------------------------------------
-        !debug_restart_for_geometry :
-        !    control whether the restart option is only used to get
-        !    the geometry of the previous computational domain
-        !
-        !debug_adapt_computational_domain :
-        !    control whether the edges of the computational domain
-        !    are adapted once the simulation starts
-        !    should be set to .true. by default
-        !
-        !debug_geometry_update :
-        !    control whether the new grid points are computed when
-        !    increasing the computational domain (only use for tests,
-        !    should be set to .false. by default)
-        !
-        !debug_initialize_nodes :
-        !    the nodes are initialized with debug_real
-        !
-        !debug_initialize_timedev :
-        !    the time derivatives are initialized with debug_real
-        !------------------------------------------------------------
+        !==================================================
+        
+        !> @brief control whether the restart option is
+        !> only used to get the geometry of the previous
+        !> computational domain
+        !--------------------------------------------------
         logical    , parameter :: debug_restart_for_geometry = .false.
+
+
+        !> @brief control whether the edges of the computational domain
+        !> are adapted once the simulation starts
+        !> should be set to .true. by default
+        !--------------------------------------------------
         logical    , parameter :: debug_adapt_computational_domain = .false.
+
+        
+        !> @brief control whether the new grid points are computed when
+        !> increasing the computational domain (only use for tests,
+        !> should be set to .false. by default)
         logical    , parameter :: debug_geometry_update = .false.
 
+        !> @brief the nodes are initialized with debug_real
+        !--------------------------------------------------
         logical    , parameter :: debug_initialize_nodes    = .true.
+
+
+        !> @brief the boundary nodes are initialized with debug_real
+        !------------------------------------------------------------
         logical    , parameter :: debug_initialize_bc_nodes = .true.
+
+
+        !> @brief the time derivatives are initialized with debug_real
+        !------------------------------------------------------------
         logical    , parameter :: debug_initialize_timedev  = .true.
+
+
+        !> @brief default value when initializing nodes
+        !---------------------------------------------------
         real(rkind), parameter :: debug_real=NF90_FILL_DOUBLE !1e30
 
 
-        !------------------------------------------------------------
+        !==================================================
         !steady state simulation options
-        !------------------------------------------------------------
-        !steady_state_simulation :
-        !    logical stating whether the simulation should be run as
-        !    if it is a steady state computation (no time limit)
-        !
-        !steady_state_limit :
-        !    parameter checked such that the simulation is considered
-        !    steady state
-        !------------------------------------------------------------
+        !==================================================
+
+        !>@brief state whether the simulation should be run as
+        !> if it is a steady state computation (no time limit)
+        !--------------------------------------------------
         logical    , parameter :: steady_state_simulation = .false.
+
+
+        !>@brief parameter checked such that the simulation
+        !> is considered steady state
+        !> \f[ \textrm{max}_{(x,y) \in D} \left(\left| \frac{\partial v}{\partial t} \right|\right) < \epsilon \f]
+        !> where
+        !> \f$ D \f$ is the computational field, \f$v\f$ the
+        !> conservative variable, and \f$ \epsilon \f$ the steady_state_limit
+        !------------------------------------------------------------
         real(rkind), parameter :: steady_state_limit = 1.0e-12
 
       end module parameters_input

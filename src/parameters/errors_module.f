@@ -1,16 +1,16 @@
       !> @file
       !> module implementing the subroutines run
-      !> when an exception is caught in files
+      !> when an exception is caught in the program
       !
       !> @author
       !> Julien L. Desmarais
       !
       !> @brief
       !> module implementing the subroutines run
-      !> when an exception is caught in files
+      !> when an exception is caught in the program
       !
       !> @date
-      ! 09_06_2015 - documentation update - J.L. Desmarais
+      !> 09_06_2015 - documentation update - J.L. Desmarais
       !-----------------------------------------------------------------
       module errors_module
 
@@ -25,8 +25,8 @@
      $       error_bc_choice
 
 
-        integer, parameter :: ERROR_BC_SECTION_ID_CODE = 0
-        integer, parameter :: ERROR_BC_CHOICE_ID_CODE  = 1
+        integer, parameter :: ERROR_BC_SECTION_ID_CODE = 0 !<@brief error code for bc_section_id exception
+        integer, parameter :: ERROR_BC_CHOICE_ID_CODE  = 1 !<@brief error code for bc_choice_id exception
 
 
         contains

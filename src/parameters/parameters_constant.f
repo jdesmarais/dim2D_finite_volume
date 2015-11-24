@@ -14,12 +14,12 @@
       !-----------------------------------------------------------------
       module parameters_constant
 
-        !>program information and conventions
-        character*(*) :: institut
-        character*(*) :: prog_version
-        character*(*) :: commit
-        character*(*) :: ref
-        character*(*) :: convention
+        ! program main infos
+        character*(*) :: institut     !<@brief institute information
+        character*(*) :: prog_version !<@brief version of the program
+        character*(*) :: commit       !<@brief commit ID
+        character*(*) :: ref          !<@brief email
+        character*(*) :: convention   !<@brief netcdf convention used
 
         parameter (institut     = 'Eindhoven university of technology')
         parameter (prog_version = 'cretean bull V0.1')
@@ -28,40 +28,40 @@
         parameter (convention   = 'cf-1.6')
         
 
-        !>type of sd_operators
-        integer, parameter :: sd_interior_type=0
-        integer, parameter :: sd_L0_type=1
-        integer, parameter :: sd_L1_type=2
-        integer, parameter :: sd_R1_type=3
-        integer, parameter :: sd_R0_type=4
+        ! type of sd_operators
+        integer, parameter :: sd_interior_type=0 !<@brief central differencing                                         
+        integer, parameter :: sd_L0_type=1       !<@brief one-side differencing (no grid point available on left side) 
+        integer, parameter :: sd_L1_type=2       !<@brief one-side differencing (one grid point available on left side)
+        integer, parameter :: sd_R1_type=3       !<@brief one-side differencing (one grid point available on right side)
+        integer, parameter :: sd_R0_type=4       !<@brief one-side differencing (no grid point available on right side)
 
-        integer, parameter :: sd_interior_n_type=5
-        integer, parameter :: sd_L0_n_type=6
-        integer, parameter :: sd_L1_n_type=7
-        integer, parameter :: sd_R1_n_type=8
-        integer, parameter :: sd_R0_n_type=9
-
-
-        !>main variable types
-        integer, parameter :: scalar=0
-        integer, parameter :: vector_x=1
-        integer, parameter :: vector_y=2
-
-        !>phase identification
-        integer, parameter :: liquid=0
-        integer, parameter :: vapor=1
+        integer, parameter :: sd_interior_n_type=5 !<@brief central differencing in the diagonal direction
+        integer, parameter :: sd_L0_n_type=6       !<@brief one-side differencing in the diagonal direction (no grid point available on left side) 
+        integer, parameter :: sd_L1_n_type=7       !<@brief one-side differencing in the diagonal direction (one grid point available on left side)
+        integer, parameter :: sd_R1_n_type=8       !<@brief one-side differencing in the diagonal direction (one grid point available on right side
+        integer, parameter :: sd_R0_n_type=9       !<@brief one-side differencing in the diagonal direction (no grid point available on right side)
 
 
-        !>flow profile
-        integer, parameter :: parabolic_profile=0
-        integer, parameter :: linear_profile=1
+        ! main variable types
+        integer, parameter :: scalar=0   !<@brief scalar variable
+        integer, parameter :: vector_x=1 !<@brief vector along x direction
+        integer, parameter :: vector_y=2 !<@brief vector along y direction
+
+        ! phase identification
+        integer, parameter :: liquid=0 !<@brief liquid phase
+        integer, parameter :: vapor=1  !<@brief vapor phase
+
+
+        ! flow profile
+        integer, parameter :: parabolic_profile=0 !<@brief parabolic flow profile
+        integer, parameter :: linear_profile=1    !<@brief linear flow profile
 
         character(17), dimension(2), parameter :: flow_profile_code = [
      $       'parabolic_profile',
      $       'linear_profile   ']
 
 
-        !>initial conditions choice for NS
+        ! initial conditions choice for NS
         character(15), dimension(12), parameter :: ns2d_ic_code =[
      $       'steady_state   ',
      $       'peak           ',
@@ -75,8 +75,8 @@
      $       'not_implemented',
      $       'not_implemented',
      $       'not_implemented']
-
-        !integer, parameter :: steady_state=0
+ 
+        ! integer, parameter :: steady_state=0
         integer, parameter :: peak=1
         integer, parameter :: vortex=2
         integer, parameter :: sym_x=3
@@ -84,7 +84,7 @@
         integer, parameter :: negative_spot=5
         integer, parameter :: sincos=6
 
-        !>initial conditions choice for DIM
+        ! initial conditions choice for DIM
         character(20), dimension(12), parameter :: dim2d_ic_code =[
      $       'steady_state        ',
      $       'drop_retraction     ',
@@ -113,12 +113,12 @@
         integer, parameter :: newgrdpt_test=11
 
 
-        !> phase at center code
+        ! phase at center code
         character(6), dimension(2), parameter :: phase_at_center_code = [
      $       'liquid',
      $       'vapor ']
 
-        !>boundary conditions choice
+        ! boundary conditions choice
         character(23), dimension(9), parameter :: bc_code =[
      $       'periodic_xy            ',
      $       'reflection_xy          ',
@@ -140,7 +140,7 @@
         integer, parameter :: wall_S_open_choice=7
         integer, parameter :: half_wall_S_open_choice=8
 
-        !>boundary conditions local choice
+        ! boundary conditions local choice
         integer, parameter :: periodic_x_choice=0
         integer, parameter :: periodic_y_choice=1
         integer, parameter :: reflection_x_choice=2
@@ -151,13 +151,13 @@
         integer, parameter :: wall_choice=7
                 
 
-        !>boundary conditions type choice
+        ! boundary conditions type choice
         integer, parameter :: bc_nodes_choice=0
         integer, parameter :: bc_fluxes_choice=1
         integer, parameter :: bc_timedev_choice=2
         integer, parameter :: bc_flux_and_node_choice=3
 
-        !>boundary procedure convention
+        ! boundary procedure convention
         integer, parameter :: no_bc_procedure_type=0
         integer, parameter :: SW_corner_type=1
         integer, parameter :: SE_corner_type=2
@@ -172,7 +172,7 @@
         integer, parameter :: NE_edge_type=11
         integer, parameter :: NW_edge_type=12
 
-        !>equations tuning choice
+        ! equations tuning choice
         integer, parameter :: no_gravity_choice=0
         integer, parameter :: earth_gravity_choice=1
         integer, parameter :: no_wave_forcing=0
@@ -180,10 +180,10 @@
         integer, parameter :: intermittent_oscillatory_forcing=2
         integer, parameter :: moving_oscillatory_forcing=3
 
-        !>i/o management choice
+        ! i/o management choice
         integer, parameter :: netcdf_choice=0
 
-        !>mpi constant
+        ! mpi constant
         integer, parameter :: N=1
         integer, parameter :: S=2
         integer, parameter :: E=3
@@ -205,7 +205,7 @@
         integer, parameter :: compute_and_exchange_proc=1
         integer, parameter :: only_exchange_proc=2
 
-        !>open b.c. constant
+        ! open b.c. constant
         logical, parameter :: left=.true.
         logical, parameter :: right=.false.
 
@@ -213,7 +213,7 @@
         logical, parameter :: outflow_type=.true.
 
 
-        !> open b.c. 
+        !  open b.c. 
         !-------------------------------------------------------
         !control how the contribution of the outgoing waves 
         !is computed
@@ -230,7 +230,7 @@
         integer, parameter :: obc_outgoing_prim = 1
 
 
-        !> open b.c. oneside fluxes
+        !  open b.c. oneside fluxes
         !-------------------------------------------------------
         !control how the fluxes are computed at the edges
         !-------------------------------------------------------
@@ -248,7 +248,7 @@
         integer, parameter :: obc_edge_flux_no_capillarity = 1
 
 
-        !> open b.c. eigenquantities
+        !  open b.c. eigenquantities
         !-------------------------------------------------------
         !control how the eigenquantities are computed for open b.c.
         !-------------------------------------------------------
@@ -271,7 +271,7 @@
         integer, parameter :: obc_eigenqties_roe = 2
 
 
-        !> open b.c. anti_corners
+        !  open b.c. anti_corners
         !-------------------------------------------------------
         !control how the anti-corners are computed for open b.c.
         !-------------------------------------------------------
@@ -297,7 +297,7 @@
         integer, parameter :: obc_edge_xy_diag_flux = 2
 
 
-        !> open b.c. edge_type
+        !  open b.c. edge_type
         !-----------------------------------------------------------
         !control how the type of open b.c. can be fixed at the edges
         !-----------------------------------------------------------
@@ -318,7 +318,7 @@
         integer, parameter :: ask_flow       = 2
 
 
-        !> domain adaptation
+        !  domain adaptation
         !-----------------------------------------------------------
         !control whether the boundary can be extended
         !-----------------------------------------------------------
@@ -331,7 +331,7 @@
         integer, parameter :: adapt_domain_choice = 1
 
 
-        !> wall heat source type
+        !  wall heat source type
         !-----------------------------------------------------------
         !control the type of heat source at the wall
         !-----------------------------------------------------------
@@ -351,7 +351,7 @@
         integer, parameter :: gaussian_heat_source = 2
 
 
-        !> wall contact angle type
+        !  wall contact angle type
         !-----------------------------------------------------------
         !control the contact angle imposed at the wall
         !-----------------------------------------------------------
