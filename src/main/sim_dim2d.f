@@ -1,19 +1,17 @@
       !> @file
       !> program for the simulation of the Diffuse Interface
-      !> Model in 2D
+      !> Model on a fixed 2D-domain
       !
       !> @author 
       !> Julien L. Desmarais
       !
       !> @brief
-      !> run the simulation using the Diffuse Interface Model,
-      !> the cg_operators for the spatial discretization,
-      !> and finite volume and the Runge-Kutta 3rd order TVD
-      !> as time integration methods
+      !> program for the simulation of the Diffuse Interface
+      !> Model on a fixed 2D-domain
       !
       !> @date
-      ! 19_08_2013 - initial version              - J.L. Desmarais
-      ! 15_07_2014 - composition over inheritance - J.L. Desmarais
+      !> -# 19_08_2013 - initial version              - J.L. Desmarais
+      !> -# 15_07_2014 - composition over inheritance - J.L. Desmarais
       !-----------------------------------------------------------------
       program sim_dim2d
 
@@ -31,7 +29,7 @@
 
 
         ! operators needed for the simulation
-        type(field) :: f_simulated !  field simulated
+        type(field) :: f_simulated ! field simulated
 
 
         ! intermediate variables for the simulation

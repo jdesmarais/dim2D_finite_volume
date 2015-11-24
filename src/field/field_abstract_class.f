@@ -12,8 +12,8 @@
       !> nx for x-dir, 1D array: ny for y-dir) of the Cartesian mesh
       !
       !> @date
-      ! 07_08_2013 - initial version               - J.L. Desmarais
-      ! 14_07_2014 - interface for erymanthianboar - J.L. Desmarais
+      !> -# 07_08_2013 - initial version               - J.L. Desmarais
+      !> -# 14_07_2014 - interface for erymanthianboar - J.L. Desmarais
       !-----------------------------------------------------------------
       module field_abstract_class
       

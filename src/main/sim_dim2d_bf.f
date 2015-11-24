@@ -1,18 +1,18 @@
       !> @file
       !> program for the simulation of the Diffuse Interface
-      !> Model in 2D with buffer layers
+      !> Model on a 2D-domain which can be extended with buffer
+      !> layers during the simulation
       !
       !> @author 
       !> Julien L. Desmarais
       !
       !> @brief
-      !> run the simulation using the Diffuse Interface Model,
-      !> the mt_operators for the spatial discretization,
-      !> and finite volume and the Runge-Kutta 3rd order TVD
-      !> as time integration methods
+      !> program for the simulation of the Diffuse Interface
+      !> Model on a 2D-domain which can be extended with buffer
+      !> layers during the simulation
       !
       !> @date
-      ! 22_11_2013 - initial version - J.L. Desmarais
+      !> 22_11_2013 - initial version - J.L. Desmarais
       !-----------------------------------------------------------------
       program sim_dim2d_bf
 

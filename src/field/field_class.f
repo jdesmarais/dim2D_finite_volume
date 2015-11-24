@@ -1,16 +1,16 @@
       !> @file
-      !> class encapsulating the main tables for the variables and the
-      !> coordinates and the operators to integrate them in time
+      !> class extending field_abstract to encapsulate
+      !> time integration operators
       !
       !> @author
       !> Julien L. Desmarais
       !
       !> @brief
-      !> class encapsulating the main tables for the variables and the
-      !> coordinates and the operators to integrate them in time
+      !> class extending field_abstract to encapsulate
+      !> time integration operators
       !
       !> @date
-      ! 07_08_2013 - initial version - J.L. Desmarais
+      !> 07_08_2013 - initial version - J.L. Desmarais
       !-----------------------------------------------------------------
       module field_class
 
@@ -26,8 +26,8 @@
 
 
         !> @class field
-        !> class encapsulating the variables of the governing equations
-        !> and the discretisation maps
+        !> class extending field_abstract to encapsulate
+        !> time integration operators
         !---------------------------------------------------------------
         type, extends(field_abstract) :: field
 

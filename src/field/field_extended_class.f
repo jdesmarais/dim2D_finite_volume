@@ -1,16 +1,18 @@
       !> @file
-      !> class encapsulating the main tables for the variables and the
-      !> coordinates with a possibility to extend the computational domain
+      !> class extending field_abstract to encapsulate the main
+      !> tables for the variables and the coordinates with a
+      !> possibility to extend the computational domain
       !
       !> @author
       !> Julien L. Desmarais
       !
       !> @brief
-      !> class encapsulating the main tables for the variables and the
-      !> coordinates with a possibility to extend the computational domain
+      !> class extending field_abstract to encapsulate the main
+      !> tables for the variables and the coordinates with a
+      !> possibility to extend the computational domain
       !
       !> @date
-      ! 17_07_2014 - initial version - J.L. Desmarais
+      !> 17_07_2014 - initial version - J.L. Desmarais
       !-----------------------------------------------------------------
       module field_extended_class
 
@@ -48,59 +50,22 @@
 
         !>@class field_extended
         !> object combining the interior domain and its extension
-        !
-        !>@param domain_extension
-        !> object containing the domain extension and how data are
-        !> exchanged between the interior computational domain and
-        !> the buffer layers
-        !
-        !>@param td_integrator_used
-        !> time integration method
-        !
-        !>@param ini
-        !> initialize the interior computational domain and its
-        !> extension
-        !
-        !>@param apply_initial_conditions
-        !> apply the initial conditions of the physical model on the
-        !> interior domain and its extension if any
-        !
-        !>@param compute_time_dev_ext
-        !> compute the time derivatives of the interior computational
-        !> domain and the domain extension
-        !
-        !>@param compute_integration_step_ext
-        !> compute the time integration step for the interior
-        !> computational domain and its extension
-        !
-        !>@param integrate
-        !> integrate the interior computational domain and its extension
-        !> in time
-        !
-        !>@param write_data
-        !> write the data contained in the interior domain and its
-        !> extension on external netcdf files
-        !
-        !>@param adapt_domain
-        !> adapt the computational domain by increasing or decreasing
-        !> the buffer layers depending on the activation of the grid-points
-        !> in the computational domain
         !---------------------------------------------------------------
         type, extends(field_abstract) :: field_extended
 
-          type(bf_interface)                          :: domain_extension
-          type(td_integrator)                         :: td_integrator_used
-          integer(ikind), dimension(:,:), allocatable :: interior_bc_sections
+          type(bf_interface)                          :: domain_extension     !<@brief object containing the domain extension and how data are exchanged between the interior computational domain and the buffer layers
+          type(td_integrator)                         :: td_integrator_used   !<@brief time integration method
+          integer(ikind), dimension(:,:), allocatable :: interior_bc_sections !<@brief identify how the boundary points of the interior domain are computed
 
           contains
 
-          procedure, pass :: ini
-          procedure, pass :: apply_initial_conditions
-          procedure, pass :: compute_time_dev_ext
-          procedure, pass :: compute_integration_step_ext
-          procedure, pass :: integrate
-          procedure, pass :: write_data
-          procedure, pass :: adapt_domain
+          procedure, pass :: ini                          !<@brief initialize the interior computational domain and its extension
+          procedure, pass :: apply_initial_conditions     !<@brief apply the initial conditions of the physical model on the interior domain and its extension if any
+          procedure, pass :: compute_time_dev_ext         !<@brief compute the time derivatives of the interior computational domain and the domain extension
+          procedure, pass :: compute_integration_step_ext !<@brief compute the time integration step for the interior computational domain and its extension
+          procedure, pass :: integrate                    !<@brief integrate the interior computational domain and its extension in time
+          procedure, pass :: write_data                   !<@brief write the data contained in the interior domain and its extension on output files
+          procedure, pass :: adapt_domain                 !<@brief adapt the computational domain by increasing or decreasing the buffer layers depending on the activation of the grid-points in the computational domain
 
         end type field_extended
 
@@ -111,14 +76,15 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> initialize the interior computational domain and its
-        !> extension
+        !> initialize the interior computational domain
+        !> and its extension
         !
         !> @date
         !> 18_07_2014 - initial version - J.L. Desmarais
         !
         !>@param this
-        !> object encapsulating the main variables        
+        !> object encapsulating the main governing variables
+        !> on the computational domain and its extension
         !--------------------------------------------------------------
         subroutine ini(this)
         
@@ -171,13 +137,14 @@
         !
         !> @brief
         !> apply the initial conditions of the physical model on
-        !> the entire field (interior+buffer layers)
+        !> the entire computational domain: interior domain + extensions
         !
         !> @date
         !> 23_01_2015 - initial version - J.L. Desmarais
         !
         !>@param this
         !> object encapsulating the main governing variables
+        !> on the computational domain and its extension
         !--------------------------------------------------------------
         subroutine apply_initial_conditions(this)
 
@@ -199,13 +166,14 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> compute the time derivatives of the interior field
+        !> compute the time derivatives of the interior domain
         !
         !> @date
         !> 29_10_2014 - initial version - J.L. Desmarais
         !
         !>@param this
         !> object encapsulating the main governing variables
+        !> on the computational domain and its extension
         !
         !>@return time_dev
         !> array containing the time derivatives of the grid points
@@ -218,7 +186,8 @@
           real(rkind), dimension(nx,ny,ne)  :: time_dev
 
           !make use of the time discretization operator
-          !to compute the time derivative of the field
+          !to compute the time derivative of the computational
+          !domain
           time_dev = this%td_operators_used%compute_time_dev(
      $         this%time,
      $         this%nodes,
@@ -240,14 +209,15 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> compute the time derivatives of the interior computational
-        !> domain and the domain extension
+        !> compute the time derivatives of the interior
+        !> computational domain and the domain extension
         !
         !> @date
         !> 18_07_2014 - initial version - J.L. Desmarais
         !
         !>@param this
-        !> object encapsulating the main variables
+        !> object encapsulating the main governing variables
+        !> on the computational domain and its extension
         !
         !>@return time_dev
         !> time derivative of the interior domain
@@ -286,14 +256,15 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> compute the integration step of the interior domain and its
-        !> extension
+        !> compute the integration step of the interior domain
+        !> and its extension
         !
         !> @date
         !> 18_07_2014 - initial version - J.L. Desmarais
         !
         !>@param this
-        !> object encapsulating the main variables
+        !> object encapsulating the main governing variables
+        !> on the computational domain and its extension
         !
         !>@param dt
         !> time step
@@ -310,13 +281,6 @@
         !
         !>@param integration_step_nopt
         !> procedure for the time integration of the domain extension
-        !
-        !>@param full
-        !> logical to enforce whether the full domain is computed
-        !> discarding the x_borders and y_borders supplied
-        !> (important for the first integration step when the
-        !> previous integration step is saved temporary in another
-        !> array)
         !--------------------------------------------------------------
         subroutine compute_integration_step_ext(
      $     this, dt, nodes_tmp, time_dev,
@@ -355,7 +319,8 @@
         !> 18_07_2014 - initial version - J.L. Desmarais
         !
         !>@param this
-        !> object encapsulating the main variables
+        !> object encapsulating the main governing variables
+        !> on the computational domain and its extension
         !
         !>@param dt
         !> time step
@@ -391,13 +356,15 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> apply the boundary conditions on the gridpoints
+        !> write the governing variables of the computational domain
+        !> on output files
         !
         !> @date
         !> 03_11_2014 - initial version - J.L. Desmarais
         !
         !> @param this
-        !> object encapsulating the main variables
+        !> object encapsulating the main governing variables
+        !> on the computational domain and its extension
         !--------------------------------------------------------------
         subroutine write_data(this)
 
@@ -447,16 +414,15 @@
         !> 22_11_2014 - initial version - J.L. Desmarais
         !
         !> @param this
-        !> object encapsulating the main variables at t
-        !
-        !> @param t
-        !> time
+        !> object encapsulating the main governing variables
+        !> on the computational domain and its extension at time
+        !> \f$t\f$
         !
         !> @param dt
         !> time step
         !
         !> @param nodes0
-        !> nodes at the previous time step (t-dt)
+        !> nodes at the previous time step \f$t-dt\f$
         !--------------------------------------------------------------
         subroutine adapt_domain(this, dt, nodes0)
 
