@@ -84,7 +84,7 @@
           type(io_operators)     :: io_operators_used !< @brief i/o operators
 
           real(rkind)                      :: time   !<@brief simulation time \f$ t \f$
-          real(rkind), dimension(nx,ny,ne) :: nodes  !<@brief governing variables (e.g.\f$ (\rho, q_x, q_y, \rho E) \f$)
+          real(rkind), dimension(nx,ny,ne) :: nodes  !<@brief governing variables: e.g. \f$ \left(\rho, q_x, q_y, \rho E \right) \f$
           real(rkind), dimension(nx)       :: x_map  !<@brief space discretization map along x-direction: \f$(x_1, \cdots, x_{\textrm{nx}})\f$
           real(rkind), dimension(ny)       :: y_map  !<@brief space discretization map along y-direction: \f$(y_1, \cdots, y_{\textrm{ny}})\f$
           real(rkind)                      :: dx     !<@brief grid-size along x-direction: \f$ dx \f$
@@ -97,10 +97,10 @@
 
           procedure, pass          :: ini                             !<@brief initialize the interior domain and its operators
           procedure, pass          :: check_inputs                    !<@brief check the simulation inputs
-          procedure, pass, private :: ini_coordinates                 !<@brief initialize the space discretization maps for the field
+          procedure, pass, private :: ini_coordinates                 !<@brief initialize the space discretization maps for the computational domain
           procedure, pass          :: ini_for_timeInt                 !<@brief initialize the integration borders
 
-          procedure, pass          :: apply_initial_conditions        !<@brief apply the initial conditions of the physical model on the field
+          procedure, pass          :: apply_initial_conditions        !<@brief apply the initial conditions of the physical model on the computational domain
           procedure, pass          :: compute_time_dev                !<@brief compute the time derivatives of the computational domain
           procedure, pass          :: compute_time_dev_ext            !<@brief compute the time derivatives of the computational domain and its extension if any
           procedure, pass          :: apply_bc_on_nodes               !<@brief apply the boundary conditions on the computational domain
@@ -161,7 +161,7 @@
           call cmd_operators_used%analyse_cmd_line_arg()
 
 
-          !initialize the field
+          !initialize the computational domain
           !========================================
           !1) initialize the integration borders
           call this%ini_for_timeInt()
@@ -274,7 +274,8 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> initialize the space discretization maps for the field
+        !> initialize the space discretization maps for the
+        !> computational domain
         !
         !> @date
         !> 27_08_2013 - initial version - J.L. Desmarais
@@ -319,7 +320,7 @@
         !
         !> @brief
         !> apply the initial conditions of the physical model on
-        !> the field
+        !> the computational domain
         !
         !> @date
         !> 27_08_2013 - initial version - J.L. Desmarais
@@ -345,7 +346,7 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> compute the time derivatives of the field
+        !> compute the time derivatives of the computational domain
         !
         !> @date
         !> 27_08_2013 - initial version - J.L. Desmarais
@@ -364,7 +365,8 @@
           real(rkind), dimension(nx,ny,ne)  :: time_dev
 
           !make use of the time discretization operator
-          !to compute the time derivative of the field
+          !to compute the time derivative of the computational
+          !domain
           time_dev = this%td_operators_used%compute_time_dev(
      $         this%time,
      $         this%nodes,
@@ -381,8 +383,8 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> compute the time derivatives of the field and its extension
-        !> if any
+        !> compute the time derivatives of the computational domain
+        !> and its extension if any
         !
         !> @date
         !> 27_08_2013 - initial version - J.L. Desmarais
@@ -413,7 +415,8 @@
           stop
 
           !make use of the time discretization operator
-          !to compute the time derivative of the field
+          !to compute the time derivative of the computational
+          !domain
           time_dev = this%td_operators_used%compute_time_dev(
      $         this%time,
      $         this%nodes,
@@ -439,7 +442,7 @@
         !> object encapsulating the main governing variables
         !
         !>@param nodes_tmp
-        !> computational field with the governing variables
+        !> governing variables of the computational domain
         !--------------------------------------------------------------
         subroutine apply_bc_on_nodes(this,nodes_tmp)
 
@@ -464,8 +467,8 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> compute the integration step for the computational field
-        !> corresponding to the interior domain
+        !> compute the integration step for the computational
+        !> domain corresponding to the interior domain
         !
         !> @date
         !> 27_08_2013 - initial version - J.L. Desmarais
@@ -514,8 +517,8 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> compute the integration step for the computational field of
-        !> the interior domain and its extension if any
+        !> compute the integration step for the computational
+        !> domain of the interior domain and its extension if any
         !
         !> @date
         !> 18_07_2014 - initial version - J.L. Desmarais
@@ -635,7 +638,8 @@
           integer :: i,j,k
 
           !make use of the time discretization operator
-          !to compute the time derivative of the field
+          !to compute the time derivative of the computational
+          !domain
           time_dev = this%td_operators_used%compute_time_dev(
      $         this%time,
      $         this%nodes,
@@ -771,7 +775,7 @@
         !> object encapsulating the main variables
         !
         !>@return nodes
-        !> governing variables of the computational field
+        !> governing variables of the computational domain
         !> in the interior domain
         !--------------------------------------------------------------
         function get_nodes(this) result(nodes)
@@ -799,7 +803,7 @@
         !> object encapsulating the main variables
         !
         !>@param nodes
-        !> governing variables of the computational field
+        !> governing variables of the computational domain
         !> in the interior domain
         !--------------------------------------------------------------
         subroutine set_nodes(this,nodes)

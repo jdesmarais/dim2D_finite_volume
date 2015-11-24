@@ -35,7 +35,7 @@
 
           contains
 
-          procedure, pass :: integrate !<@brief integrate the computational field in time
+          procedure, pass :: integrate !<@brief integrate the computational domain in time
 
         end type field
 
