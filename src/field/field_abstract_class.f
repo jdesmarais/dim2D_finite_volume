@@ -1,14 +1,15 @@
-
       !> @file
-      !> class encapsulating the main tables for the variables and the
-      !> coordinates
+      !> class encapsulating the main tables for the variables
+      !> (3D array: nx x ny x ne) and the coordinate maps (1D array:
+      !> nx for x-dir, 1D array: ny for y-dir) of the Cartesian mesh
       !
       !> @author
       !> Julien L. Desmarais
       !
       !> @brief
-      !> class encapsulating the main tables for the variables and the
-      !> coordinates
+      !> class encapsulating the main tables for the variables
+      !> (3D array: nx x ny x ne) and the coordinate maps (1D array:
+      !> nx for x-dir, 1D array: ny for y-dir) of the Cartesian mesh
       !
       !> @date
       ! 07_08_2013 - initial version               - J.L. Desmarais
@@ -73,163 +74,71 @@
         !>@class field_abstract
         !> class encapsulating the variables of the governing equations
         !> and the discretisation maps
-        !
-        !>@param sd_operators_used
-        !> space discretization operators
-        !
-        !>@param pmodel_eq_used
-        !> physical model governing equations
-        !
-        !>@param bc_operators_used
-        !> boundary conditions operators
-        !
-        !>@param td_operators_used
-        !> time discretization operators
-        !
-        !>@param td_integrator_used
-        !> time integration operators
-        !
-        !>@param io_integrator_used
-        !> i/o operators
-        !
-        !>@param nodes
-        !> variables computed during the simulation
-        !> (ex: mass=nodes(:,:,1),
-        !> momentum_x=nodes(:,:,2),
-        !> momentum_y=nodes(:,:,3),
-        !> energy=nodes(:,:,4))
-        !
-        !>@param x_map
-        !> discretisation map along the x-axis
-        !
-        !>@param y_map
-        !> discretisation map along the y-axis
-        !
-        !>@param dx
-        !> space step along the x-axis
-        !
-        !>@param dy
-        !> space step along the y-axis
-        !
-        !>@param ini
-        !> initialize the interior domain and its operators
-        !
-        !>@param check_inputs
-        !> check the simulation inputs
-        !
-        !>@param ini_coordinates
-        !> initialize the space discretization maps for the field
-        !
-        !>@param apply_initial_conditions
-        !> apply the initial conditions of the physical model on
-        !> the field
-        !
-        !>@param compute_time_dev
-        !> compute the time derivatives of the field
-        !
-        !>@param compute_time_dev_ext
-        !> compute the time derivatives of the field and its extension
-        !> if any
-        !
-        !>@param apply_bc_on_nodes
-        !> apply the boundary conditions on the grid points
-        !
-        !>@param compute_integration_step
-        !> compute the integration step of the interior domain
-        !
-        !>@param compute_integration_step_ext
-        !> compute the integration step of the interior domain and
-        !> its extension if any
-        !
-        !>@param write_data
-        !> write the interior domain data on output files depending
-        !> on the i/o operators used
-        !
-        !>@param set_dx
-        !> set the grid size along the x-axis
-        !
-        !>@param set_dy
-        !> set the grid size along the y-axis
-        !
-        !>@param get_nodes
-        !> get the array containing the grid point data
-        !
-        !>@param set_nodes
-        !> set the array containing the grid point data
-        !
-        !>@param get_x_map
-        !> get the array containing the space discretization map
-        !> along the x-axis
-        !
-        !>@param get_y_map
-        !> get the array containing the space discretization map
-        !> along the y-axis
         !---------------------------------------------------------------
         type, extends(surrogate) :: field_abstract
 
-          type(sd_operators)     :: sd_operators_used
-          type(pmodel_eq)        :: pmodel_eq_used
-          type(bc_operators_gen) :: bc_operators_used
-          type(td_operators)     :: td_operators_used
-          type(io_operators)     :: io_operators_used
+          type(sd_operators)     :: sd_operators_used !< @brief space discretization operators
+          type(pmodel_eq)        :: pmodel_eq_used    !< @brief physical model
+          type(bc_operators_gen) :: bc_operators_used !< @brief boundary conditions operators
+          type(td_operators)     :: td_operators_used !< @brief time discretization operators
+          type(io_operators)     :: io_operators_used !< @brief i/o operators
 
-          real(rkind)                      :: time
-          real(rkind), dimension(nx,ny,ne) :: nodes
-          real(rkind), dimension(nx)       :: x_map
-          real(rkind), dimension(ny)       :: y_map
-          real(rkind)                      :: dx
-          real(rkind)                      :: dy
+          real(rkind)                      :: time   !<@brief simulation time \f$ t \f$
+          real(rkind), dimension(nx,ny,ne) :: nodes  !<@brief governing variables (e.g.\f$ (\rho, q_x, q_y, \rho E) \f$)
+          real(rkind), dimension(nx)       :: x_map  !<@brief space discretization map along x-direction: \f$(x_1, \cdots, x_{\textrm{nx}})\f$
+          real(rkind), dimension(ny)       :: y_map  !<@brief space discretization map along y-direction: \f$(y_1, \cdots, y_{\textrm{ny}})\f$
+          real(rkind)                      :: dx     !<@brief grid-size along x-direction: \f$ dx \f$
+          real(rkind)                      :: dy     !<@brief grid-size along y-direction: \f$ dy \f$
 
-          integer(ikind), dimension(2) :: x_borders
-          integer(ikind), dimension(2) :: y_borders
-
+          integer(ikind), dimension(2) :: x_borders  !<@brief time integration borders along the x-direction \f$[i_{\textrm{min}},i_{\textrm{max}}] \f$
+          integer(ikind), dimension(2) :: y_borders  !<@brief time integration borders along the y-direction \f$[j_{\textrm{min}},j_{\textrm{max}}] \f$
 
           contains
 
-          procedure, pass          :: ini
-          procedure, pass          :: check_inputs
-          procedure, pass, private :: ini_coordinates
-          procedure, pass          :: ini_for_timeInt
+          procedure, pass          :: ini                             !<@brief initialize the interior domain and its operators
+          procedure, pass          :: check_inputs                    !<@brief check the simulation inputs
+          procedure, pass, private :: ini_coordinates                 !<@brief initialize the space discretization maps for the field
+          procedure, pass          :: ini_for_timeInt                 !<@brief initialize the integration borders
 
-          procedure, pass          :: apply_initial_conditions
-          procedure, pass          :: compute_time_dev
-          procedure, pass          :: compute_time_dev_ext
-          procedure, pass          :: apply_bc_on_nodes
-          procedure, pass          :: compute_integration_step
-          procedure, pass          :: compute_integration_step_ext
-          procedure, pass          :: write_data
+          procedure, pass          :: apply_initial_conditions        !<@brief apply the initial conditions of the physical model on the field
+          procedure, pass          :: compute_time_dev                !<@brief compute the time derivatives of the computational domain
+          procedure, pass          :: compute_time_dev_ext            !<@brief compute the time derivatives of the computational domain and its extension if any
+          procedure, pass          :: apply_bc_on_nodes               !<@brief apply the boundary conditions on the computational domain
+          procedure, pass          :: compute_integration_step        !<@brief compute the integration step of the interior domain
+          procedure, pass          :: compute_integration_step_ext    !<@brief compute the integration step of the interior domain and its extension if any (only interface)
+          procedure, pass          :: write_data                      !<@brief write the interior domain data on output files
 
-          procedure, pass          :: check_steady_state
+          procedure, pass          :: check_steady_state              !<@brief check whether the steady state is reached
 
-          procedure, pass          :: adapt_domain !interface for domain extension
+          procedure, pass          :: adapt_domain                    !<@brief check whether the computational domain should be extended
 
-          procedure, pass          :: set_dx    !only for tests
-          procedure, pass          :: set_dy    !only for tests
-          procedure, pass          :: get_nodes !only for tests
-          procedure, pass          :: set_nodes !only for tests
-          procedure, pass          :: get_x_map !only for tests
-          procedure, pass          :: get_y_map !only for tests
-          procedure, pass          :: set_x_map !only for tests
-          procedure, pass          :: set_y_map !only for tests
-          procedure, pass          :: get_time
+          procedure, pass          :: set_dx                          !<@brief set the grid size along the x-axis (only for tests)
+          procedure, pass          :: set_dy                          !<@brief set the grid size along the y-axis (only for tests)
+          procedure, pass          :: get_nodes                       !<@brief get the array containing the grid point data (only for tests)
+          procedure, pass          :: set_nodes                       !<@brief set the array containing the grid point data (only for tests)
+          procedure, pass          :: get_x_map                       !<@brief get the array containing the space discretization map along the x-axis (only for tests)
+          procedure, pass          :: get_y_map                       !<@brief get the array containing the space discretization map along the y-axis (only for tests)
+          procedure, pass          :: set_x_map                       !<@brief set the array containing the space discretization map along the x-axis (only for tests)
+          procedure, pass          :: set_y_map                       !<@brief set the array containing the space discretization map along the y-axis (only for tests)
+          procedure, pass          :: get_time                        !<@brief get the time corresponding to the variables
 
         end type field_abstract
 
 
         contains
 
-
+        
         !> @author
         !> Julien L. Desmarais
         !
         !> @brief
         !> initialize the field_abstract by:
-        !> (1) check the simulation inputs
-        !> (2) initializing the boundary conditions bc_operators_used
-        !> (3) initializing the coordinates
-        !> (4) applying the initial conditions
-        !> (5) initializing the i/o operators io_operators_used
-        !
+        !> -# check the simulation inputs
+        !> -# initializing the boundary conditions bc_operators_used
+        !> -# initializing the coordinates
+        !> -# applying the initial conditions
+        !> -# initializing the i/o operators io_operators_used
+        !        
         !> @date
         !> 17_07_2014 - initial version - J.L. Desmarais
         !
@@ -322,7 +231,9 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> initialize the space discretization map for the field
+        !> initialize the integration borders when the governing
+        !> variables are integrated in time (check whether a PDE
+        !> is solved for the boundary points or not)
         !
         !> @date
         !> 27_08_2013 - initial version - J.L. Desmarais
@@ -363,7 +274,7 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> initialize the space discretization map for the field
+        !> initialize the space discretization maps for the field
         !
         !> @date
         !> 27_08_2013 - initial version - J.L. Desmarais
@@ -526,6 +437,9 @@
         !
         !>@param this
         !> object encapsulating the main governing variables
+        !
+        !>@param nodes_tmp
+        !> computational field with the governing variables
         !--------------------------------------------------------------
         subroutine apply_bc_on_nodes(this,nodes_tmp)
 
@@ -550,7 +464,8 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> compute the integration step of the interior domain
+        !> compute the integration step for the computational field
+        !> corresponding to the interior domain
         !
         !> @date
         !> 27_08_2013 - initial version - J.L. Desmarais
@@ -599,8 +514,8 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> compute the integration step of the interior domain and its
-        !> extension if any
+        !> compute the integration step for the computational field of
+        !> the interior domain and its extension if any
         !
         !> @date
         !> 18_07_2014 - initial version - J.L. Desmarais
@@ -706,7 +621,7 @@
         !
         !>@return steady_state
         !> check whether the steady state is reached for
-        !> the simulation: variations in time dev ~ 1e-
+        !> the simulation: maximum time dev below a threshold
         !--------------------------------------------------------------
         function check_steady_state(this) result(steady_state)
 
@@ -856,7 +771,8 @@
         !> object encapsulating the main variables
         !
         !>@return nodes
-        !> grid size along the y-axis
+        !> governing variables of the computational field
+        !> in the interior domain
         !--------------------------------------------------------------
         function get_nodes(this) result(nodes)
 
@@ -883,7 +799,8 @@
         !> object encapsulating the main variables
         !
         !>@param nodes
-        !> grid size along the y-axis
+        !> governing variables of the computational field
+        !> in the interior domain
         !--------------------------------------------------------------
         subroutine set_nodes(this,nodes)
 
