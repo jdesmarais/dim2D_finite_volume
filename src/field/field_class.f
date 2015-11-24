@@ -1,13 +1,13 @@
       !> @file
       !> class encapsulating the main tables for the variables and the
-      !> coordinates
+      !> coordinates and the operators to integrate them in time
       !
       !> @author
       !> Julien L. Desmarais
       !
       !> @brief
       !> class encapsulating the main tables for the variables and the
-      !> coordinates
+      !> coordinates and the operators to integrate them in time
       !
       !> @date
       ! 07_08_2013 - initial version - J.L. Desmarais
@@ -31,11 +31,11 @@
         !---------------------------------------------------------------
         type, extends(field_abstract) :: field
 
-          type(td_integrator) :: td_integrator_used
+          type(td_integrator) :: td_integrator_used !<@brief time integration operators
 
           contains
 
-          procedure, pass :: integrate
+          procedure, pass :: integrate !<@brief integrate the computational field in time
 
         end type field
 
@@ -43,7 +43,21 @@
         contains
 
 
-        !integrate the field in time from t to t+dt
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> integrate the governing variables in time from t to t+dt
+        !
+        !> @date
+        !> 17_07_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> object encapsulating the main governing variables
+        !
+        !>@param dt
+        !> time step
+        !--------------------------------------------------------------
         subroutine integrate(this, dt)
 
           implicit none
