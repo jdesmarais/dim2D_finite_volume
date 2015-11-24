@@ -1,4 +1,4 @@
-      !> @file
+      !> @file <./dim2d/pmodel_eq_class.f>
       !> class encapsulating subroutines to compute
       !> the reduced governing equations of the Diffuse
       !> Interface Model in 2D as derivated by J.Desmarais
@@ -17,10 +17,10 @@
       !> WIT Press, J. Desmarais and J.G.M. Kuerten
       !
       !> @date
-      !> 08_08_2013 - initial version               - J.L. Desmarais
-      !> 11_07_2014 - interface for erymanthianboar - J.L. Desmarais
-      !> 10_12_2014 - eigensystems                  - J.L. Desmarais
-      !> 11_12_2014 - initial conditions            - J.L. Desmarais
+      !> -# 08_08_2013 - initial version               - J.L. Desmarais
+      !> -# 11_07_2014 - interface for erymanthianboar - J.L. Desmarais
+      !> -# 10_12_2014 - eigensystems                  - J.L. Desmarais
+      !> -# 11_12_2014 - initial conditions            - J.L. Desmarais
       !-----------------------------------------------------------------
       module pmodel_eq_class
 
