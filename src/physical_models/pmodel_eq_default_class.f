@@ -1,16 +1,18 @@
       !> @file
-      !> abstract class encapsulating subroutines to compute
-      !> the governing equations of the physical model
+      !> class implementing default subroutines for
+      !> the physical model to throw exceptions when
+      !> used by the program
       !
       !> @author 
       !> Julien L. Desmarais
       !
       !> @brief
-      !> class encapsulating subroutines to compute
-      !> the governing equations of the physical model
+      !> class implementing default subroutines for
+      !> the physical model to throw exceptions when
+      !> used by the program
       !
       !> @date
-      !> 08_08_2013 - initial version                   - J.L. Desmarais
+      !> 08_08_2013 - initial version - J.L. Desmarais
       !-----------------------------------------------------------------
       module pmodel_eq_default_class
       
@@ -38,8 +40,9 @@
 
 
         !> @class pmodel_eq_default
-        !> abstract class encapsulating default operators to
-        !> compute the governing equations of the physical model
+        !> class implementing default subroutines for
+        !> the physical model to throw exceptions when
+        !> used by the program
         !---------------------------------------------------------------
         type, abstract, extends(pmodel_eq_abstract) :: pmodel_eq_default
           
@@ -95,18 +98,17 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> get the simulation parameters
+        !> default subroutine to get the main
+        !> parameters of the simulation
         !
         !> @date
         !> 12_08_2014 - initial version - J.L. Desmarais
         !
         !>@param param_name
-        !> array with the name of the characteristic parameters
-        !> for the simulation
+        !> names of the main parameters of the simulation
         !
         !>@param param_value
-        !> array with the value of the characteristic parameters
-        !> for the simulation
+        !> values of the main parameters of the simulation
         !--------------------------------------------------------------
         subroutine get_sim_parameters_default(param_name, param_value)
 
@@ -134,16 +136,16 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> interface to get the pattern of gridpoints needed
-        !> when computing fluxes
+        !> default function to get the pattern of
+        !> gridpoints needed when computing fluxes
         !
         !> @date
         !> 27_01_2015 - initial version - J.L. Desmarais
         !
-        !>@param operator_type
+        !> @param operator_type
         !> type of operator used
         !
-        !> @return pattern
+        !> @return
         !> gridpoints needed around the central gridpoint to compute
         !> the fluxes
         !--------------------------------------------------------------
@@ -170,15 +172,23 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> interface to apply the initial conditions
-        !> to the main variables of the governing
-        !> equations
+        !> default subroutine to apply the initial conditions
+        !> to the computational domain
         !
         !> @date
         !> 08_08_2013 - initial version - J.L. Desmarais
         !
+        !>@param this
+        !> physical model
+        !
         !>@param nodes
-        !> array with the grid point data
+        !> array with the grid point data    
+        !
+        !>@param x_map
+        !> array with the x-coordinates
+        !
+        !>@param y_map
+        !> array with the y-coordinates                
         !--------------------------------------------------------------
         subroutine apply_ic_default(this,nodes,x_map,y_map)
 
@@ -210,8 +220,9 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> compute the fluxes by parts (get the inviscid and the
-        !> viscid parts)
+        !> default function to compute the fluxes along the
+        !> x-axis and distinguishing the inviscid,
+        !> viscid and capillary contributions
         !
         !> @date
         !> 10_11_2014 - initial version - J.L. Desmarais
@@ -220,28 +231,28 @@
         !> array with the grid point data
         !
         !>@param dx
-        !> space step along the x-direction
+        !> grid spacing for the x-axis
         !
         !>@param dy
-        !> space step along the y-direction
+        !> grid spacing for the y-axis
         !
         !>@param i
-        !> index identifying the nodes along the x-direction
+        !> x-index where the flux_x is computed
         !
         !>@param j
-        !> index identifying the nodes along the y-direction
+        !> y-index where the flux_x is computed
         !
         !>@param s_oneside
-        !> space discretization operator
+        !> space discretization operators
         !
         !>@param inviscid_flux
-        !> inviscid flux at (i+1/2,j)
+        !> inviscid part of the flux along the x-axis
         !
         !>@param viscid_flux
-        !> viscous flux computed at (i+1/2,j)
+        !> viscid part of the flux along the x-axis
         !
-        !>@return flux_x
-        !> flux computed at (i+1/2,j)
+        !>@return
+        !> fluxes along the x-axis
         !--------------------------------------------------------------
         function compute_flux_x_by_parts_default(
      $     nodes,dx,dy,i,j,s_oneside,
@@ -283,8 +294,9 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> compute the fluxes by parts (get the inviscid and the
-        !> viscid parts)
+        !> default function to compute the fluxes along the
+        !> y-axis and distinguishing the inviscid,
+        !> viscid and capillary contributions
         !
         !> @date
         !> 10_11_2014 - initial version - J.L. Desmarais
@@ -293,28 +305,28 @@
         !> array with the grid point data
         !
         !>@param dx
-        !> space step along the x-direction
+        !> grid spacing for the x-axis
         !
         !>@param dy
-        !> space step along the y-direction
+        !> grid spacing for the y-axis
         !
         !>@param i
-        !> index identifying the nodes along the x-direction
+        !> x-index where the flux_y is computed
         !
         !>@param j
-        !> index identifying the nodes along the y-direction
+        !> y-index where the flux_y is computed
         !
         !>@param s_oneside
-        !> space discretization operator
+        !> space discretization operators
         !
         !>@param inviscid_flux
-        !> inviscid flux at (i+1/2,j)
+        !> inviscid part of the flux along the y-axis
         !
         !>@param viscid_flux
-        !> viscous flux computed at (i+1/2,j)
+        !> viscid part of the flux along the y-axis
         !
-        !>@return flux_x
-        !> flux computed at (i+1/2,j)
+        !>@param flux_y
+        !> fluxes along the y-axis
         !--------------------------------------------------------------
         function compute_flux_y_by_parts_default(
      $     nodes,dx,dy,i,j,s_oneside,
@@ -355,20 +367,17 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> interface to compute the body forces
-        !> acting on the cell
+        !> default function to compute the velocity vector
+        !> from the conservative variables
         !
         !> @date
         !> 23_09_2013 - initial version - J.L. Desmarais
         !
         !>@param nodes
-        !> array with the grid point data
+        !> governing variable vector \f$ (\rho,q_x,q_y,\rho E) \f$
         !
-        !>@param k
-        !> governing variables identifier
-        !
-        !>@param body_forces
-        !> body forces
+        !>@return
+        !> velocity vector \f$ (v_x,v_y) \f$
         !--------------------------------------------------------------
         function get_velocity_default(nodes) result(velocity)
 
@@ -390,12 +399,12 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> get the viscous constant
+        !> default function to get the viscous constant ratio
         !
         !> @date
         !> 11_11_2014 - initial version - J.L. Desmarais
         !
-        !>@return viscous_coeff
+        !>@return
         !> viscous coefficient
         !-------------------------------------------------------------
         function get_viscous_coeff_default() result(viscous_coeff)
@@ -417,16 +426,22 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> interface checking whether the open boundary conditions
-        !> are undermined at the grid point location
+        !> default function to check whether the open boundary
+        !> conditions are undermined at the grid point location
         !
         !> @date
         !> 17_07_2014 - initial version - J.L. Desmarais
         !
+        !>@param x_map
+        !> x-coordinate map
+        !
+        !>@param y_map
+        !> y-coordinate map
+        !
         !>@param nodes
         !> array with the grid point data
         !
-        !>@param undermined
+        !>@return
         !> check if the open boundary conditions are undermined
         !> at the grid point location
         !--------------------------------------------------------------
@@ -457,11 +472,14 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> interface for the computation of the governing variables
-        !> in the far field as chosen by the initial conditions
+        !> default function to compute the governing variables
+        !> in the far field as imposed by the initial conditions
         !
         !> @date
         !> 13_11_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> physical model
         !
         !>@param t
         !> time
@@ -472,8 +490,9 @@
         !>@param y
         !> y-coordinate
         !
-        !>@return var
+        !>@return
         !> governing variables in the far field
+        !> (ex: \f$ (\rho_\infty,{q_x}_\infty,{q_y}_\infty, {\rho E}_\infty)\f$)
         !--------------------------------------------------------------
         function get_far_field_default(this,t,x,y) result(var)
 
@@ -508,9 +527,9 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> interface determining the grid points used to evaluate
-        !> the eigenquantities at the edge of the computational
-        !> domain
+        !> default function to determine the vector of primitive
+        !> variables used to evaluate the eigenquantities
+        !> at the edge of the computational domain
         !
         !> @date
         !> 02_02_2015 - initial version - J.L. Desmarais
@@ -530,15 +549,9 @@
         !>@param nodes_bc
         !> array with the grid point data at the boundary
         !
-        !>@param nodes_bc
-        !> array with the grid point data at the boundary
-        !
-        !>@param nodes_bc
-        !> array with the grid point data at the boundary
-        !
-        !>@param nodes_eigenqties
-        !> grid points used to evaluate the eigenquantities at the
-        !> boundary
+        !>@return
+        !> extended primitive variable vector to evaluate the
+        !> eigenquantities at the boundary \f$ (\rho,v_x,v_y,P,c) \f$
         !--------------------------------------------------------------
         function get_prim_obc_eigenqties_default(this,t,x,y,nodes_bc)
      $    result(nodes_prim_extended)
@@ -572,37 +585,18 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> interface determining the grid points used to evaluate
-        !> the eigenquantities at the edge of the computational
-        !> domain
+        !> default function to compute the eigenquantity
+        !> vectors of the hyperbolic terms using
+        !> conservative variables
         !
         !> @date
-        !> 02_02_2015 - initial version - J.L. Desmarais
+        !> 01_08_2014 - initial version - J.L. Desmarais
         !
-        !>@param this
-        !> physical model
+        !>@param nodes_in
+        !> array with the conservative variables
         !
-        !>@param t
-        !> time
-        !
-        !>@param x
-        !> x-coordinate of the grid points at the boundary
-        !
-        !>@param y
-        !> y-coordinate of the grid points at the boundary
-        !
-        !>@param nodes_bc
-        !> array with the grid point data at the boundary
-        !
-        !>@param nodes_bc
-        !> array with the grid point data at the boundary
-        !
-        !>@param nodes_bc
-        !> array with the grid point data at the boundary
-        !
-        !>@param nodes_eigenqties
-        !> grid points used to evaluate the eigenquantities at the
-        !> boundary
+        !>@return
+        !> eigenvector
         !--------------------------------------------------------------
         function compute_openbc_var_default(nodes_in) result(nodes_out)
 
@@ -624,17 +618,18 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> interface for the local computation of the eigenvalues
-        !> for the hyperbolic terms in the x-direction
+        !> default function to compute the
+        !> eigenmatrix of the hyperbolic terms
+        !> using primitive variables
         !
         !> @date
         !> 01_08_2014 - initial version - J.L. Desmarais
         !
-        !>@param nodes
-        !> array with the grid point data
+        !>@param nodes_prim_extended
+        !> vector with the primitive variables
         !
-        !>@return eigenvalues
-        !> eigenvalues at the location of the grid point
+        !>@return
+        !> eigenmatrix
         !--------------------------------------------------------------
         function compute_openbc_matrix_default(nodes_prim_extended) result(matrix)
 
@@ -656,17 +651,18 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> interface for the local computation of the eigenvalues
-        !> for the hyperbolic terms in the x-direction
+        !> default function to compute the
+        !> eigenvector of the hyperbolic terms
+        !> using primitive variables
         !
         !> @date
         !> 01_08_2014 - initial version - J.L. Desmarais
         !
-        !>@param nodes
-        !> array with the grid point data
+        !>@param nodes_prim_extended
+        !> vector with the primitive variables
         !
-        !>@return eigenvalues
-        !> eigenvalues at the location of the grid point
+        !>@return
+        !> eigenvector
         !--------------------------------------------------------------
         function compute_openbc_vector_default(nodes_prim_extended) result(vector)
 
@@ -688,8 +684,8 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> interface for the computation of the gradient of the
-        !> governing variables in the x-direction
+        !> default function to compute the gradient
+        !> of the primitive variables
         !
         !> @date
         !> 01_08_2014 - initial version - J.L. Desmarais
@@ -704,13 +700,17 @@
         !> integer identifying the index in the y-direction
         !
         !>@param gradient
-        !> procedure used to compute the gradient along the x-axis
+        !> procedure used to compute the gradient along the axis
         !
-        !>@param dx
-        !> grid space step along the x-axis
+        !>@param dn
+        !> grid space step along the direction for the gradient
         !
-        !>@return grad_var
-        !> gradient of the governing variables along the x-axis
+        !>@param use_n_dir
+        !> choose to use the diagonal direction instead of one
+        !> of the cartesian direction (x,y)
+        !
+        !>@return
+        !> gradient of the primitive variables along the x-axis
         !--------------------------------------------------------------
         function compute_gradient_prim_default(nodes,i,j,gradient,dn,use_n_dir)
      $    result(grad_var)
@@ -758,7 +758,7 @@
         !>@param j
         !> index identifying the grid point location in the y-direction
         !
-        !>@return var
+        !>@return
         !> first component of the data at the grid point
         !--------------------------------------------------------------
         function basic(nodes,i,j) result(var)
@@ -775,6 +775,22 @@
         end function basic
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> default function to compute the variables
+        !> in the (n1,n2) frame from the (x,y) frame
+        !
+        !> @date
+        !> 01_08_2014 - initial version - J.L. Desmarais
+        !
+        !>@param nodes
+        !> governing variables vector in the (x,y) frame
+        !
+        !>@return
+        !> governing variables vector in the (n1,n2) frame
+        !--------------------------------------------------------------
         function compute_xy_to_n_var_default(nodes) result(nodes_n)
 
           implicit none
@@ -792,6 +808,22 @@
         end function compute_xy_to_n_var_default
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> default function to compute the variables
+        !> in the (x,y) frame from the (n1,n2) frame
+        !
+        !> @date
+        !> 01_08_2014 - initial version - J.L. Desmarais
+        !
+        !>@param nodes_n
+        !> governing variables vector in the (n1,n2) frame
+        !
+        !>@return
+        !> governing variables vector in the (x,y) frame
+        !--------------------------------------------------------------
         function compute_n_to_xy_var_default(nodes_n) result(nodes)
 
           implicit none

@@ -151,7 +151,7 @@ c$$$          procedure(n_gradient_proc)  , nopass, deferred :: compute_n_gradie
           !> @date
           !> 08_08_2013 - initial version - J.L. Desmarais
           !
-          !>@return model_name
+          !>@return
           !> character giving the name of the model
           !--------------------------------------------------------------
           function name_model() result(model_name)
@@ -163,13 +163,13 @@ c$$$          procedure(n_gradient_proc)  , nopass, deferred :: compute_n_gradie
           !> Julien L. Desmarais
           !
           !> @brief
-          !> interface to get the name, description or unit
-          !> of the main variables
+          !> interface to get the name, or unit
+          !> of the governing variables
           !
           !> @date
           !> 08_08_2013 - initial version - J.L. Desmarais
           !
-          !>@return var_pties
+          !>@return
           !> characters giving the variable properties
           !--------------------------------------------------------------
           function name_var() result(var_pties)
@@ -188,7 +188,7 @@ c$$$          procedure(n_gradient_proc)  , nopass, deferred :: compute_n_gradie
           !> @date
           !> 08_08_2013 - initial version - J.L. Desmarais
           !
-          !>@return var_pties
+          !>@return
           !> characters giving the variable descriptions
           !--------------------------------------------------------------
           function mname_var() result(var_pties)
@@ -207,7 +207,7 @@ c$$$          procedure(n_gradient_proc)  , nopass, deferred :: compute_n_gradie
           !> @date
           !> 08_08_2013 - initial version - J.L. Desmarais
           !
-          !>@return var_pties
+          !>@return
           !> characters giving the variable descriptions
           !--------------------------------------------------------------
           function lname_var() result(var_pties)
@@ -226,7 +226,7 @@ c$$$          procedure(n_gradient_proc)  , nopass, deferred :: compute_n_gradie
           !> @date
           !> 08_08_2013 - initial version - J.L. Desmarais
           !
-          !>@return var_type
+          !>@return
           !> integer describing the governing variable types
           !--------------------------------------------------------------
           function type_var() result(var_type)
@@ -246,10 +246,10 @@ c$$$          procedure(n_gradient_proc)  , nopass, deferred :: compute_n_gradie
           !> 12_08_2014 - initial version - J.L. Desmarais
           !
           !>@param param_name
-          !> name of the main parameters of the simulation
+          !> names of the main parameters of the simulation
           !
           !>@param param_value
-          !> value of the main parameters of the simulation
+          !> values of the main parameters of the simulation
           !--------------------------------------------------------------
           subroutine param_sim(param_name, param_value)
             import rkind
@@ -268,7 +268,7 @@ c$$$          procedure(n_gradient_proc)  , nopass, deferred :: compute_n_gradie
           !> @date
           !> 08_08_2013 - initial version - J.L. Desmarais
           !
-          !>@return eq_nb
+          !>@return
           !> number of governing equations
           !--------------------------------------------------------------
           function gov_eq_nb() result(eq_nb)
@@ -289,7 +289,7 @@ c$$$          procedure(n_gradient_proc)  , nopass, deferred :: compute_n_gradie
           !> @param operator_type
           !> type of operator used
           !
-          !> @return pattern
+          !> @return
           !> gridpoints needed around the central gridpoint to compute
           !> the fluxes
           !--------------------------------------------------------------
@@ -308,8 +308,7 @@ c$$$          procedure(n_gradient_proc)  , nopass, deferred :: compute_n_gradie
           !
           !> @brief
           !> interface to apply the initial conditions
-          !> to the main variables of the governing
-          !> equations
+          !> to the computational domain
           !
           !> @date
           !> 08_08_2013 - initial version - J.L. Desmarais
@@ -336,7 +335,6 @@ c$$$          procedure(n_gradient_proc)  , nopass, deferred :: compute_n_gradie
             real(rkind), dimension(:)    , intent(in)    :: y_map
           end subroutine ini_cond
           
-          
 
           !> @author
           !> Julien L. Desmarais
@@ -352,15 +350,15 @@ c$$$          procedure(n_gradient_proc)  , nopass, deferred :: compute_n_gradie
           !> array with the grid point data
           !
           !>@param dx
-          !> grid size along the x-axis
+          !> grid spacing for the x-axis
           !
           !>@param dy
-          !> grid size along the y-axis
+          !> grid spacing for the y-axis
           !
           !>@param s
           !> space discretization operators
           !
-          !>@return flux_x
+          !>@return
           !> fluxes along the x-axis
           !--------------------------------------------------------------
           function fluxes_x(nodes,dx,dy,s) result(flux_x)
@@ -392,15 +390,15 @@ c$$$          procedure(n_gradient_proc)  , nopass, deferred :: compute_n_gradie
           !> array with the grid point data
           !
           !>@param dx
-          !> grid size along the x-axis
+          !> grid spacing for the x-axis
           !
           !>@param dy
-          !> grid size along the y-axis
+          !> grid spacing for the y-axis
           !
           !>@param s
           !> space discretization operators
           !
-          !>@return flux_y
+          !>@return
           !> fluxes along the y-axis
           !--------------------------------------------------------------
           function fluxes_y(nodes,dx,dy,s) result(flux_y)
@@ -537,7 +535,7 @@ c$$$          procedure(n_gradient_proc)  , nopass, deferred :: compute_n_gradie
           !
           !> @brief
           !> interface to compute the fluxes along the
-          !> x-axis
+          !> x-axis using one-side differenciation
           !
           !> @date
           !> 08_08_2013 - initial version - J.L. Desmarais
@@ -546,10 +544,10 @@ c$$$          procedure(n_gradient_proc)  , nopass, deferred :: compute_n_gradie
           !> array with the grid point data
           !
           !>@param dx
-          !> grid size along the x-axis
+          !> grid spacing for the x-axis
           !
           !>@param dy
-          !> grid size along the y-axis
+          !> grid spacing for the y-axis
           !
           !>@param i
           !> x-index where the flux_x is computed
@@ -560,7 +558,7 @@ c$$$          procedure(n_gradient_proc)  , nopass, deferred :: compute_n_gradie
           !>@param s_oneside
           !> space discretization operators
           !
-          !>@return flux_x
+          !>@return
           !> fluxes along the x-axis
           !--------------------------------------------------------------
           function fluxes_x_oneside(
@@ -590,7 +588,7 @@ c$$$          procedure(n_gradient_proc)  , nopass, deferred :: compute_n_gradie
           !
           !> @brief
           !> interface to compute the fluxes along the
-          !> x-axis
+          !> y-axis using one-side differenciation
           !
           !> @date
           !> 08_08_2013 - initial version - J.L. Desmarais
@@ -599,22 +597,22 @@ c$$$          procedure(n_gradient_proc)  , nopass, deferred :: compute_n_gradie
           !> array with the grid point data
           !
           !>@param dx
-          !> grid size along the x-axis
+          !> grid spacing for the x-axis
           !
           !>@param dy
-          !> grid size along the y-axis
+          !> grid spacing for the y-axis
           !
           !>@param i
-          !> x-index where the flux_x is computed
+          !> x-index where the flux_y is computed
           !
           !>@param j
-          !> y-index where the flux_x is computed
+          !> y-index where the flux_y is computed
           !
           !>@param s_oneside
           !> space discretization operators
           !
-          !>@return flux_y
-          !> fluxes along the x-axis
+          !>@return
+          !> fluxes along the y-axis
           !--------------------------------------------------------------
           function fluxes_y_oneside(
      $      nodes,dx,dy,
@@ -643,7 +641,8 @@ c$$$          procedure(n_gradient_proc)  , nopass, deferred :: compute_n_gradie
           !
           !> @brief
           !> interface to compute the fluxes along the
-          !> x-axis
+          !> x-axis and distinguishing the inviscid,
+          !> viscid and capillary contributions
           !
           !> @date
           !> 10_11_2014 - initial version - J.L. Desmarais
@@ -652,10 +651,10 @@ c$$$          procedure(n_gradient_proc)  , nopass, deferred :: compute_n_gradie
           !> array with the grid point data
           !
           !>@param dx
-          !> grid size along the x-axis
+          !> grid spacing for the x-axis
           !
           !>@param dy
-          !> grid size along the y-axis
+          !> grid spacing for the y-axis
           !
           !>@param i
           !> x-index where the flux_x is computed
@@ -672,7 +671,7 @@ c$$$          procedure(n_gradient_proc)  , nopass, deferred :: compute_n_gradie
           !>@param viscid_flux
           !> viscid part of the flux along the x-axis
           !
-          !>@return flux_x
+          !>@return
           !> fluxes along the x-axis
           !--------------------------------------------------------------
           function fluxes_x_byparts(
@@ -703,7 +702,8 @@ c$$$          procedure(n_gradient_proc)  , nopass, deferred :: compute_n_gradie
           !
           !> @brief
           !> interface to compute the fluxes along the
-          !> y-axis
+          !> y-axis and distinguishing the inviscid,
+          !> viscid and capillary contributions
           !
           !> @date
           !> 10_11_2014 - initial version - J.L. Desmarais
@@ -712,16 +712,16 @@ c$$$          procedure(n_gradient_proc)  , nopass, deferred :: compute_n_gradie
           !> array with the grid point data
           !
           !>@param dx
-          !> grid size along the x-axis
+          !> grid spacing for the x-axis
           !
           !>@param dy
-          !> grid size along the y-axis
+          !> grid spacing for the y-axis
           !
           !>@param i
-          !> x-index where the flux_x is computed
+          !> x-index where the flux_y is computed
           !
           !>@param j
-          !> y-index where the flux_x is computed
+          !> y-index where the flux_y is computed
           !
           !>@param s_oneside
           !> space discretization operators
@@ -733,7 +733,7 @@ c$$$          procedure(n_gradient_proc)  , nopass, deferred :: compute_n_gradie
           !> viscid part of the flux along the y-axis
           !
           !>@param flux_y
-          !> fluxes along the x-axis
+          !> fluxes along the y-axis
           !--------------------------------------------------------------
           function fluxes_y_byparts(
      $      nodes,dx,dy,i,j,s_oneside,
@@ -758,13 +758,11 @@ c$$$          procedure(n_gradient_proc)  , nopass, deferred :: compute_n_gradie
           end function fluxes_y_byparts
 
 
-
           !> @author
           !> Julien L. Desmarais
           !
           !> @brief
           !> interface to compute the body forces
-          !> acting on the cell
           !
           !> @date
           !> 23_09_2013 - initial version - J.L. Desmarais
@@ -782,14 +780,14 @@ c$$$          procedure(n_gradient_proc)  , nopass, deferred :: compute_n_gradie
           !> governing variable vector
           !
           !>@param k
-          !> governing variables identifier
+          !> governing variables identifier \f$(k\in[1,\textrm{size}(\textrm{nodes}(1,1,:))])\f$
           !
           !>@param prim
           !> whether the body forces are computed for primitive
           !> variable governing equations
           !
-          !>@return body_forces
-          !> body forces
+          !>@return
+          !> body forces (ex: gravity)
           !--------------------------------------------------------------
           function bodyforces(t,x,y,nodes,k,prim) result(body_forces)
 
@@ -820,7 +818,7 @@ c$$$          procedure(n_gradient_proc)  , nopass, deferred :: compute_n_gradie
           !>@param nodes
           !> governing variable vector \f$ (\rho,q_x,q_y,\rho E) \f$
           !
-          !>@return velocity
+          !>@return
           !> velocity vector \f$ (v_x,v_y) \f$
           !--------------------------------------------------------------
           function velocity_proc(nodes) result(velocity)
@@ -843,7 +841,7 @@ c$$$          procedure(n_gradient_proc)  , nopass, deferred :: compute_n_gradie
           !> @date
           !> 11_11_2014 - initial version - J.L. Desmarais
           !
-          !>@return viscous_coeff
+          !>@return
           !> viscous coefficient
           !-------------------------------------------------------------
           function v_coeff_proc() result(viscous_coeff)
@@ -874,7 +872,7 @@ c$$$          procedure(n_gradient_proc)  , nopass, deferred :: compute_n_gradie
           !>@param nodes
           !> array with the grid point data
           !
-          !>@return undermined
+          !>@return
           !> check if the open boundary conditions are undermined
           !> at the grid point location
           !--------------------------------------------------------------
@@ -896,7 +894,7 @@ c$$$          procedure(n_gradient_proc)  , nopass, deferred :: compute_n_gradie
           !
           !> @brief
           !> interface for the computation of the governing variables
-          !> in the far field as chosen by the initial conditions
+          !> in the far field as imposed by the initial conditions
           !
           !> @date
           !> 13_11_2014 - initial version - J.L. Desmarais
@@ -913,8 +911,9 @@ c$$$          procedure(n_gradient_proc)  , nopass, deferred :: compute_n_gradie
           !>@param y
           !> y-coordinate
           !
-          !>@return var
+          !>@return
           !> governing variables in the far field
+          !> (ex: \f$ (\rho_\infty,{q_x}_\infty,{q_y}_\infty, {\rho E}_\infty)\f$)
           !--------------------------------------------------------------
           function farfield_proc(this,t,x,y) result(var)
 
@@ -935,9 +934,9 @@ c$$$          procedure(n_gradient_proc)  , nopass, deferred :: compute_n_gradie
           !> Julien L. Desmarais
           !
           !> @brief
-          !> interface determining the grid points used to evaluate
-          !> the eigenquantities at the edge of the computational
-          !> domain
+          !> interface determining the vector of primitive
+          !> variables used to evaluate the eigenquantities
+          !> at the edge of the computational domain
           !
           !> @date
           !> 02_02_2015 - initial version - J.L. Desmarais
@@ -957,7 +956,7 @@ c$$$          procedure(n_gradient_proc)  , nopass, deferred :: compute_n_gradie
           !>@param nodes_bc
           !> array with the grid point data at the boundary
           !
-          !>@return nodes_prim_extended
+          !>@return
           !> extended primitive variable vector to evaluate the
           !> eigenquantities at the boundary \f$ (\rho,v_x,v_y,P,c) \f$
           !--------------------------------------------------------------
@@ -982,8 +981,9 @@ c$$$          procedure(n_gradient_proc)  , nopass, deferred :: compute_n_gradie
           !> Julien L. Desmarais
           !
           !> @brief
-          !> interface for the local computation of
+          !> interface for the computation of
           !> the eigenquantity vectors of the hyperbolic terms
+          !> using conservative variables
           !
           !> @date
           !> 01_08_2014 - initial version - J.L. Desmarais
@@ -991,8 +991,8 @@ c$$$          procedure(n_gradient_proc)  , nopass, deferred :: compute_n_gradie
           !>@param nodes_in
           !> array with the conservative variables
           !
-          !>@return nodes_out
-          !> array with eigen-quantities
+          !>@return
+          !> eigenvector
           !--------------------------------------------------------------
           function openbc_var_proc(nodes_in) result(nodes_out)
 
@@ -1009,8 +1009,9 @@ c$$$          procedure(n_gradient_proc)  , nopass, deferred :: compute_n_gradie
           !> Julien L. Desmarais
           !
           !> @brief
-          !> interface for the local computation of
-          !> eigenquantity matrix of the hyperbolic terms
+          !> interface for the computation of the
+          !> eigenmatrix of the hyperbolic terms
+          !> using primitive variables
           !
           !> @date
           !> 01_08_2014 - initial version - J.L. Desmarais
@@ -1018,8 +1019,8 @@ c$$$          procedure(n_gradient_proc)  , nopass, deferred :: compute_n_gradie
           !>@param nodes_prim_extended
           !> vector with the primitive variables
           !
-          !>@return matrix
-          !> eigenquantity matrix at the location of the grid point
+          !>@return
+          !> eigenmatrix
           !--------------------------------------------------------------
           function openbc_matrix_proc(nodes_prim_extended) result(matrix)
 
@@ -1036,8 +1037,9 @@ c$$$          procedure(n_gradient_proc)  , nopass, deferred :: compute_n_gradie
           !> Julien L. Desmarais
           !
           !> @brief
-          !> interface for the local computation of the
-          !> eigenquantity vector of the hyperbolic terms
+          !> interface for the computation of the
+          !> eigenvector of the hyperbolic terms
+          !> using primitive variables
           !
           !> @date
           !> 01_08_2014 - initial version - J.L. Desmarais
@@ -1045,8 +1047,8 @@ c$$$          procedure(n_gradient_proc)  , nopass, deferred :: compute_n_gradie
           !>@param nodes_prim_extended
           !> vector with the primitive variables
           !
-          !>@return vector
-          !> eigenquantity vector at the location of the grid point
+          !>@return
+          !> eigenvector
           !--------------------------------------------------------------
           function openbc_vector_proc(nodes_prim_extended) result(vector)
 
@@ -1128,8 +1130,8 @@ c$$$          end function lodi_tds_proc
           !> Julien L. Desmarais
           !
           !> @brief
-          !> interface for the computation of the gradient of the
-          !> governing variables
+          !> interface for the computation of the gradient
+          !> of the primitive variables
           !
           !> @date
           !> 01_08_2014 - initial version - J.L. Desmarais
@@ -1153,8 +1155,8 @@ c$$$          end function lodi_tds_proc
           !> choose to use the diagonal direction instead of one
           !> of the cartesian direction (x,y)
           !
-          !>@return grad_var
-          !> gradient of the governing variables along the x-axis
+          !>@return
+          !> gradient of the primitive variables along the x-axis
           !--------------------------------------------------------------
           function grad_prim_proc(nodes,i,j,gradient,dn,use_n_dir)
      $      result(grad_var)
@@ -1187,7 +1189,7 @@ c$$$          end function lodi_tds_proc
           !>@param nodes
           !> governing variables vector in the (x,y) frame
           !
-          !>@return nodes_n
+          !>@return
           !> governing variables vector in the (n1,n2) frame
           !--------------------------------------------------------------
           function xy_to_n_proc(nodes) result(nodes_n)
@@ -1214,7 +1216,7 @@ c$$$          end function lodi_tds_proc
           !>@param nodes_n
           !> governing variables vector in the (n1,n2) frame
           !
-          !>@return nodes
+          !>@return
           !> governing variables vector in the (x,y) frame
           !--------------------------------------------------------------
           function n_to_xy_proc(nodes_n) result(nodes)

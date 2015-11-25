@@ -1,5 +1,5 @@
       !> @file
-      !> class encapsulating subroutines to compute the initial
+      !> abstract class encapsulating interfaces to compute the initial
       !> conditions and the conditions enforced at the edge of
       !> the computational domain
       !
@@ -7,7 +7,7 @@
       !> Julien L. Desmarais
       !
       !> @brief
-      !> class encapsulating subroutines to compute the initial
+      !> abstract class encapsulating interfaces to compute the initial
       !> conditions and the conditions enforced at the edge of
       !> the computational domain
       !
@@ -30,53 +30,50 @@
 
 
         !> @class ic_abstract
-        !> class encapsulating operators to set the initial
-        !> conditions and the conditions enforced at the edge of the
-        !> computational domain
-        !
-        !> @param apply_initial_conditions
-        !> set the initial conditions
-        !
-        !> @param get_mach_ux_infty
-        !> get the mach number along the x-direction in the far field
-        !
-        !> @param get_mach_uy_infty
-        !> get the mach number along the y-direction in the far field
-        !
-        !> @param get_u_in
-        !> get the x-component of the velocity at the edge of the
-        !> computational domain
-        !
-        !> @param get_v_in
-        !> get the y-component of the velocity at the edge of the
-        !> computational domain
-        !
-        !> @param get_T_in
-        !> get the temperature at the edge of the computational
-        !> domain
-        !
-        !> @param get_P_out
-        !> get the pressure at the edge of the computational domain
+        !> abstract class encapsulating interfaces to apply the initial
+        !> conditions and to evaluate the conditions enforced
+        !> at the edge of the computational domain
         !---------------------------------------------------------------
         type, abstract :: ic_abstract
 
           contains
 
-          procedure(ic_proc)       , nopass, deferred :: apply_ic
-          procedure(far_proc)      , nopass, deferred :: get_mach_ux_infty
-          procedure(far_proc)      , nopass, deferred :: get_mach_uy_infty
-          procedure(var_proc)      , nopass, deferred :: get_u_in
-          procedure(var_proc)      , nopass, deferred :: get_v_in
-          procedure(var_proc)      , nopass, deferred :: get_T_in
-          procedure(var_proc)      , nopass, deferred :: get_P_out
-          procedure(far_field_proc),   pass, deferred :: get_far_field
+          procedure(ic_proc)       , nopass, deferred :: apply_ic          !<@brief set the initial conditions
+          procedure(far_proc)      , nopass, deferred :: get_mach_ux_infty !<@brief get the Mach number along the x-direction in the far field
+          procedure(far_proc)      , nopass, deferred :: get_mach_uy_infty !<@brief get the Mach number along the y-direction in the far field
+          procedure(var_proc)      , nopass, deferred :: get_u_in          !<@brief get the x-component of the velocity at the edge of the computational domain
+          procedure(var_proc)      , nopass, deferred :: get_v_in          !<@brief get the y-component of the velocity at the edge of the computational domain
+          procedure(var_proc)      , nopass, deferred :: get_T_in          !<@brief get the temperature at the edge of the computational domain
+          procedure(var_proc)      , nopass, deferred :: get_P_out         !<@brief get the pressure at the edge of the computational domain
+          procedure(far_field_proc),   pass, deferred :: get_far_field     !<@brief get the governing variables imposed at the edge of the computational domain
 
         end type ic_abstract
 
 
         abstract interface
         
-          !apply the initial conditions for the governing variables
+          !> @author
+          !> Julien L. Desmarais
+          !
+          !> @brief
+          !> interface to apply the initial conditions
+          !> to the computational domain
+          !
+          !> @date
+          !> 08_08_2013 - initial version - J.L. Desmarais
+          !
+          !>@param this
+          !> physical model
+          !
+          !>@param nodes
+          !> array with the grid point data    
+          !
+          !>@param x_map
+          !> array with the x-coordinates
+          !
+          !>@param y_map
+          !> array with the y-coordinates                
+          !--------------------------------------------------------------
           subroutine ic_proc(nodes,x_map,y_map)
 
             import rkind
@@ -88,8 +85,24 @@
           end subroutine ic_proc
 
 
-          !get the variable enforced at the edge of the
-          !computational domain
+          !> @author
+          !> Julien L. Desmarais
+          !
+          !> @brief
+          !> interface to obtain the value of the variable
+          !> imposed at the edge of the computational domain
+          !
+          !> @date
+          !> 08_08_2013 - initial version - J.L. Desmarais
+          !
+          !>@param side
+          !> left or right side for the x-direction,
+          !> top or bottom for the y-direction
+          !
+          !>@return
+          !> variable imposed at the edge of the computational
+          !> domain
+          !--------------------------------------------------------------
           function far_proc(side) result(var)
 
             import rkind
@@ -100,8 +113,30 @@
           end function far_proc
 
         
-          !get the variable enforced at the edge of the
-          !computational domain
+          !> @author
+          !> Julien L. Desmarais
+          !
+          !> @brief
+          !> interface to obtain the value of the variable
+          !> imposed at the edge of the computational domain
+          !> depending on time and coordinates
+          !
+          !> @date
+          !> 08_08_2013 - initial version - J.L. Desmarais
+          !
+          !>@param t
+          !> time
+          !
+          !>@param x
+          !> x-coordinate
+          !
+          !>@param y
+          !> y-coordinate
+          !
+          !>@return
+          !> variable imposed at the edge of the computational
+          !> domain
+          !--------------------------------------------------------------
           function var_proc(t,x,y) result(var)
 
             import rkind
@@ -114,8 +149,35 @@
           end function var_proc
 
 
-          !get the variable enforced at the edge of the
-          !computational domain
+          !> @author
+          !> Julien L. Desmarais
+          !
+          !> @brief
+          !> interface to obtain the value of the variables
+          !> imposed at the edge of the computational domain
+          !> depending on time and coordinates as well as the
+          !> state of the object
+          !
+          !> @date
+          !> 08_08_2013 - initial version - J.L. Desmarais
+          !
+          !>@param this
+          !> object encapsulating the initial conditions and
+          !> the state of the conditions imposed in the far-field
+          !
+          !>@param t
+          !> time
+          !
+          !>@param x
+          !> x-coordinate
+          !
+          !>@param y
+          !> y-coordinate
+          !
+          !>@return
+          !> variable imposed at the edge of the computational
+          !> domain
+          !--------------------------------------------------------------
           function far_field_proc(this,t,x,y) result(var)
 
             import ic_abstract
