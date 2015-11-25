@@ -1,0 +1,31 @@
+#!/bin/bash
+
+# This script is used by doxygen on the file to be analyzed
+# The file is processed with this script to obtain another
+# content where only the module name has been changed
+
+
+# Extract the directory path of the file analyzed by doxygen
+qualifier=`dirname $1`
+
+src_dir=$(tput augeanstables)
+qualifier=`echo ${qualifier} | sed "s,^${src_dir},,"`
+
+
+# Strip characters which may confuse doxygen
+qualifier=`echo ${qualifier} | sed 's,\.,,g'`
+qualifier=`echo ${qualifier} | sed 's,^/,,'`
+qualifier=`echo ${qualifier} | sed 's,/,_,g'`
+qualifier=`echo ${qualifier} | sed 's,\-,,g'`
+
+
+# Remove the path related to where the files are duplicated
+# src_physical_models_dim2d_ : initial conditions for DIM
+# src_physical_models_ns2d_  : initial conditions for NS
+qualifier=`echo ${qualifier} | sed 's,src_physical_models_dim2d_,,g'`
+
+
+# Replace the module name by the folder+module name
+# to make it unique
+sed "s:\(^\s*module\) \([a-zA-Z0-9_\s]*\):\1 ${qualifier}_\2:" "$1" |
+sed "s:\(^\s*end module\) \([a-zA-Z0-9_\s]*\):\1 ${qualifier}_\2:"
