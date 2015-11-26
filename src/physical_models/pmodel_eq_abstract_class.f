@@ -816,7 +816,7 @@ c$$$          procedure(n_gradient_proc)  , nopass, deferred :: compute_n_gradie
           !> 23_09_2013 - initial version - J.L. Desmarais
           !
           !>@param nodes
-          !> governing variable vector \f$ (\rho,q_x,q_y,\rho E) \f$
+          !> governing variable vector \f$ (\rho,\rho u_x,\rho u_y,\rho E) \f$
           !
           !>@return
           !> velocity vector \f$ (v_x,v_y) \f$
@@ -913,7 +913,7 @@ c$$$          procedure(n_gradient_proc)  , nopass, deferred :: compute_n_gradie
           !
           !>@return
           !> governing variables in the far field
-          !> (ex: \f$ (\rho_\infty,{q_x}_\infty,{q_y}_\infty, {\rho E}_\infty)\f$)
+          !> (ex: \f$ (\rho_\infty,{\rho u_x}_\infty,{\rho u_y}_\infty, {\rho E}_\infty)\f$)
           !--------------------------------------------------------------
           function farfield_proc(this,t,x,y) result(var)
 

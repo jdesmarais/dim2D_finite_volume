@@ -79,21 +79,21 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> compute the mass density \f$ \rho \f$
+        !> compute the mass density, \f$ \rho \f$
         !
         !> @date
         !> 09_08_2013 - initial version - J.L. Desmarais
         !
         !>@param nodes
-        !> array with the grid point data
-        !>
+        !> array with the conservative variables (\f$ \rho, \rho u, \rho v, \rho E \f$)
+        !
         !>@param i
         !> index along x-axis where the data is evaluated
-        !>
+        !
         !>@param j
         !> index along y-axis where the data is evaluated
-        !>
-        !>@param var
+        !
+        !>@return
         !> \f$ \rho \f$ evaluated at [i,j]
         !---------------------------------------------------------------
         function mass_density(nodes,i,j) result(var)
@@ -114,23 +114,23 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> compute the momentum density along the x-axis
-        !> \f$ \rho u_x \f$
+        !> compute the momentum density along the x-axis,
+        !> \f$ \rho u \f$
         !
         !> @date
         !> 09_08_2013 - initial version - J.L. Desmarais
         !
         !>@param nodes
-        !> array with the grid point data
-        !>
+        !> array with the conservative variables (\f$ \rho, \rho u, \rho v, \rho E \f$)
+        !
         !>@param i
         !> index along x-axis where the data is evaluated
-        !>
+        !
         !>@param j
         !> index along y-axis where the data is evaluated
-        !>
-        !>@param var
-        !> \f$ \rho u_x \f$ evaluated at [i,j]
+        !
+        !>@return
+        !> \f$ \rho u \f$ evaluated at [i,j]
         !---------------------------------------------------------------
         function momentum_x(nodes,i,j) result(var)
 
@@ -150,23 +150,23 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> compute the momentum density along the y-axis
-        !> \f$ \rho u_y \f$
+        !> compute the momentum density along the y-axis,
+        !> \f$ \rho v \f$
         !
         !> @date
         !> 09_08_2013 - initial version - J.L. Desmarais
         !
         !>@param nodes
-        !> array with the grid point data
-        !>
+        !> array with the conservative variables (\f$ \rho, \rho u, \rho v, \rho E \f$)
+        !
         !>@param i
         !> index along x-axis where the data is evaluated
-        !>
+        !
         !>@param j
         !> index along y-axis where the data is evaluated
-        !>
-        !>@param var
-        !> \f$ \rho u_y \f$ evaluated at [i,j]
+        !
+        !>@return
+        !> \f$ \rho v \f$ evaluated at [i,j]
         !---------------------------------------------------------------
         function momentum_y(nodes,i,j) result(var)
 
@@ -186,21 +186,21 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> compute the total energy density \f$\rho E\f$
+        !> compute the total energy density, \f$\rho E\f$
         !
         !> @date
         !> 09_08_2013 - initial version - J.L. Desmarais
         !
         !>@param nodes
-        !> array with the grid point data
-        !>
+        !> array with the conservative variables (\f$ \rho, \rho u, \rho v, \rho E \f$)
+        !
         !>@param i
         !> index along x-axis where the data is evaluated
-        !>
+        !
         !>@param j
         !> index along y-axis where the data is evaluated
-        !>
-        !>@param var
+        !
+        !>@return
         !> \f$\rho E\f$ evaluated at [i,j]
         !---------------------------------------------------------------
         function total_energy(nodes,i,j) result(var)
@@ -221,23 +221,23 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> compute the velocity along the x-axis
-        !> \f$ u_x \f$
+        !> compute the velocity along the x-axis,
+        !> \f$ u \f$
         !
         !> @date
         !> 09_08_2013 - initial version - J.L. Desmarais
         !
         !>@param nodes
-        !> array with the grid point data
-        !>
+        !> array with the conservative variables (\f$ \rho, \rho u, \rho v, \rho E \f$)
+        !
         !>@param i
         !> index along x-axis where the data is evaluated
-        !>
+        !
         !>@param j
         !> index along y-axis where the data is evaluated
-        !>
-        !>@param var
-        !> \f$ u_x \f$ evaluated at [i,j]
+        !
+        !>@return
+        !> \f$ u \f$ evaluated at [i,j]
         !---------------------------------------------------------------
         function velocity_x(nodes,i,j) result(var)
 
@@ -257,23 +257,23 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> compute the velocity along the y-axis
-        !> \f$ u_y \f$
+        !> compute the velocity along the y-axis,
+        !> \f$ v \f$
         !
         !> @date
         !> 09_08_2013 - initial version - J.L. Desmarais
         !
         !>@param nodes
-        !> array with the grid point data
-        !>
+        !> array with the conservative variables (\f$ \rho, \rho u, \rho v, \rho E \f$)
+        !
         !>@param i
         !> index along x-axis where the data is evaluated
-        !>
+        !
         !>@param j
         !> index along y-axis where the data is evaluated
-        !>
-        !>@param var
-        !> \f$ u_y \f$ evaluated at [i,j]
+        !
+        !>@return
+        !> \f$ v \f$ evaluated at [i,j]
         !---------------------------------------------------------------
         function velocity_y(nodes,i,j) result(var)
 
@@ -294,21 +294,21 @@
         !
         !> @brief
         !> compute the velocity along the n1-axis
-        !> \f$ u_{n_1} = \frac{\sqrt{2}}{2} (u_x - u_y) \f$
+        !> \f[ u_{n_1} = \frac{\sqrt{2}}{2} (u - v) \f]
         !
         !> @date
         !> 05_02_2015 - initial version - J.L. Desmarais
         !
         !>@param nodes
-        !> array with the grid point data
-        !>
+        !> array with the conservative variables (\f$ \rho, \rho u, \rho v, \rho E \f$)
+        !
         !>@param i
         !> index along x-axis where the data is evaluated
-        !>
+        !
         !>@param j
         !> index along y-axis where the data is evaluated
-        !>
-        !>@param var
+        !
+        !>@return
         !> \f$ u_{n_1} \f$ evaluated at [i,j]
         !---------------------------------------------------------------
         function velocity_n1(nodes,i,j) result(var)
@@ -332,13 +332,13 @@
         !
         !> @brief
         !> compute the velocity along the n2-axis
-        !> \f$ u_{n_2} = \frac{\sqrt{2}}{2} (u_x + u_y) \f$\f$
+        !> \f[ u_{n_2} = \frac{\sqrt{2}}{2} (u + v) \f]
         !
         !> @date
         !> 05_02_2015 - initial version - J.L. Desmarais
         !
         !>@param nodes
-        !> array with the grid point data
+        !> array with the conservative variables (\f$ \rho, \rho u, \rho v, \rho E \f$)
         !>
         !>@param i
         !> index along x-axis where the data is evaluated
@@ -346,7 +346,7 @@
         !>@param j
         !> index along y-axis where the data is evaluated
         !>
-        !>@param var
+        !>@return
         !> \f$ u_{n_2} \f$ evaluated at [i,j]
         !---------------------------------------------------------------
         function velocity_n2(nodes,i,j) result(var)
@@ -370,24 +370,24 @@
         !
         !> @brief
         !> compute the classical pressure
-        !> \f$ \frac{3}{(3-\rho) c_v}
-        !> \left( \rho E - \frac{1}{2} \rho (u_x^2 + u_y^2) + 3\rho^2
-        !> \right) - 3 \rho^2 \f$
+        !> \f[ P^{\textrm{cl}} = \frac{3}{(3-\rho) c_v}
+        !> \left( \rho E - \frac{1}{2} \rho (u^2 + v^2) + 3\rho^2
+        !> \right) - 3 \rho^2 \f]
         !
         !> @date
         !> 09_08_2013 - initial version - J.L. Desmarais
         !
         !>@param nodes
-        !> array with the grid point data
-        !>
+        !> array with the conservative variables (\f$ \rho, \rho u, \rho v, \rho E \f$)
+        !
         !>@param i
         !> index along x-axis where the data is evaluated
-        !>
+        !
         !>@param j
         !> index along y-axis where the data is evaluated
-        !>
-        !>@param var
-        !> \f$ P \f$ evaluated at [i,j]
+        !
+        !>@return
+        !> \f$ P^{\textrm{cl}} \f$ evaluated at [i,j]
         !---------------------------------------------------------------
         function classical_pressure(nodes,i,j) result(var)
 
@@ -403,6 +403,25 @@
         end function classical_pressure
 
 
+
+        !> @author 
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute the classical pressure
+        !> \f[ P^{\textrm{cl}} = \frac{3}{(3-\rho) c_v}
+        !> \left( \rho E - \frac{1}{2} \rho (u^2 + v^2) + 3\rho^2
+        !> \right) - 3 \rho^2 \f]
+        !
+        !> @date
+        !> 09_08_2013 - initial version - J.L. Desmarais
+        !
+        !>@param nodes
+        !> conservative variables (\f$ \rho, \rho u, \rho v, \rho E \f$)
+        !
+        !>@return
+        !> \f$ P^{\textrm{cl}} \f$ evaluated at [i,j]
+        !---------------------------------------------------------------
         function classical_pressure_local(nodes) result(pressure)
 
           implicit none
@@ -438,22 +457,21 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> compute the pressure from the state equation
+        !> compute the thermodynamic pressure from
+        !> the Van der Waals state equation
+        !> \f[ P = \frac{8 \rho T}{3-\rho} - 3 \rho^2 \f]
         !
         !> @date
         !> 03_06_2015 - initial version - J.L. Desmarais
         !
-        !>@param nodes
-        !> governing variables
-        !
         !>@param temperature
-        !> temperature
+        !> temperature, \f$ T \f$
         !
         !>@param mass_density
-        !> mass_density
+        !> mass_density, \f$ \rho \f$
         !
-        !>@return pressure
-        !> pressure
+        !>@return
+        !> pressure, \f$ P \f$
         !--------------------------------------------------------------
         function pressure(temperature,mass_density)
 
@@ -474,25 +492,25 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> compute the effective temperature
-        !> \f$ \frac{1}{\rho}
-        !> \left( \rho E - \frac{1}{2} \rho (u_x^2 + u_y^2)
-        !>  + 3 \rho^2 \right)
+        !> compute the classical part of the effective temperature
+        !> \f[ T^{\textrm{cl}}_{\textrm{eff}} = \frac{1}{\rho}
+        !> \left( \rho E - \frac{1}{2} \rho (u^2 + v^2)
+        !>  + 3 \rho^2 \right) \f]
         !
         !> @date
         !> 11_12_2014 - initial version - J.L. Desmarais
         !
         !>@param nodes
-        !> array with the grid point data
-        !>
+        !> array with the conservative variables (\f$ \rho, \rho u, \rho v, \rho E \f$)
+        !
         !>@param i
         !> index along x-axis where the data is evaluated
-        !>
+        !
         !>@param j
         !> index along y-axis where the data is evaluated
-        !>
-        !>@param var
-        !> \f$ T_{\textrm{eff}} \f$ evaluated at [i,j]
+        !
+        !>@return
+        !> \f$ T_{\textrm{eff}}^{\textrm{cl}} \f$ evaluated at [i,j]
         !---------------------------------------------------------------
         function classical_temperature_eff(
      $     nodes,i,j)
@@ -530,23 +548,36 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> compute the effective temperature
-        !> \f$ \frac{1}{2 \rho} {|\nabla \rho|}^2 \f$
+        !> compute the capillary part of the effective temperature
+        !> \f[ T_{\textrm{eff}}^{\textrm{ca}} =
+        !> \frac{1}{2 \rho} {|\nabla \rho|}^2 \f]
         !
         !> @date
         !> 11_12_2014 - initial version - J.L. Desmarais
         !
         !>@param nodes
-        !> array with the grid point data
-        !>
+        !> array with the conservative variables (\f$ \rho, \rho u, \rho v, \rho E \f$)
+        !
         !>@param i
         !> index along x-axis where the data is evaluated
-        !>
+        !
         !>@param j
         !> index along y-axis where the data is evaluated
-        !>
-        !>@param var
-        !> \f$ T_{\textrm{eff}} \f$ evaluated at [i,j]
+        !
+        !>@param dx
+        !> grid spacing along the x-direction
+        !
+        !>@param dy
+        !> grid spacing along the y-direction
+        !
+        !>@param gradient_x
+        !> procedure to compute the gradient in the x-direction
+        !
+        !>@param gradient_y
+        !> procedure to compute the gradient in the y-direction
+        !
+        !>@return
+        !> \f$ T_{\textrm{eff}}^{\textrm{ca}} \f$ evaluated at [i,j]
         !---------------------------------------------------------------
         function capillarity_temperature_eff(
      $     nodes,i,j,dx,dy,gradient_x,gradient_y)
@@ -587,23 +618,35 @@
         !
         !> @brief
         !> compute the effective temperature
-        !> \f$ \frac{1}{\rho}
-        !> \left( \rho E - \frac{1}{2} \rho (u_x^2 + u_y^2)
-        !> - \frac{1}{2 We} {|\nabla \rho|}^2 + 3 \rho^2 \right)
+        !> \f[ T_{\textrm{eff}} = \frac{1}{\rho}
+        !> \left( \rho E - \frac{1}{2} \rho (u^2 + v^2)
+        !> - \frac{1}{2 We} {|\nabla \rho|}^2 + 3 \rho^2 \right) \f]
         !
         !> @date
         !> 09_08_2013 - initial version - J.L. Desmarais
         !
         !>@param nodes
-        !> array with the grid point data
+        !> array with the conservative variables (\f$ \rho, \rho u, \rho v, \rho E \f$)
         !>
         !>@param i
         !> index along x-axis where the data is evaluated
         !>
         !>@param j
         !> index along y-axis where the data is evaluated
-        !>
-        !>@param var
+        !
+        !>@param dx
+        !> grid spacing along the x-direction
+        !
+        !>@param dy
+        !> grid spacing along the y-direction
+        !
+        !>@param gradient_x
+        !> procedure to compute the gradient in the x-direction
+        !
+        !>@param gradient_y
+        !> procedure to compute the gradient in the y-direction
+        !
+        !>@return
         !> \f$ T_{\textrm{eff}} \f$ evaluated at [i,j]
         !---------------------------------------------------------------
         function temperature_eff(
@@ -653,15 +696,15 @@
         !
         !> @brief
         !> compute the classical pressure work along the x-axis
-        !> \f$ \left(\frac{3}{(3-\rho) c_v}
-        !> \left[ \rho E - \frac{1}{2} \rho (u_x^2 + u_y^2) + 3\rho^2
-        !> \right] - 3 \rho^2 \right) u_x \f$
+        !> \f[ \left(\frac{3}{(3-\rho) c_v}
+        !> \left[ \rho E - \frac{1}{2} \rho (u^2 + v^2) + 3\rho^2
+        !> \right] - 3 \rho^2 \right) u \f]
         !
         !> @date
         !> 09_08_2013 - initial version - J.L. Desmarais
         !
         !>@param nodes
-        !> array with the grid point data
+        !> array with the conservative variables (\f$ \rho, \rho u, \rho v, \rho E \f$)
         !>
         !>@param i
         !> index along x-axis where the data is evaluated
@@ -669,7 +712,7 @@
         !>@param j
         !> index along y-axis where the data is evaluated
         !>
-        !>@param var
+        !>@return
         !> work of \f$ P \f$ along the x-axis evaluated at [i,j]
         !---------------------------------------------------------------
         function classical_pressure_xwork(nodes,i,j) result(var)
@@ -712,15 +755,15 @@
         !
         !> @brief
         !> compute the classical pressure work along the y-axis
-        !> \f$ \left(\frac{3}{(3-\rho) c_v}
-        !> \left[ \rho E - \frac{1}{2} \rho (u_x^2 + u_y^2) + 3\rho^2
-        !> \right] - 3 \rho^2 \right) u_y \f$
+        !> \f[ \left(\frac{3}{(3-\rho) c_v}
+        !> \left[ \rho E - \frac{1}{2} \rho (u^2 + v^2) + 3\rho^2
+        !> \right] - 3 \rho^2 \right) v \f]
         !
         !> @date
         !> 09_08_2013 - initial version - J.L. Desmarais
         !
         !>@param nodes
-        !> array with the grid point data
+        !> array with the conservative variables (\f$ \rho, \rho u, \rho v, \rho E \f$)
         !>
         !>@param i
         !> index along x-axis where the data is evaluated
@@ -728,7 +771,7 @@
         !>@param j
         !> index along y-axis where the data is evaluated
         !>
-        !>@param var
+        !>@return
         !> work of \f$ P \f$ along the y-axis evaluated at [i,j]
         !---------------------------------------------------------------
         function classical_pressure_ywork(nodes,i,j) result(var)
@@ -769,13 +812,13 @@
         !
         !> @brief
         !> compute the momentum_x transported along the x-axis
-        !> \f$ \rho u_x^2 \f$
+        !> \f[ \rho u^2 \f]
         !
         !> @date
         !> 09_08_2013 - initial version - J.L. Desmarais
         !
         !>@param nodes
-        !> array with the grid point data
+        !> array with the conservative variables (\f$ \rho, \rho u, \rho v, \rho E \f$)
         !>
         !>@param i
         !> index along x-axis where the data is evaluated
@@ -783,8 +826,8 @@
         !>@param j
         !> index along y-axis where the data is evaluated
         !>
-        !>@param var
-        !> \f$ \rho u_x^2 \f$ evaluated at [i,j]
+        !>@return
+        !> \f$ \rho u^2 \f$ evaluated at [i,j]
         !---------------------------------------------------------------
         function qx_transport_x(nodes,i,j) result(var)
 
@@ -805,13 +848,13 @@
         !
         !> @brief
         !> compute the momentum_y transported along the x-axis
-        !> \f$ \rho u_y u_x \f$
+        !> \f[ \rho v u \f]
         !
         !> @date
         !> 09_08_2013 - initial version - J.L. Desmarais
         !
         !>@param nodes
-        !> array with the grid point data
+        !> array with the conservative variables (\f$ \rho, \rho u, \rho v, \rho E \f$)
         !>
         !>@param i
         !> index along x-axis where the data is evaluated
@@ -819,8 +862,8 @@
         !>@param j
         !> index along y-axis where the data is evaluated
         !>
-        !>@param var
-        !> \f$ \rho u_y u_x \f$ evaluated at [i,j]
+        !>@return
+        !> \f$ \rho v u \f$ evaluated at [i,j]
         !---------------------------------------------------------------
         function qy_transport_x(nodes,i,j) result(var)
 
@@ -843,13 +886,13 @@
         !
         !> @brief
         !> compute the momentum_x transported along the y-axis
-        !> \f$ \rho u_x u_y \f$
+        !> \f[ \rho u v \f]
         !
         !> @date
         !> 09_08_2013 - initial version - J.L. Desmarais
         !
         !>@param nodes
-        !> array with the grid point data
+        !> array with the conservative variables (\f$ \rho, \rho u, \rho v, \rho E \f$)
         !>
         !>@param i
         !> index along x-axis where the data is evaluated
@@ -857,8 +900,8 @@
         !>@param j
         !> index along y-axis where the data is evaluated
         !>
-        !>@param var
-        !> \f$ \rho u_x u_y \f$ evaluated at [i,j]
+        !>@return
+        !> \f$ \rho u v \f$ evaluated at [i,j]
         !---------------------------------------------------------------
         function qx_transport_y(nodes,i,j) result(var)
 
@@ -881,13 +924,13 @@
         !
         !> @brief
         !> compute the momentum_y transported along the y-axis
-        !> \f$ \rho u_y^2 \f$
+        !> \f[ \rho v^2 \f]
         !
         !> @date
         !> 09_08_2013 - initial version - J.L. Desmarais
         !
         !>@param nodes
-        !> array with the grid point data
+        !> array with the conservative variables (\f$ \rho, \rho u, \rho v, \rho E \f$)
         !>
         !>@param i
         !> index along x-axis where the data is evaluated
@@ -895,8 +938,8 @@
         !>@param j
         !> index along y-axis where the data is evaluated
         !>
-        !>@param var
-        !> \f$ \rho u_y^2 \f$ evaluated at [i,j]
+        !>@return
+        !> \f$ \rho v^2 \f$ evaluated at [i,j]
         !---------------------------------------------------------------
         function qy_transport_y(nodes,i,j) result(var)
 
@@ -917,13 +960,13 @@
         !
         !> @brief
         !> compute the energy transported along the x-axis
-        !> \f$ \rho E u_x \f$
+        !> \f[ \rho E u \f]
         !
         !> @date
         !> 09_08_2013 - initial version - J.L. Desmarais
         !
         !>@param nodes
-        !> array with the grid point data
+        !> array with the conservative variables (\f$ \rho, \rho u, \rho v, \rho E \f$)
         !>
         !>@param i
         !> index along x-axis where the data is evaluated
@@ -931,8 +974,8 @@
         !>@param j
         !> index along y-axis where the data is evaluated
         !>
-        !>@param var
-        !> \f$ \rho E u_x \f$ evaluated at [i,j]
+        !>@return
+        !> \f$ \rho E u \f$ evaluated at [i,j]
         !---------------------------------------------------------------
         function energy_transport_x(nodes,i,j) result(var)
 
@@ -955,13 +998,13 @@
         !
         !> @brief
         !> compute the energy transported along the y-axis
-        !> \f$ \rho E u_y \f$
+        !> \f[ \rho E v \f]
         !
         !> @date
         !> 09_08_2013 - initial version - J.L. Desmarais
         !
         !>@param nodes
-        !> array with the grid point data
+        !> array with the conservative variables (\f$ \rho, \rho u, \rho v, \rho E \f$)
         !>
         !>@param i
         !> index along x-axis where the data is evaluated
@@ -969,8 +1012,8 @@
         !>@param j
         !> index along y-axis where the data is evaluated
         !>
-        !>@param var
-        !> \f$ \rho E u_y \f$ evaluated at [i,j]
+        !>@return
+        !> \f$ \rho E v \f$ evaluated at [i,j]
         !---------------------------------------------------------------
         function energy_transport_y(nodes,i,j) result(var)
 
@@ -993,13 +1036,13 @@
         !
         !> @brief
         !> compute the first term in the capillarity pressure
-        !> \f$ \frac{1}{3-\rho} \f$
+        !> \f[ \frac{1}{3-\rho} \f]
         !
         !> @date
         !> 09_08_2013 - initial version - J.L. Desmarais
         !
         !>@param nodes
-        !> array with the grid point data
+        !> array with the conservative variables (\f$ \rho, \rho u, \rho v, \rho E \f$)
         !>
         !>@param i
         !> index along x-axis where the data is evaluated
@@ -1007,7 +1050,7 @@
         !>@param j
         !> index along y-axis where the data is evaluated
         !>
-        !>@param var
+        !>@return
         !> \f$ \frac{1}{3-\rho} \f$ evaluated at [i,j]
         !---------------------------------------------------------------
         function capillarity_pressure(nodes,i,j) result(var)
@@ -1033,13 +1076,13 @@
         !
         !> @brief
         !> compute the first term in the capillarity pressure work
-        !> along the x-axis \f$ \frac{u_x}{3-\rho} \f$
+        !> along the x-axis \f[ \frac{u}{3-\rho} \f]
         !
         !> @date
         !> 09_08_2013 - initial version - J.L. Desmarais
         !
         !>@param nodes
-        !> array with the grid point data
+        !> array with the conservative variables (\f$ \rho, \rho u, \rho v, \rho E \f$)
         !>
         !>@param i
         !> index along x-axis where the data is evaluated
@@ -1047,8 +1090,8 @@
         !>@param j
         !> index along y-axis where the data is evaluated
         !>
-        !>@param var
-        !> \f$ \frac{u_x}{3-\rho} \f$ evaluated at [i,j]
+        !>@return
+        !> \f$ \frac{u}{3-\rho} \f$ evaluated at [i,j]
         !---------------------------------------------------------------
         function capillarity_pressure_xwork(nodes,i,j) result(var)
 
@@ -1075,13 +1118,13 @@
         !
         !> @brief
         !> compute the first term in the capillarity pressure work
-        !> along the y-axis \f$ \frac{u_y}{3-\rho} \f$
+        !> along the y-axis \f[ \frac{v}{3-\rho} \f]
         !
         !> @date
         !> 09_08_2013 - initial version - J.L. Desmarais
         !
         !>@param nodes
-        !> array with the grid point data
+        !> array with the conservative variables (\f$ \rho, \rho u, \rho v, \rho E \f$)
         !>
         !>@param i
         !> index along x-axis where the data is evaluated
@@ -1089,8 +1132,8 @@
         !>@param j
         !> index along y-axis where the data is evaluated
         !>
-        !>@param var
-        !> \f$ \frac{u_y}{3-\rho} \f$ evaluated at [i,j]
+        !>@return
+        !> \f$ \frac{v}{3-\rho} \f$ evaluated at [i,j]
         !---------------------------------------------------------------
         function capillarity_pressure_ywork(nodes,i,j) result(var)
 
@@ -1116,20 +1159,22 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> compute the speed of sound given the data at the grid
-        !> point location
+        !> compute the speed of sound given the conservative
+        !> variables at the grid point location
+        !> \f[ c = \frac{\sqrt{2} \rho}{a d} \f] where
+        !> \f[ a = \frac{1}{\sqrt{1+b^2}}\f]
+        !> \f[ b = \sqrt{\frac{P + 3 \rho^2}{c_V ( P+ \rho^2 (-3+2 \rho))}}\f]
+        !> \f[ d = \sqrt{\rho^3} \sqrt{\frac{3-\rho}{P+\rho^2(-3+2\rho)}} \f]
+        
         !
         !> @date
         !> 10_12_2014 - initial version - J.L. Desmarais
         !
         !>@param nodes
-        !> array with the grid point data
+        !> array with the conservative variables (\f$ \rho, \rho u, \rho v, \rho E \f$)
         !>
-        !>@param var
-        !> \f$ c = \frac{\sqrt{2} \rho}{a d} \f$ where
-        !> \f$ a = \frac{1}{\sqrt{1+b^2}}\f$
-        !> \f$ b = \sqrt{\frac{P + 3 \rho^2}{c_V ( P+ \rho^2 (-3+2 \rho))}}\f$
-        !> \f$ d = \sqrt{\rho^3} \sqrt{\frac{3-\rho}{P+\rho^2(-3+2\rho)}} \f$
+        !>@return
+        !> speed of sound, \f$ c \f$
         !---------------------------------------------------------------
         function speed_of_sound(nodes) result(var)
 
@@ -1176,16 +1221,26 @@
         !> @brief
         !> compute the Jacobian matrix for primitive to
         !> to conservative variables
+        !> \f[ J^p_v =
+        !> \begin{pmatrix}
+        !>    1 & 0 & 0 & 0 \\\
+        !>    - u/\rho & 1/\rho & 0 & 0 \\\
+        !>    - v/\rho & 1/\rho & 0 & 0 \\\
+        !>    -\displaystyle{\frac{3(u^2 + v^2 + 12 \rho) + 2 c_v(P + 9(\rho-2)\rho) }{2 c_v (-3 + \rho)}} &
+        !>    \displaystyle{\frac{3 u}{c_v (-3 + \rho)}} &
+        !>    \displaystyle{\frac{3 v}{c_v (-3 + \rho)}} &
+        !>  - \displaystyle{\frac{3}{c_v (-3 + \rho)}  }
+        !> \end{pmatrix}\f]
         !
         !> @date
         !> 10_12_2014 - initial version - J.L. Desmarais
         !
         !>@param nodes
-        !> array with the grid point data
+        !> array with the conservative variables (\f$ \rho, \rho u, \rho v, \rho E \f$)
         !
-        !>@return jacPrimCons
+        !>@return
         !> jacobian matrix for primitive to conservative
-        !> variables \f$ \frac{\partial p}{\partial v} \f$
+        !> variables
         !--------------------------------------------------------------
         function compute_jacobian_prim_to_cons(nodes)
      $     result(jacPrimCons)
@@ -1274,16 +1329,26 @@
         !> @brief
         !> compute the Jacobian matrix for conservative to
         !> to primitive variables
+        !> \f[ J^v_p =
+        !> \begin{pmatrix}
+        !>    1 & 0 & 0 & 0 \\\
+        !>    u & \rho & 0 & 0 \\\
+        !>    v & 0    & \rho & 0 \\\
+        !>    \displaystyle{\frac{1}{2}(u^2 + v^2) - 6 \rho - \frac{1}{3} c_v ( P + 9(\rho-2)\rho)} &
+        !>    \rho u &
+        !>    \rho v &
+        !>    \displaystyle{c_v \left( 1 - \frac{\rho}{3} \right)}
+        !> \end{pmatrix}\f]
         !
         !> @date
         !> 10_12_2014 - initial version - J.L. Desmarais
         !
         !>@param nodes
-        !> array with the grid point data
+        !> array with the conservative variables (\f$ \rho, \rho u, \rho v, \rho E \f$)
         !
-        !>@return jacConsPrim
+        !>@return
         !> jacobian matrix for conservative to primitive
-        !> variables \f$ \frac{\partial v}{\partial p} \f$
+        !> variables
         !--------------------------------------------------------------
         function compute_jacobian_cons_to_prim(nodes)
      $     result(jacConsPrim)
@@ -1368,17 +1433,25 @@
         !> compute the contribution of the hyperbolic terms
         !> along the x-direction to the time derivatives of
         !> the conservative variables
+        !> \f[ \frac{\partial v}{\partial t} = - J^v_p \cdot
+        !> \begin{pmatrix}
+        !>     \displaystyle{\frac{1}{c^2} \left[ \mathscr{L}_2^1 + \frac{1}{2}( \mathscr{L}_3^1 + \mathscr{L}_4^1 ) \right]} \\\
+        !>     \displaystyle{\frac{1}{2 \rho c} ( \mathscr{L}_4^1 - \mathscr{L}_3^1 )} \\\
+        !>     \mathscr{L}_1^1 \\\
+        !>     \displaystyle{\frac{1}{2} ( \mathscr{L}_3^1 + \mathscr{L}_4^1 )}
+        !> \end{pmatrix}
+        !> \f]
         !
         !> @date
         !> 05_09_2014 - initial version - J.L. Desmarais
         !
         !>@param nodes
-        !> array with the grid point data
+        !> array with the conservative variables (\f$ \rho, \rho u, \rho v, \rho E \f$)
         !
         !>@param lodi
-        !> lodi vector in the y-direction
+        !> lodi vector in the x-direction, \f$ (\mathscr{L}_1^1, \mathscr{L}_2^1, \mathscr{L}_3^1, \mathscr{L}_4^1)^T \f$
         !
-        !>@return timedev
+        !>@return
         !> contribution of the hyperbolic terms
         !> along the x-direction to the time derivatives of
         !> the conservative variables
@@ -1430,17 +1503,25 @@
         !> compute the contribution of the hyperbolic terms
         !> along the y-direction to the time derivatives of
         !> the conservative variables
+        !> \f[ \frac{\partial v}{\partial t} = - J^v_p \cdot
+        !> \begin{pmatrix}
+        !>     \displaystyle{\frac{1}{c^2} \left[ \mathscr{L}_2^2 + \frac{1}{2}( \mathscr{L}_3^2 + \mathscr{L}_4^2 ) \right]} \\\
+        !>     \mathscr{L}_1^2 \\\
+        !>     \displaystyle{\frac{1}{2 \rho c} ( \mathscr{L}_4^2 - \mathscr{L}_3^2 )} \\\
+        !>     \displaystyle{\frac{1}{2} ( \mathscr{L}_3^2 + \mathscr{L}_4^2 )}
+        !> \end{pmatrix}
+        !> \f]
         !
         !> @date
         !> 05_09_2014 - initial version - J.L. Desmarais
         !
         !>@param nodes
-        !> array with the grid point data
+        !> array with the conservative variables (\f$ \rho, \rho u, \rho v, \rho E \f$)
         !
         !>@param lodi
-        !> LODI vector in the y-direction
+        !> LODI vector in the y-direction, \f$ (\mathscr{L}_1^2, \mathscr{L}_2^2, \mathscr{L}_3^2, \mathscr{L}_4^2)^T \f$
         !
-        !>@return timedev
+        !>@return
         !> contribution of the hyperbolic terms
         !> along the x-direction to the time derivatives of
         !> the conservative variables
@@ -1492,20 +1573,28 @@
         !> compute the contribution of the hyperbolic terms
         !> along the x- and y-direction to the time derivatives
         !> of the conservative variables
+        !> \f[ \frac{\partial v}{\partial t} = - J^v_p \cdot
+        !> \begin{pmatrix}
+        !>     \displaystyle{\frac{1}{c^2} \left[ \mathscr{L}_2^1 + \mathscr{L}_2^2 + \frac{1}{2}( \mathscr{L}_3^1 + \mathscr{L}_3^2 + \mathscr{L}_4^1 + \mathscr{L}_4^2 ) \right]} \\\
+        !>     \displaystyle{\frac{1}{2 \rho c} ( \mathscr{L}_4^1 - \mathscr{L}_3^1 )} + \mathscr{L}_1^2 \\\
+        !>     \mathscr{L}_1^1 + \displaystyle{\frac{1}{2 \rho c} ( \mathscr{L}_4^2 - \mathscr{L}_3^2 )} \\\
+        !>     \displaystyle{\frac{1}{2} ( \mathscr{L}_3^1 + \mathscr{L}_3^2 + \mathscr{L}_4^1 + \mathscr{L}_4^2 )}
+        !> \end{pmatrix}
+        !> \f]
         !
         !> @date
         !> 08_09_2014 - initial version - J.L. Desmarais
         !
         !>@param nodes
-        !> array with the grid point data
+        !> array with the conservative variables (\f$ \rho, \rho u, \rho v, \rho E \f$)
         !
         !>@param lodi_x
-        !> lodi vector in the x-direction
+        !> lodi vector in the x-direction, \f$ (\mathscr{L}_1^1, \mathscr{L}_2^1, \mathscr{L}_3^1, \mathscr{L}_4^1)^T \f$
         !
         !>@param lodi_y
-        !> lodi vector in the y-direction
+        !> lodi vector in the y-direction, \f$ (\mathscr{L}_1^2, \mathscr{L}_2^2, \mathscr{L}_3^2, \mathscr{L}_4^2)^T \f$
         !
-        !>@return timedev
+        !>@return
         !> contribution of the hyperbolic terms along the x- and
         !> y- directions to the time derivatives of the conservative
         !> variables

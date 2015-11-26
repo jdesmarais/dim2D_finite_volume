@@ -10,8 +10,8 @@
       !> for the Diffuse Interface Model
       !
       !> @date
-      ! 09_08_2013 - initial version               - J.L. Desmarais
-      ! 11_07_2014 - interface for erymanthianboar - J.L. Desmarais
+      !> - 09_08_2013 - initial version               - J.L. Desmarais
+      !> - 11_07_2014 - interface for erymanthianboar - J.L. Desmarais
       !-----------------------------------------------------------------
       module dim2d_fluxes_module
 
@@ -54,22 +54,22 @@
 
         private
         public ::
-     $       flux_x_mass_density,flux_y_mass_density,
-     $       flux_x_momentum_x,  flux_y_momentum_x,
-     $       flux_x_momentum_y,  flux_y_momentum_y,
-     $       flux_x_total_energy,flux_y_total_energy,
+     $       flux_x_mass_density, flux_y_mass_density,
+     $       flux_x_momentum_x,   flux_y_momentum_x,
+     $       flux_x_momentum_y,   flux_y_momentum_y,
+     $       flux_x_total_energy, flux_y_total_energy,
      $       
-     $       flux_x_inviscid_momentum_x,   flux_y_inviscid_momentum_x,    
-     $       flux_x_viscid_momentum_x,     flux_y_viscid_momentum_x,      
-     $       flux_x_capillarity_momentum_x,flux_y_capillarity_momentum_x,
+     $       flux_x_inviscid_momentum_x,    flux_y_inviscid_momentum_x,    
+     $       flux_x_viscid_momentum_x,      flux_y_viscid_momentum_x,      
+     $       flux_x_capillarity_momentum_x, flux_y_capillarity_momentum_x,
      $       
-     $       flux_x_inviscid_momentum_y,   flux_y_inviscid_momentum_y,   
-     $       flux_x_viscid_momentum_y,     flux_y_viscid_momentum_y,     
-     $       flux_x_capillarity_momentum_y,flux_y_capillarity_momentum_y,
+     $       flux_x_inviscid_momentum_y,    flux_y_inviscid_momentum_y,   
+     $       flux_x_viscid_momentum_y,      flux_y_viscid_momentum_y,     
+     $       flux_x_capillarity_momentum_y, flux_y_capillarity_momentum_y,
      $       
-     $       flux_x_inviscid_total_energy,   flux_y_inviscid_total_energy,
-     $       flux_x_viscid_total_energy,     flux_y_viscid_total_energy,
-     $       flux_x_capillarity_total_energy,flux_y_capillarity_total_energy
+     $       flux_x_inviscid_total_energy,    flux_y_inviscid_total_energy,
+     $       flux_x_viscid_total_energy,      flux_y_viscid_total_energy,
+     $       flux_x_capillarity_total_energy, flux_y_capillarity_total_energy
 
 
         contains
@@ -77,10 +77,10 @@
 
         !> @author 
         !> Julien L. Desmarais
-        
+        !
         !> @brief
         !> compute the flux for the mass density \f$ \rho \f$
-        !> along the x-axis
+        !> along the x-axis at [i-1/2,j]
         !
         !> @date
         !> 09_08_2013 - initial version - J.L. Desmarais
@@ -97,8 +97,8 @@
         !>@param j
         !> index along y-axis where the data is evaluated
         !>
-        !>@param var
-        !> \f$ fx_{\rho} \f$ evaluated at [i,j]
+        !>@return
+        !> \f$ F^x_{\rho} \f$ evaluated at [i-1/2,j]
         !---------------------------------------------------------------
         function flux_x_mass_density(nodes,s,i,j)
      $       result(var)
@@ -122,7 +122,7 @@
         !
         !> @brief
         !> compute the flux for the mass density \f$ \rho \f$
-        !> along the y-axis
+        !> along the y-axis at [i,j-1/2]
         !
         !> @date
         !> 09_08_2013 - initial version - J.L. Desmarais
@@ -139,8 +139,8 @@
         !>@param j
         !> index along y-axis where the data is evaluated
         !>
-        !>@param var
-        !> \f$ fy_{\rho} \f$ evaluated at [i,j]
+        !>@return
+        !> \f$ F^y_{\rho} \f$ evaluated at [i,j-1/2]
         !---------------------------------------------------------------
         function flux_y_mass_density(nodes,s,i,j)
      $       result(var)
@@ -164,7 +164,7 @@
         !
         !> @brief
         !> compute the flux for the momentum density along the x-axis
-        !> \f$ \rho u_x\f$ along the x-axis
+        !> \f$ \rho u\f$ along the x-axis at [i-1/2,j]
         !
         !> @date
         !> 09_08_2013 - initial version - J.L. Desmarais
@@ -182,16 +182,13 @@
         !> index along y-axis where the data is evaluated
         !
         !>@param dx
-        !> grid step along the x-axis
+        !> grid spacing for the x-axis
         !
         !>@param dy
-        !> grid step along the y-axis
+        !> grid spacing for the y-axis
         !
-        !>@param var
-        !> data evaluated at [i,j]
-        !
-        !>@param var
-        !> \f$ fx_{\rho u_x} \f$ evaluated at [i,j]
+        !>@return
+        !> \f$ F^x_{\rho u} \f$ evaluated at [i-1/2,j]
         !---------------------------------------------------------------
         function flux_x_momentum_x(nodes,s,i,j,dx,dy)
      $       result(var)
@@ -230,7 +227,7 @@
         !
         !> @brief
         !> compute the flux for the momentum density along the x-axis
-        !> \f$ \rho u_x\f$ along the y-axis
+        !> \f$ \rho u\f$ along the y-axis at [i,j-1/2]
         !
         !> @date
         !> 09_08_2013 - initial version - J.L. Desmarais
@@ -248,13 +245,13 @@
         !> index along y-axis where the data is evaluated
         !
         !>@param dx
-        !> grid step along the x-axis
+        !> grid spacing for the x-axis
         !
         !>@param dy
-        !> grid step along the y-axis
+        !> grid spacing for the y-axis
         !
-        !>@param var
-        !> \f$ fy_{\rho u_x} \f$ evaluated at [i,j]
+        !>@return
+        !> \f$ F^y_{\rho u} \f$ evaluated at [i,j-1/2]
         !---------------------------------------------------------------
         function flux_y_momentum_x(nodes,s,i,j,dx,dy)
      $       result(var)
@@ -293,7 +290,7 @@
         !
         !> @brief
         !> compute the flux for the momentum density along the y-axis
-        !> \f$ \rho u_y\f$ along the x-axis
+        !> \f$ \rho v\f$ along the x-axis at [i-1/2,j]
         !
         !> @date
         !> 09_08_2013 - initial version - J.L. Desmarais
@@ -311,13 +308,13 @@
         !> index along y-axis where the data is evaluated
         !
         !>@param dx
-        !> grid step along the x-axis
+        !> grid spacing for the x-axis
         !
         !>@param dy
-        !> grid step along the y-axis
+        !> grid spacing for the y-axis
         !
-        !>@param var
-        !> \f$ fx_{\rho u_y} \f$ evaluated at [i,j]
+        !>@return
+        !> \f$ F^x_{\rho v} \f$ evaluated at [i-1/2,j]
         !---------------------------------------------------------------
         function flux_x_momentum_y(nodes,s,i,j,dx,dy)
      $       result(var)
@@ -356,7 +353,7 @@
         !
         !> @brief
         !> compute the flux for the momentum density along the y-axis
-        !> \f$ \rho u_y\f$ along the y-axis
+        !> \f$ \rho v\f$ along the y-axis at [i,j-1/2]
         !
         !> @date
         !> 09_08_2013 - initial version - J.L. Desmarais
@@ -374,13 +371,13 @@
         !> index along y-axis where the data is evaluated
         !
         !>@param dx
-        !> grid step along the x-axis
+        !> grid spacing for the x-axis
         !
         !>@param dy
-        !> grid step along the y-axis
+        !> grid spacing for the y-axis
         !
-        !>@param var
-        !> \f$ fy_{\rho u_y} \f$ evaluated at [i,j]
+        !>@return
+        !> \f$ F^y_{\rho v} \f$ evaluated at [i,j-1/2]
         !---------------------------------------------------------------
         function flux_y_momentum_y(nodes,s,i,j,dx,dy)
      $       result(var)
@@ -419,7 +416,7 @@
         !
         !> @brief
         !> compute the flux for the total energy density
-        !> \f$ \rho E \f$ along the x-axis
+        !> \f$ \rho E \f$ along the x-axis at [i-1/2,j]
         !
         !> @date
         !> 09_08_2013 - initial version - J.L. Desmarais
@@ -437,13 +434,13 @@
         !> index along y-axis where the data is evaluated
         !
         !>@param dx
-        !> grid step along the x-axis
+        !> grid spacing for the x-axis
         !
         !>@param dy
-        !> grid step along the y-axis
+        !> grid spacing for the y-axis
         !
-        !>@param var
-        !> \f$ fx_{\rho E} \f$ evaluated at [i,j]
+        !>@return
+        !> \f$ F^x_{\rho E} \f$ evaluated at [i-1/2,j]
         !---------------------------------------------------------------
         function flux_x_total_energy(nodes,s,i,j,dx,dy)
      $       result(var)
@@ -485,7 +482,7 @@
         !
         !> @brief
         !> compute the flux for the total energy density
-        !> \f$ \rho E \f$ along the x-axis
+        !> \f$ \rho E \f$ along the y-axis at [i,j-1/2]
         !
         !> @date
         !> 09_08_2013 - initial version - J.L. Desmarais
@@ -503,13 +500,13 @@
         !> index along y-axis where the data is evaluated
         !
         !>@param dx
-        !> grid step along the x-axis
+        !> grid spacing for the x-axis
         !
         !>@param dy
-        !> grid step along the y-axis
+        !> grid spacing for the y-axis
         !
-        !>@param var
-        !> \f$ fy_{\rho E} \f$ evaluated at [i,j]
+        !>@return
+        !> \f$ F^y_{\rho E} \f$ evaluated at [i,j-1/2]
         !---------------------------------------------------------------
         function flux_y_total_energy(nodes,s,i,j,dx,dy)
      $       result(var)
@@ -549,7 +546,8 @@
         !
         !> @brief
         !> compute the inviscid part of the flux for the momentum
-        !> density along the x-axis \f$ \rho u_x\f$ along the x-axis
+        !> density along the x-axis \f$ \rho u\f$ along the x-axis
+        !> at [i-1/2,j]
         !
         !> @date
         !> 11_12_2014 - initial version - J.L. Desmarais
@@ -566,17 +564,8 @@
         !>@param j
         !> index along y-axis where the data is evaluated
         !
-        !>@param dx
-        !> grid step along the x-axis
-        !
-        !>@param dy
-        !> grid step along the y-axis
-        !
-        !>@param var
-        !> data evaluated at [i,j]
-        !
-        !>@param var
-        !> \f$ fx_{\rho u_x} \f$ evaluated at [i,j]
+        !>@return
+        !> \f$ F^x_{\rho u} \f$ evaluated at [i-1/2,j]
         !---------------------------------------------------------------
         function flux_x_inviscid_momentum_x(nodes,s,i,j)
      $       result(var)
@@ -602,7 +591,8 @@
         !
         !> @brief
         !> compute the viscid part of the flux for the momentum
-        !> density along the x-axis \f$ \rho u_x\f$ along the x-axis
+        !> density along the x-axis \f$ \rho u\f$ along the x-axis
+        !> at [i-1/2,j]
         !
         !> @date
         !> 11_12_2014 - initial version - J.L. Desmarais
@@ -620,16 +610,13 @@
         !> index along y-axis where the data is evaluated
         !
         !>@param dx
-        !> grid step along the x-axis
+        !> grid spacing for the x-axis
         !
         !>@param dy
-        !> grid step along the y-axis
+        !> grid spacing for the y-axis
         !
-        !>@param var
-        !> data evaluated at [i,j]
-        !
-        !>@param var
-        !> \f$ fx_{\rho u_x} \f$ evaluated at [i,j]
+        !>@return
+        !> \f$ F^x_{\rho u} \f$ evaluated at [i-1/2,j]
         !---------------------------------------------------------------
         function flux_x_viscid_momentum_x(nodes,s,i,j,dx,dy)
      $       result(var)
@@ -657,7 +644,8 @@
         !
         !> @brief
         !> compute the capillarity part of the flux for the momentum
-        !> density along the x-axis \f$ \rho u_x\f$ along the x-axis
+        !> density along the x-axis \f$ \rho u\f$ along the x-axis
+        !> at [i-1/2,j]
         !
         !> @date
         !> 11_12_2014 - initial version - J.L. Desmarais
@@ -675,16 +663,13 @@
         !> index along y-axis where the data is evaluated
         !
         !>@param dx
-        !> grid step along the x-axis
+        !> grid spacing for the x-axis
         !
         !>@param dy
-        !> grid step along the y-axis
+        !> grid spacing for the y-axis
         !
-        !>@param var
-        !> data evaluated at [i,j]
-        !
-        !>@param var
-        !> \f$ fx_{\rho u_x} \f$ evaluated at [i,j]
+        !>@return
+        !> \f$ F^x_{\rho u} \f$ evaluated at [i-1/2,j]
         !---------------------------------------------------------------
         function flux_x_capillarity_momentum_x(nodes,s,i,j,dx,dy)
      $       result(var)
@@ -746,7 +731,8 @@
         !
         !> @brief
         !> compute the inviscid part of the flux for the momentum
-        !> density along the x-axis \f$ \rho u_x\f$ along the y-axis
+        !> density along the x-axis \f$ \rho u\f$ along the y-axis
+        !> at [i,j-1/2]
         !
         !> @date
         !> 11_12_2014 - initial version - J.L. Desmarais
@@ -763,17 +749,8 @@
         !>@param j
         !> index along y-axis where the data is evaluated
         !
-        !>@param dx
-        !> grid step along the x-axis
-        !
-        !>@param dy
-        !> grid step along the y-axis
-        !
-        !>@param var
-        !> data evaluated at [i,j]
-        !
-        !>@param var
-        !> \f$ fy_{\rho u_x} \f$ evaluated at [i,j]
+        !>@return
+        !> \f$ F^y_{\rho u} \f$ evaluated at [i,j-1/2]
         !---------------------------------------------------------------
         function flux_y_inviscid_momentum_x(nodes,s,i,j)
      $       result(var)
@@ -797,7 +774,8 @@
         !
         !> @brief
         !> compute the viscid part of the flux for the momentum
-        !> density along the x-axis \f$ \rho u_x\f$ along the x-axis
+        !> density along the x-axis \f$ \rho u\f$ along the y-axis
+        !> at [i,j-1/2]
         !
         !> @date
         !> 11_12_2014 - initial version - J.L. Desmarais
@@ -815,16 +793,13 @@
         !> index along y-axis where the data is evaluated
         !
         !>@param dx
-        !> grid step along the x-axis
+        !> grid spacing for the x-axis
         !
         !>@param dy
-        !> grid step along the y-axis
+        !> grid spacing for the y-axis
         !
-        !>@param var
-        !> data evaluated at [i,j]
-        !
-        !>@param var
-        !> \f$ fx_{\rho u_x} \f$ evaluated at [i,j]
+        !>@return
+        !> \f$ F^x_{\rho u} \f$ evaluated at [i,j-1/2]
         !---------------------------------------------------------------
         function flux_y_viscid_momentum_x(nodes,s,i,j,dx,dy)
      $       result(var)
@@ -851,7 +826,8 @@
         !
         !> @brief
         !> compute the capillarity part of the flux for the momentum
-        !> density along the x-axis \f$ \rho u_x\f$ along the y-axis
+        !> density along the x-axis \f$ \rho u\f$ along the y-axis
+        !> at [i,j-1/2]
         !
         !> @date
         !> 11_12_2014 - initial version - J.L. Desmarais
@@ -869,16 +845,13 @@
         !> index along y-axis where the data is evaluated
         !
         !>@param dx
-        !> grid step along the x-axis
+        !> grid spacing for the x-axis
         !
         !>@param dy
-        !> grid step along the y-axis
+        !> grid spacing for the y-axis
         !
-        !>@param var
-        !> data evaluated at [i,j]
-        !
-        !>@param var
-        !> \f$ fy_{\rho u_x} \f$ evaluated at [i,j]
+        !>@return
+        !> \f$ F^y_{\rho u} \f$ evaluated at [i,j-1/2]
         !---------------------------------------------------------------
         function flux_y_capillarity_momentum_x(nodes,s,i,j,dx,dy)
      $       result(var)
@@ -905,7 +878,8 @@
         !
         !> @brief
         !> compute the inviscid part of the flux for the momentum
-        !> density along the y-axis \f$ \rho u_y\f$ along the x-axis
+        !> density along the y-axis \f$ \rho v\f$ along the x-axis
+        !> at [i-1/2,j]
         !
         !> @date
         !> 11_12_2014 - initial version - J.L. Desmarais
@@ -922,17 +896,8 @@
         !>@param j
         !> index along y-axis where the data is evaluated
         !
-        !>@param dx
-        !> grid step along the x-axis
-        !
-        !>@param dy
-        !> grid step along the y-axis
-        !
-        !>@param var
-        !> data evaluated at [i,j]
-        !
-        !>@param var
-        !> \f$ fx_{\rho u_y} \f$ evaluated at [i,j]
+        !>@return
+        !> \f$ F^x_{\rho v} \f$ evaluated at [i-1/2,j]
         !---------------------------------------------------------------
         function flux_x_inviscid_momentum_y(nodes,s,i,j)
      $       result(var)
@@ -956,7 +921,8 @@
         !
         !> @brief
         !> compute the viscid part of the flux for the momentum
-        !> density along the y-axis \f$ \rho u_y\f$ along the x-axis
+        !> density along the y-axis \f$ \rho v\f$ along the x-axis
+        !> at [i-1/2,j]
         !
         !> @date
         !> 11_12_2014 - initial version - J.L. Desmarais
@@ -974,16 +940,13 @@
         !> index along y-axis where the data is evaluated
         !
         !>@param dx
-        !> grid step along the x-axis
+        !> grid spacing for the x-axis
         !
         !>@param dy
-        !> grid step along the y-axis
+        !> grid spacing for the y-axis
         !
-        !>@param var
-        !> data evaluated at [i,j]
-        !
-        !>@param var
-        !> \f$ fx_{\rho u_y} \f$ evaluated at [i,j]
+        !>@return
+        !> \f$ F^x_{\rho v} \f$ evaluated at [i-1/2,j]
         !---------------------------------------------------------------
         function flux_x_viscid_momentum_y(nodes,s,i,j,dx,dy)
      $       result(var)
@@ -1010,7 +973,8 @@
         !
         !> @brief
         !> compute the capillarity part of the flux for the momentum
-        !> density along the y-axis \f$ \rho u_y\f$ along the x-axis
+        !> density along the y-axis \f$ \rho v\f$ along the x-axis
+        !> at [i-1/2,j]
         !
         !> @date
         !> 11_12_2014 - initial version - J.L. Desmarais
@@ -1028,16 +992,13 @@
         !> index along y-axis where the data is evaluated
         !
         !>@param dx
-        !> grid step along the x-axis
+        !> grid spacing for the x-axis
         !
         !>@param dy
-        !> grid step along the y-axis
+        !> grid spacing for the y-axis
         !
-        !>@param var
-        !> data evaluated at [i,j]
-        !
-        !>@param var
-        !> \f$ fx_{\rho u_y} \f$ evaluated at [i,j]
+        !>@return
+        !> \f$ F^x_{\rho v} \f$ evaluated at [i-1/2,j]
         !---------------------------------------------------------------
         function flux_x_capillarity_momentum_y(nodes,s,i,j,dx,dy)
      $       result(var)
@@ -1064,7 +1025,8 @@
         !
         !> @brief
         !> compute the inviscid part of the flux for the momentum
-        !> density along the y-axis \f$ \rho u_y\f$ along the y-axis
+        !> density along the y-axis \f$ \rho v\f$ along the y-axis
+        !> at [i,j-1/2]
         !
         !> @date
         !> 11_12_2014 - initial version - J.L. Desmarais
@@ -1081,17 +1043,8 @@
         !>@param j
         !> index along y-axis where the data is evaluated
         !
-        !>@param dx
-        !> grid step along the x-axis
-        !
-        !>@param dy
-        !> grid step along the y-axis
-        !
-        !>@param var
-        !> data evaluated at [i,j]
-        !
-        !>@param var
-        !> \f$ fy_{\rho u_y} \f$ evaluated at [i,j]
+        !>@return
+        !> \f$ F^y_{\rho v} \f$ evaluated at [i,j-1/2]
         !---------------------------------------------------------------
         function flux_y_inviscid_momentum_y(nodes,s,i,j)
      $       result(var)
@@ -1116,7 +1069,8 @@
         !
         !> @brief
         !> compute the viscid part of the flux for the momentum
-        !> density along the y-axis \f$ \rho u_y\f$ along the y-axis
+        !> density along the y-axis \f$ \rho v\f$ along the y-axis
+        !> at [i,j-1/2]
         !
         !> @date
         !> 11_12_2014 - initial version - J.L. Desmarais
@@ -1134,16 +1088,13 @@
         !> index along y-axis where the data is evaluated
         !
         !>@param dx
-        !> grid step along the x-axis
+        !> grid spacing for the x-axis
         !
         !>@param dy
-        !> grid step along the y-axis
+        !> grid spacing for the y-axis
         !
-        !>@param var
-        !> data evaluated at [i,j]
-        !
-        !>@param var
-        !> \f$ fy_{\rho u_y} \f$ evaluated at [i,j]
+        !>@return
+        !> \f$ F^y_{\rho v} \f$ evaluated at [i,j-1/2]
         !---------------------------------------------------------------
         function flux_y_viscid_momentum_y(nodes,s,i,j,dx,dy)
      $       result(var)
@@ -1170,7 +1121,8 @@
         !
         !> @brief
         !> compute the capillarity part of the flux for the momentum
-        !> density along the y-axis \f$ \rho u_y\f$ along the y-axis
+        !> density along the y-axis \f$ \rho v\f$ along the y-axis
+        !> at [i,j-1/2]
         !
         !> @date
         !> 11_12_2014 - initial version - J.L. Desmarais
@@ -1188,16 +1140,13 @@
         !> index along y-axis where the data is evaluated
         !
         !>@param dx
-        !> grid step along the x-axis
+        !> grid spacing for the x-axis
         !
         !>@param dy
-        !> grid step along the y-axis
+        !> grid spacing for the y-axis
         !
-        !>@param var
-        !> data evaluated at [i,j]
-        !
-        !>@param var
-        !> \f$ fx_{\rho u_y} \f$ evaluated at [i,j]
+        !>@return
+        !> \f$ F^x_{\rho v} \f$ evaluated at [i,j-1/2]
         !---------------------------------------------------------------
         function flux_y_capillarity_momentum_y(nodes,s,i,j,dx,dy)
      $       result(var)
@@ -1235,7 +1184,7 @@
         !
         !> @brief
         !> compute the inviscid part of the flux for the total energy
-        !> density \f$ \rho E\f$ along the x-axis
+        !> density \f$ \rho E\f$ along the x-axis at [i-1/2,j]
         !
         !> @date
         !> 11_12_2014 - initial version - J.L. Desmarais
@@ -1252,17 +1201,8 @@
         !>@param j
         !> index along y-axis where the data is evaluated
         !
-        !>@param dx
-        !> grid step along the x-axis
-        !
-        !>@param dy
-        !> grid step along the y-axis
-        !
-        !>@param var
-        !> data evaluated at [i,j]
-        !
-        !>@param var
-        !> \f$ fx_{\rho E} \f$ evaluated at [i,j]
+        !>@return
+        !> \f$ F^x_{\rho E} \f$ evaluated at [i-1/2,j]
         !---------------------------------------------------------------
         function flux_x_inviscid_total_energy(nodes,s,i,j)
      $       result(var)
@@ -1287,7 +1227,7 @@
         !
         !> @brief
         !> compute the viscid part of the flux for the total energy
-        !> density \f$ \rho E\f$ along the x-axis
+        !> density \f$ \rho E\f$ along the x-axis at [i-1/2,j]
         !
         !> @date
         !> 11_12_2014 - initial version - J.L. Desmarais
@@ -1305,16 +1245,13 @@
         !> index along y-axis where the data is evaluated
         !
         !>@param dx
-        !> grid step along the x-axis
+        !> grid spacing for the x-axis
         !
         !>@param dy
-        !> grid step along the y-axis
+        !> grid spacing for the y-axis
         !
-        !>@param var
-        !> data evaluated at [i,j]
-        !
-        !>@param var
-        !> \f$ fx_{\rho E} \f$ evaluated at [i,j]
+        !>@return
+        !> \f$ F^x_{\rho E} \f$ evaluated at [i-1/2,j]
         !---------------------------------------------------------------
         function flux_x_viscid_total_energy(nodes,s,i,j,dx,dy)
      $       result(var)
@@ -1368,7 +1305,7 @@
         !
         !> @brief
         !> compute the capillarity part of the flux for the total
-        !> energy density \f$ \rho E\f$ along the x-axis
+        !> energy density \f$ \rho E\f$ along the x-axis at [i-1/2,j]
         !
         !> @date
         !> 11_12_2014 - initial version - J.L. Desmarais
@@ -1386,16 +1323,13 @@
         !> index along y-axis where the data is evaluated
         !
         !>@param dx
-        !> grid step along the x-axis
+        !> grid spacing for the x-axis
         !
         !>@param dy
-        !> grid step along the y-axis
+        !> grid spacing for the y-axis
         !
-        !>@param var
-        !> data evaluated at [i,j]
-        !
-        !>@param var
-        !> \f$ fx_{\rho E} \f$ evaluated at [i,j]
+        !>@return
+        !> \f$ F^x_{\rho E} \f$ evaluated at [i-1/2,j]
         !---------------------------------------------------------------
         function flux_x_capillarity_total_energy(nodes,s,i,j,dx,dy)
      $       result(var)
@@ -1486,7 +1420,7 @@
         !
         !> @brief
         !> compute the inviscid part of the flux for the total energy
-        !> density \f$ \rho E\f$ along the y-axis
+        !> density \f$ \rho E\f$ along the y-axis at [i,j-1/2]
         !
         !> @date
         !> 11_12_2014 - initial version - J.L. Desmarais
@@ -1503,17 +1437,8 @@
         !>@param j
         !> index along y-axis where the data is evaluated
         !
-        !>@param dx
-        !> grid step along the x-axis
-        !
-        !>@param dy
-        !> grid step along the y-axis
-        !
-        !>@param var
-        !> data evaluated at [i,j]
-        !
-        !>@param var
-        !> \f$ fy_{\rho E} \f$ evaluated at [i,j]
+        !>@return
+        !> \f$ F^y_{\rho E} \f$ evaluated at [i,j-1/2]
         !---------------------------------------------------------------
         function flux_y_inviscid_total_energy(nodes,s,i,j)
      $       result(var)
@@ -1538,7 +1463,7 @@
         !
         !> @brief
         !> compute the viscid part of the flux for the total energy
-        !> density \f$ \rho E\f$ along the y-axis
+        !> density \f$ \rho E\f$ along the y-axis at [i,j-1/2]
         !
         !> @date
         !> 11_12_2014 - initial version - J.L. Desmarais
@@ -1556,16 +1481,13 @@
         !> index along y-axis where the data is evaluated
         !
         !>@param dx
-        !> grid step along the x-axis
+        !> grid spacing for the x-axis
         !
         !>@param dy
-        !> grid step along the y-axis
+        !> grid spacing for the y-axis
         !
-        !>@param var
-        !> data evaluated at [i,j]
-        !
-        !>@param var
-        !> \f$ fy_{\rho E} \f$ evaluated at [i,j]
+        !>@return
+        !> \f$ F^y_{\rho E} \f$ evaluated at [i,j-1/2]
         !---------------------------------------------------------------
         function flux_y_viscid_total_energy(nodes,s,i,j,dx,dy)
      $       result(var)
@@ -1620,7 +1542,7 @@
         !
         !> @brief
         !> compute the capillarity part of the flux for the total energy
-        !> density \f$ \rho E\f$ along the y-axis
+        !> density \f$ \rho E\f$ along the y-axis at [i,j-1/2]
         !
         !> @date
         !> 11_12_2014 - initial version - J.L. Desmarais
@@ -1638,16 +1560,13 @@
         !> index along y-axis where the data is evaluated
         !
         !>@param dx
-        !> grid step along the x-axis
+        !> grid spacing for the x-axis
         !
         !>@param dy
-        !> grid step along the y-axis
+        !> grid spacing for the y-axis
         !
-        !>@param var
-        !> data evaluated at [i,j]
-        !
-        !>@param var
-        !> \f$ fy_{\rho E} \f$ evaluated at [i,j]
+        !>@return
+        !> \f$ F^y_{\rho E} \f$ evaluated at [i,j-1/2]
         !---------------------------------------------------------------
         function flux_y_capillarity_total_energy(nodes,s,i,j,dx,dy)
      $       result(var)

@@ -10,10 +10,10 @@
       !> scheme
       !
       !> @date
-      !> 30_07_2012 - initial version                   - J.L. Desmarais
-      !> 04_06_2013 - functions for crossed derivatives - J.L. Desmarais
-      !> 07_08_2013 - transfered in lernaeanhydra_opt   - J.L. Desmarais
-      !> 11_07_2014 - interface for erymanthianboar use - J.L. Desmarais
+      !> -# 30_07_2012 - initial version                   - J.L. Desmarais
+      !> -# 04_06_2013 - functions for crossed derivatives - J.L. Desmarais
+      !> -# 07_08_2013 - transfered in lernaeanhydra_opt   - J.L. Desmarais
+      !> -# 11_07_2014 - interface for erymanthianboar use - J.L. Desmarais
       !-----------------------------------------------------------------
       module sd_operators_abstract_class
 

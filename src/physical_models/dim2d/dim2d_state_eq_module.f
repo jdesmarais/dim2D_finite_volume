@@ -12,7 +12,7 @@
       !> densities, interface length...
       !
       !> @date
-      !> 14_08_2013 - initial version                   - J.L. Desmarais
+      !> 14_08_2013 - initial version - J.L. Desmarais
       !-----------------------------------------------------------------
       module dim2d_state_eq_module
 
@@ -42,12 +42,16 @@
         !
         !> @brief
         !> get the surface tension at a given temperature
+        !> \f[ \sigma = \displaystyle{\frac{2 \sqrt{2}}{3 We} \left(9.69 {\left(1-T\right)}^{\frac{3}{2}} \right)} \f]
         !
         !> @date
         !> 01_06_2015 - initial version - J.L. Desmarais
         !
         !>@param temperature
-        !> temperature at which the interface length is computed
+        !> temperature, \f$ T \f$
+        !
+        !>@return
+        !> surface tension, \f$ \sigma \f$
         !---------------------------------------------------------------
         function get_surface_tension(temperature)
      $       result(surface_tension)
@@ -71,13 +75,17 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> get the interface length at a given temperature
+        !> get the width of the interface at a given temperature
+        !> \f[ L_i = \frac{2}{We} (-0.19 + 1.65 \sqrt{1-T}) \f]
         !
         !> @date
         !> 14_08_2013 - initial version - J.L. Desmarais
         !
         !>@param temperature
-        !> temperature at which the interface length is computed
+        !> temperature, \f$T \f$
+        !
+        !>@return
+        !> width of the interface, \f$ L_i \f$
         !---------------------------------------------------------------
         function get_interface_length(temperature)
      $       result(interface_lgh)
@@ -121,13 +129,18 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> get mass density for saturated liquid water
+        !> get mass density of saturated liquid water
+        !> for the Van der Waals equation
+        !> \f[ \rho_{\textrm{liq}} = 1.0 + 2.08 \sqrt{1-T} \f]
         !
         !> @date
         !> 14_08_2013 - initial version - J.L. Desmarais
         !
-        !>@param T
-        !> temperature at which the mass density is computed
+        !>@param temperature
+        !> temperature, \f$ T\f$
+        !
+        !>@return
+        !> mass density of saturated liquid
         !---------------------------------------------------------------
         function get_mass_density_liquid(temperature) result(md_liquid)
 
@@ -167,13 +180,18 @@ c$$$             end if
         !> Julien L. Desmarais
         !
         !> @brief
-        !> get mass density for saturated vapor water
+        !> get mass density of saturated vapor water
+        !> for the Van der Waals equation
+        !> \f[ \rho_{\textrm{vap}} = 0.98 - 1.82 \sqrt{1-T} \f]
         !
         !> @date
         !> 14_08_2013 - initial version - J.L. Desmarais
         !
-        !>@param T
-        !> temperature at which the mass density is computed
+        !>@param temperature
+        !> temperature, \f$ T\f$
+        !
+        !>@return
+        !> mass density of saturated vapor
         !---------------------------------------------------------------
         function get_mass_density_vapor(temperature) result(md_vapor)
 

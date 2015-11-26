@@ -38,13 +38,13 @@
 
           contains
 
-          procedure(ic_proc)       , nopass, deferred :: apply_ic          !<@brief set the initial conditions
-          procedure(far_proc)      , nopass, deferred :: get_mach_ux_infty !<@brief get the Mach number along the x-direction in the far field
-          procedure(far_proc)      , nopass, deferred :: get_mach_uy_infty !<@brief get the Mach number along the y-direction in the far field
+          procedure(ic_proc)       , nopass, deferred :: apply_ic          !<@brief set the initial conditions                                                 
+          procedure(far_proc)      , nopass, deferred :: get_mach_ux_infty !<@brief get the Mach number along the x-direction in the far field                 
+          procedure(far_proc)      , nopass, deferred :: get_mach_uy_infty !<@brief get the Mach number along the y-direction in the far field                 
           procedure(var_proc)      , nopass, deferred :: get_u_in          !<@brief get the x-component of the velocity at the edge of the computational domain
           procedure(var_proc)      , nopass, deferred :: get_v_in          !<@brief get the y-component of the velocity at the edge of the computational domain
-          procedure(var_proc)      , nopass, deferred :: get_T_in          !<@brief get the temperature at the edge of the computational domain
-          procedure(var_proc)      , nopass, deferred :: get_P_out         !<@brief get the pressure at the edge of the computational domain
+          procedure(var_proc)      , nopass, deferred :: get_T_in          !<@brief get the temperature at the edge of the computational domain                
+          procedure(var_proc)      , nopass, deferred :: get_P_out         !<@brief get the pressure at the edge of the computational domain                   
           procedure(far_field_proc),   pass, deferred :: get_far_field     !<@brief get the governing variables imposed at the edge of the computational domain
 
         end type ic_abstract
