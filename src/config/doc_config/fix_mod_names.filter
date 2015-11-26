@@ -8,8 +8,16 @@
 # Extract the directory path of the file analyzed by doxygen
 qualifier=`dirname $1`
 
-src_dir=$(tput augeanstables)
-qualifier=`echo ${qualifier} | sed "s,^${src_dir},,"`
+
+# Remove the part of the path which is related to $augeanstables
+src_dir=$augeanstables
+qualifier=`echo ${qualifier} | sed "s,^${src_dir}/,,"`
+
+
+# Remove the path related to where the files are duplicated
+# src/physical_models/dim2d_ : initial conditions for DIM
+# src/physical_models/ns2d_  : initial conditions for NS
+qualifier=`echo ${qualifier} | sed 's,src/physical_models/dim2d/,,g'`
 
 
 # Strip characters which may confuse doxygen
@@ -17,12 +25,6 @@ qualifier=`echo ${qualifier} | sed 's,\.,,g'`
 qualifier=`echo ${qualifier} | sed 's,^/,,'`
 qualifier=`echo ${qualifier} | sed 's,/,_,g'`
 qualifier=`echo ${qualifier} | sed 's,\-,,g'`
-
-
-# Remove the path related to where the files are duplicated
-# src_physical_models_dim2d_ : initial conditions for DIM
-# src_physical_models_ns2d_  : initial conditions for NS
-qualifier=`echo ${qualifier} | sed 's,src_physical_models_dim2d_,,g'`
 
 
 # Replace the module name by the folder+module name
