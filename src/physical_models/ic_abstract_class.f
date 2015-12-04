@@ -62,9 +62,6 @@
           !> @date
           !> 08_08_2013 - initial version - J.L. Desmarais
           !
-          !>@param this
-          !> physical model
-          !
           !>@param nodes
           !> array with the grid point data    
           !

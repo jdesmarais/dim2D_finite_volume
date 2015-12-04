@@ -1,7 +1,7 @@
       !> @file
       !> class encapsulating subroutines to compute the initial
       !> conditions and the conditions enforced at the edge of
-      !> the computational domain for steady state
+      !> the computational domain for saturated liquid
       !
       !> @author 
       !> Julien L. Desmarais
@@ -9,7 +9,7 @@
       !> @brief
       !> class encapsulating subroutines to compute the initial
       !> conditions and the conditions enforced at the edge of
-      !> the computational domain for steady state
+      !> the computational domain for saturated liquid
       !
       !> @date
       !> 11_12_2014 - initial version - J.L. Desmarais
@@ -43,46 +43,23 @@
 
         
         !> @class ic
-        !> class encapsulating operators to set the initial
-        !> conditions and the conditions enforced at the edge of the
-        !> computational domain for phase separation
-        !
-        !> @param apply_initial_conditions
-        !> set the initial conditions
-        !
-        !> @param get_mach_ux_infty
-        !> get the mach number along the x-direction in the far field
-        !
-        !> @param get_mach_uy_infty
-        !> get the mach number along the y-direction in the far field
-        !
-        !> @param get_u_in
-        !> get the x-component of the velocity at the edge of the
-        !> computational domain
-        !
-        !> @param get_v_in
-        !> get the y-component of the velocity at the edge of the
-        !> computational domain
-        !
-        !> @param get_T_in
-        !> get the temperature at the edge of the computational
-        !> domain
-        !
-        !> @param get_P_out
-        !> get the pressure at the edge of the computational domain
+        !> class extending ic_abstract to encapsulate operators
+        !> setting the initial conditions and the conditions
+        !> enforced at the edge of the computational domain
+        !> for steady state
         !---------------------------------------------------------------
         type, extends(ic_abstract) :: ic
 
           contains
 
-          procedure, nopass :: apply_ic
-          procedure, nopass :: get_mach_ux_infty
-          procedure, nopass :: get_mach_uy_infty
-          procedure, nopass :: get_u_in
-          procedure, nopass :: get_v_in
-          procedure, nopass :: get_T_in
-          procedure, nopass :: get_P_out
-          procedure,   pass :: get_far_field
+          procedure, nopass :: apply_ic          !<@brief set the initial conditions                                                 
+          procedure, nopass :: get_mach_ux_infty !<@brief get the Mach number along the x-direction in the far field                 
+          procedure, nopass :: get_mach_uy_infty !<@brief get the Mach number along the y-direction in the far field                 
+          procedure, nopass :: get_u_in          !<@brief get the x-component of the velocity at the edge of the computational domain
+          procedure, nopass :: get_v_in          !<@brief get the y-component of the velocity at the edge of the computational domain
+          procedure, nopass :: get_T_in          !<@brief get the temperature at the edge of the computational domain                
+          procedure, nopass :: get_P_out         !<@brief get the pressure at the edge of the computational domain                   
+          procedure,   pass :: get_far_field     !<@brief get the governing variables imposed at the edge of the computational domain
 
         end type ic
 
@@ -94,21 +71,30 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> subroutine computing the initial conditions
-        !> for a steady state
+        !> subroutine to apply the initial conditions
+        !> to the computational domain for steady state
+        !> \f[
+        !> \begin{pmatrix} 
+        !> \rho \\\ \rho u \\\ \rho v \\\ \rho E
+        !> \end{pmatrix}(x,y) =
+        !> \begin{pmatrix} 
+        !> \rho_\textrm{liq} \\\ 0 \\\ 0 \\\
+        !> \rho_\textrm{liq} (\frac{8}{3} c_v T_0 - 3 \rho_\textrm{liq})
+        !> \end{pmatrix}
+        !> \f]
         !
         !> @date
-        !> 11_12_2014 - initial version - J.L. Desmarais
+        !> 08_08_2013 - initial version - J.L. Desmarais
         !
         !>@param nodes
-        !> array with the grid point data
+        !> array with the grid point data    
         !
         !>@param x_map
-        !> map of x-coordinates
+        !> array with the x-coordinates
         !
         !>@param y_map
-        !> map of y-coordinates
-        !---------------------------------------------------------------
+        !> array with the y-coordinates                
+        !--------------------------------------------------------------
         subroutine apply_ic(nodes,x_map,y_map)
 
           implicit none
@@ -125,9 +111,9 @@
           x_s = x_map(1)
           y_s = y_map(1)
 
-          !< compute the corresponding reduced temperature
-          !> reduced liquid mas density and the total energy
-          !> at the temperature asked by the user
+          ! compute the corresponding reduced temperature
+          ! reduced liquid mas density and the total energy
+          ! at the temperature asked by the user
           d_liq = get_mass_density_liquid(T0)
           E_liq = get_total_energy(d_liq,T0)
 
@@ -158,8 +144,24 @@
         end subroutine apply_ic
 
 
-        !get the variable enforced at the edge of the
-        !computational domain
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the Mach number imposed in the far-field
+        !> for the velocity in the x-direction
+        !> \f[ \textrm{Ma}_x = 0 \f]
+        !
+        !> @date
+        !> 08_08_2013 - initial version - J.L. Desmarais
+        !
+        !>@param side
+        !> left or right side
+        !
+        !>@return
+        !> Mach number for the velocity in the x-direction,
+        !> \f$ \textrm{Ma}_x \f$
+        !--------------------------------------------------------------
         function get_mach_ux_infty(side) result(var)
 
           implicit none
@@ -176,8 +178,24 @@
         end function get_mach_ux_infty
 
 
-        !get the variable enforced at the edge of the
-        !computational domain
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the Mach number imposed in the far-field
+        !> for the velocity in the y-direction
+        !> \f[ \textrm{Ma}_y = 0 \f]
+        !
+        !> @date
+        !> 08_08_2013 - initial version - J.L. Desmarais
+        !
+        !>@param side
+        !> left or right side
+        !
+        !>@return
+        !> Mach number for the velocity in the y-direction,
+        !> \f$ \textrm{Ma}_y \f$
+        !--------------------------------------------------------------
         function get_mach_uy_infty(side) result(var)
 
           implicit none
@@ -194,8 +212,30 @@
         end function get_mach_uy_infty
 
 
-        !get the x-component of the velocity enforced
-        !at the edge of the computational domain
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> subroutine to obtain the value of the velocity
+        !> in the x-direction imposed in the far-field
+        !> \f[ u_\infty(t,x,y) = 0 \f]
+        !
+        !> @date
+        !> 08_08_2013 - initial version - J.L. Desmarais
+        !
+        !>@param t
+        !> time
+        !
+        !>@param x
+        !> x-coordinate
+        !
+        !>@param y
+        !> y-coordinate
+        !
+        !>@return
+        !> velocity along the x-direction imposed in the far-field,
+        !> \f$ u_\infty(t,x,y) \f$
+        !--------------------------------------------------------------
         function get_u_in(t,x,y) result(var)
 
           implicit none
@@ -216,8 +256,30 @@
         end function get_u_in
 
 
-        !get the y-component of the velocity enforced
-        !at the edge of the computational domain
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> subroutine to obtain the value of the velocity
+        !> in the y-direction imposed in the far-field
+        !> \f[ v_\infty(t,x,y) = 0 \f]
+        !
+        !> @date
+        !> 08_08_2013 - initial version - J.L. Desmarais
+        !
+        !>@param t
+        !> time
+        !
+        !>@param x
+        !> x-coordinate
+        !
+        !>@param y
+        !> y-coordinate
+        !
+        !>@return
+        !> velocity along the y-direction imposed in the far-field,
+        !> \f$ v_\infty(t,x,y) \f$
+        !--------------------------------------------------------------
         function get_v_in(t,x,y) result(var)
 
           implicit none
@@ -239,8 +301,30 @@
         end function get_v_in
 
       
-        !get the temperature enforced at the edge of the
-        !computational domain
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> subroutine to obtain the value of the
+        !> temperature imposed in the far-field
+        !> \f[ T_\infty(t,x,y) = T_0\f]
+        !
+        !> @date
+        !> 08_08_2013 - initial version - J.L. Desmarais
+        !
+        !>@param t
+        !> time
+        !
+        !>@param x
+        !> x-coordinate
+        !
+        !>@param y
+        !> y-coordinate
+        !
+        !>@return
+        !> temperature imposed in the far-field,
+        !> \f$ T_\infty(t,x,y) \f$
+        !--------------------------------------------------------------
         function get_T_in(t,x,y) result(var)
 
           implicit none
@@ -262,8 +346,31 @@
         end function get_T_in
 
 
-        !get the pressure enforced at the edge of the
-        !computational domain
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> subroutine to obtain the value of the
+        !> pressure imposed in the far-field
+        !> \f[ P_\infty(t,x,y) = \frac{8 \rho_\textrm{liq} T_0}{3-\rho_\textrm{liq}}
+        !> - 3 \rho_\textrm{liq}^2\f]
+        !
+        !> @date
+        !> 08_08_2013 - initial version - J.L. Desmarais
+        !
+        !>@param t
+        !> time
+        !
+        !>@param x
+        !> x-coordinate
+        !
+        !>@param y
+        !> y-coordinate
+        !
+        !>@return
+        !> pressure imposed in the far-field,
+        !> \f$ P_\infty(t,x,y) \f$
+        !--------------------------------------------------------------
         function get_P_out(t,x,y) result(var)
 
           implicit none
@@ -296,10 +403,28 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> get the governing variables imposed in the far field
+        !> subroutine to obtain the value of the variables
+        !> imposed at the edge of the computational domain
+        !> depending on time and coordinates as well as the
+        !> state of the object
+        !> \f[
+        !> \begin{pmatrix}
+        !> \rho_\infty \\\ {\rho u}_\infty \\\ {\rho v}_\infty \\\ {\rho E}_\infty
+        !> \end{pmatrix} = 
+        !> \begin{pmatrix}
+        !> \rho_\textrm{liq}(T_0) \\\
+        !> 0 \\\
+        !> 0 \\\
+        !> \rho_\textrm{liq}(T_0) (\frac{8}{3} c_v T_0 - 3 \rho_\textrm{liq}(T_0))
+        !> \end{pmatrix}
+        !> \f]
         !
         !> @date
-        !> 03_12_2014 - initial version - J.L. Desmarais
+        !> 08_08_2013 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> object encapsulating the initial conditions and
+        !> the state of the conditions imposed in the far-field
         !
         !>@param t
         !> time
@@ -310,8 +435,9 @@
         !>@param y
         !> y-coordinate
         !
-        !>@return var
-        !> governing variables in the far-field
+        !>@return
+        !> variable imposed at the edge of the computational
+        !> domain
         !--------------------------------------------------------------
         function get_far_field(this,t,x,y) result(var)
 
@@ -359,15 +485,19 @@
         !> subroutine computing the total energy
         !> for a homogeneous liquid given its mass
         !> density and its temperature
+        !> \f[ \rho E(\rho,T) = \rho \left(
+        !> \frac{8}{3} c_v T - 3 \rho \right)
+        !> - 3 \rho^2
+        !> \f]
         !
         !> @date
         !> 25_09_2013 - initial version - J.L. Desmarais
         !
         !>@param mass_density
-        !> mass density
+        !> mass density, \f$ \rho \f$
         !
         !>@param temperature
-        !> temperature
+        !> temperature, \f$ T \f$
         !---------------------------------------------------------------
         function get_total_energy(mass_density, temperature)
      $     result(total_energy)
@@ -390,3 +520,4 @@
         end function get_total_energy
 
       end module ic_class
+

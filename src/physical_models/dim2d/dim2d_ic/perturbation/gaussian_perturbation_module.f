@@ -1,5 +1,6 @@
       !> @file
-      !> random noise modelling
+      !> random noise modelling for the perturbation of the initial
+      !> conditions
       !
       !> @author 
       !> Julien L. Desmarais
@@ -36,8 +37,8 @@
      $       smooth
 
 
-        integer    , parameter :: p=8
-        real(rkind), parameter :: pi = ACOS(-1.0d0)
+        integer    , parameter :: p=8               !< @brief number of grid-points to resolve the shortest-period sinusoidal wave
+        real(rkind), parameter :: pi = ACOS(-1.0d0) !< @brief constant \f$ \pi \f$
 
 
         contains
@@ -47,7 +48,22 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> add the random noise to the field
+        !> add the random noise to the mass density field \f$\rho(x,y)\f$"
+        !> \f[ \epsilon(x,y) = P^x(x) \, P^y(y) \f]
+        !> where \f$\epsilon\f$ is the perturbation added and
+        !> \f[ P^{x^i}(x_i) = \sum_{n=1}^{N^i}{ (2 S^i_P(k^i_n) \Delta k^i)^{1/2} \cos( k^i_n x_i + \Phi^i_n ) }\f]
+        !> \f[ k^i_n = n \Delta k^i \f]
+        !> The power spectral density \f$ S^i_P(k^i_n) \f$ is given by:
+        !> \f[ S^i_P(k) = \frac{2 K^i}{k^2} \exp \left( -\frac{2 K^i}{k} \right)\f]
+        !> where
+        !> \f[ N^x = \frac{x_\textrm{max} - x_\textrm{min}}{8 \Delta x} \quad \textrm{and} \quad N^y = \frac{y_\textrm{max} - y_\textrm{min}}{8 \Delta y} \f]
+        !> \f[ \Delta k^x = \frac{2 \pi}{x_\textrm{max} - x_\textrm{min}} \quad \textrm{and} \quad \Delta k^y = \frac{2 \pi}{y_\textrm{max} - y_\textrm{min}} \f]
+        !> \f[ K^x = \frac{N^x \Delta k^x}{4} \quad \textrm{and} \quad K^y = \frac{N^y \Delta k^y}{4} \f]
+        !> The perturbation \f$\epsilon(x,y)\f$ is multiplied by a smoothing function \f$f_S(x,y)\f$ to ensure that the noise vaishes smoothly at the edges:
+        !> \f[ \displaystyle{ f_S(x,y) = A (\rho_\textrm{liq}(T) - \rho_\textrm{vap}(T) ) \frac{p^x_S(x) p^y_S(y)}{\max \{ | \epsilon(x,y) |, (x,y) \in D_I \} } }\f]
+        !> where
+        !> \f[ p^x_S(x) = 1 - \left( \frac{2 (x-x_\textrm{min})}{x_\textrm{max} - x_\textrm{min}} - 1 \right)^2\f]
+        !> \f[ p^y_S(y) = 1 - \left( \frac{2 (y-y_\textrm{min})}{y_\textrm{max} - y_\textrm{min}} - 1 \right)^2\f]
         !
         !> @date
         !> 09_04_2015 - initial version - J.L. Desmarais
@@ -59,7 +75,7 @@
         !> map of y-coordinates
         !
         !>@param nodes
-        !> array with the grid point data
+        !> array with the grid point data, \f$\rho(x,y)\f$
         !---------------------------------------------------------------
         subroutine add_gaussian_perturbation(
      $       x_map,
@@ -141,9 +157,26 @@
         !> @brief
         !> compute the amplitude of the gaussian perturbation
         !> over the coordinate map
+        !> \f[P^{x^i}(x_i) \, p^{x^i}_S(x_i) \f]
+        !> where
+        !> \f[ P^{x^i}(x_i) = \sum_{n=1}^{N^i}{ (2 S^i_P(k^i_n) \Delta k^i)^{1/2} \cos( k^i_n x_i + \Phi^i_n ) }\f]
+        !> \f[ k^i_n = n \Delta k^i \f]
+        !> The power spectral density \f$ S^i_P(k^i_n) \f$ is given by:
+        !> \f[ S^i_P(k) = \frac{2 K^i}{k^2} \exp \left( -\frac{2 K^i}{k} \right)\f]
+        !> where
+        !> \f[ N^{x^i} = \frac{{x_i}_\textrm{max} - {x_i}_\textrm{min}}{8 \Delta {x_i}} \f]
+        !> \f[ \Delta k^{x^i} = \frac{2 \pi}{{x_i}_\textrm{max} - {x_i}_\textrm{min}} \f]
+        !> \f[ K^{x^i} = \frac{N^{x^i} \Delta k^{x^i}}{4} \f]
+        !> \f[ p^{x^i}_S(x_i) = 1 - \left( \frac{2 ({x_i}-{x_i}_\textrm{min})}{{x_i}_\textrm{max} - {x_i}_\textrm{min}} - 1 \right)^2\f]
         !
         !> @date
         !> 09_04_2015 - initial version - J.L. Desmarais
+        !
+        !>@param x_min
+        !> minimum of the domain of interest along the direction
+        !
+        !>@param x_max
+        !> maximum of the domain of interest along the direction
         !
         !>@param x_map
         !> map of x-coordinates
@@ -232,12 +265,18 @@
         !
         !> @brief
         !> compute the wave number for the sinusoidal functions
+        !> \f[ k^i = [ \Delta k^i, \cdots, n * \Delta k^i, \cdots, N^i * \Delta k^i ] \f]
+        !> where
+        !> \f[ \displaystyle{ \Delta k^i = \frac{2 \pi}{x^i_\textrm{max} - x^i_\textrm{min}} } \f]
         !
         !> @date
         !> 09_04_2015 - initial version - J.L. Desmarais
         !
-        !>@param x_map
-        !> map of x-coordinates
+        !>@param x_min
+        !> minimum coordinate for the domain of interest 
+        !
+        !>@param x_max
+        !> maximum coordinate for the domain of interest
         !
         !>@param kx
         !> wave numbers for the different phase angles
@@ -272,16 +311,22 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> compute the amplitudes of the sinusoidal fucntions
+        !> compute the amplitudes of the sinusoidal functions
+        !> \f[ A^i = [(2 S_P^i(k_1^i) \Delta k^i )^{1/2}, \cdots, (2 S_P^i(k_n^i) \Delta k^i )^{1/2}, \cdots, (2 S_P^i(k_{N^i}^i) \Delta k^i )^{1/2}] \f]
+        !> where
+        !> \f[ S_P^i(k) = \frac{2 K^i}{k^2} \exp \left( - \frac{2 K^i}{k} \right)\f]
+        !> and 
+        !> \f[ \Delta k^i = k^i_2 - k^i_1\f]
+        !> \f[ K^i = \frac{N^i \Delta k^i}{4} \f]
         !
         !> @date
         !> 09_04_2015 - initial version - J.L. Desmarais
         !
         !>@param kx
-        !> wave numbers for the different phase angles
+        !> wave numbers for the different phase angles, \f$ k^i = [k^i_1, \cdots, k^i_n, \cdots, k^i_{N^i}] \f$
         !
         !>@param Ax
-        !> amplitudes of the sinusoidal functions
+        !> amplitudes of the sinusoidal functions, \f$ A^i \f$
         !---------------------------------------------------------------
         subroutine compute_amplitudes(kx,Ax)
 
@@ -314,18 +359,19 @@
         !
         !> @brief
         !> compute the value of the power spectrum at a wave number
+        !> \f[ S_P(k) = \frac{2 K}{k^2} \exp \left( - \frac{2 K}{k} \right) \f]
         !
         !> @date
         !> 09_04_2015 - initial version - J.L. Desmarais
         !
         !>@param kx
-        !> wave numbers for the different phase angles
+        !> wave numbers for the different phase angles, \f$ k \f$
         !
         !>@param kx_max_spectrum
-        !> wave numbers where the power spectrum reaches its maximum
+        !> wave numbers where the power spectrum reaches its maximum, \f$ K \f$
         !
-        !>@return power_spectrum
-        !> amplitude of the power spectrum
+        !>@return
+        !> amplitude of the power spectrum, \f$ S_P(k) \f$
         !---------------------------------------------------------------
         function power_spectrum(kx,kx_max_spectrum)
 
@@ -347,6 +393,8 @@
         !
         !> @brief
         !> compute the random phase angles
+        !> \f[ \Phi^i = [\Phi^i_1, \cdots, \Phi^i_n, \cdots, \Phi^i_{N^i}] \f]
+        !> where \f$ \Phi^i_n \f$ is randomly chosen between \f$0\f$ and \f$2\pi\f$.
         !
         !> @date
         !> 09_04_2015 - initial version - J.L. Desmarais
@@ -400,7 +448,11 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> generate a random seed
+        !> generate a random seed depending on
+        !> the PID of the processor, \f$ p \f$
+        !> \f[ s = [s_1, \cdots, s_n, \cdots, s_{N^i}] \f]
+        !> where
+        !> \f[ s_n = | mod( 359(181 n)(p-83) , 104729)   | + 37(n-1)\f]
         !
         !> @date
         !> 09_04_2015 - initial version - J.L. Desmarais
@@ -440,22 +492,26 @@
         !
         !> @brief
         !> sum the sinusoidal contributions to create the gaussian
-        !> contribution at a coordinate
+        !> contribution at a coordinate \f$ x \f$
+        !> \f[ P^{x_i}(x) = \sum_{n=1}^{N^i}{A^i_n \cos \left( k^i_n x + \Phi^i_n \right) } \f]
         !
         !> @date
         !> 09_04_2015 - initial version - J.L. Desmarais
         !
         !>@param Ax
-        !> amplitudes of the sinusoidal functions
+        !> amplitudes of the sinusoidal functions, \f$ A^i = [A^i_1, \cdots, A^i_n, \cdots, A^i_{N^i}] \f$
         !
         !>@param kx
-        !> wave numbers of the sinusoidal functions
+        !> wave numbers of the sinusoidal functions, \f$ k^i = [k^i_1, \cdots, k^i_n, \cdots, k^i_{N^i}] \f$
         !
         !>@param x
-        !> x-coordinate
+        !> x-coordinate, \f$ x \f$
         !
         !>@param Phix
-        !> phase angles of the sinusoidal functions
+        !> phase angles of the sinusoidal functions, \f$ \Phi^i = [\Phi^i_1, \cdots, \Phi^i_n, \cdots, \Phi^i_{N^i}] \f$
+        !
+        !>@return 
+        !> Gaussian perturbation, \f$ P^{x_i}(x) \f$
         !---------------------------------------------------------------
         function compute_gaussian_intensity(Ax,kx,x,Phix)
      $     result(Px)
@@ -486,19 +542,23 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> smoothing factor at a coordinate
+        !> smoothing factor at a coordinate, \f$ x \f$
+        !> \f[ \displaystyle{s(x^i) = 1 - \left( \frac{2 (x^i - x^i_\textrm{min}) }{x^i_\textrm{max} - x^i_\textrm{min}} - 1 \right)^2 }\f]
         !
         !> @date
         !> 09_04_2015 - initial version - J.L. Desmarais
         !
+        !>@param x_min
+        !> minimum coordinate, \f$ x^i_\textrm{min} \f$
+        !
+        !>@param x_max
+        !> maximum coordinate, \f$ x^i_\textrm{max} \f$
+        !
         !>@param x
-        !> x-coordinate
+        !> coordinate, \f$x^i\f$
         !
-        !>@param x_map
-        !> x-coordinate map
-        !
-        !>@return smooth
-        !> smoothing factor
+        !>@return
+        !> smoothing factor, \f$ s(x) \f$
         !---------------------------------------------------------------
         function smooth(x_min,x_max,x)
 

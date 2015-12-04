@@ -1,15 +1,17 @@
       !> @file
-      !> class encapsulating subroutines to compute the initial
-      !> conditions and the conditions enforced at the edge of
-      !> the computational domain for phase separation
+      !> class extending ic_abstract to encapsulate operators
+      !> setting the initial conditions and the conditions
+      !> enforced at the edge of the computational domain
+      !> for phase separation
       !
       !> @author 
       !> Julien L. Desmarais
       !
       !> @brief
-      !> class encapsulating subroutines to compute the initial
-      !> conditions and the conditions enforced at the edge of
-      !> the computational domain for phase separation
+      !> class extending ic_abstract to encapsulate operators
+      !> setting the initial conditions and the conditions
+      !> enforced at the edge of the computational domain
+      !> for phase separation
       !
       !> @date
       !> 11_12_2014 - initial version - J.L. Desmarais
@@ -43,51 +45,26 @@
         public :: ic
 
         
-        !set the initial temperature in the field
-        real(rkind), parameter :: T0 = 0.99d0
+        real(rkind), parameter :: T0 = 0.99d0 !<@brief initial temperature in the computational domain, \f$ T_0\f$
 
 
         !> @class ic
         !> class encapsulating operators to set the initial
         !> conditions and the conditions enforced at the edge of the
         !> computational domain for phase separation
-        !
-        !> @param apply_initial_conditions
-        !> set the initial conditions
-        !
-        !> @param get_mach_ux_infty
-        !> get the mach number along the x-direction in the far field
-        !
-        !> @param get_mach_uy_infty
-        !> get the mach number along the y-direction in the far field
-        !
-        !> @param get_u_in
-        !> get the x-component of the velocity at the edge of the
-        !> computational domain
-        !
-        !> @param get_v_in
-        !> get the y-component of the velocity at the edge of the
-        !> computational domain
-        !
-        !> @param get_T_in
-        !> get the temperature at the edge of the computational
-        !> domain
-        !
-        !> @param get_P_out
-        !> get the pressure at the edge of the computational domain
         !---------------------------------------------------------------
         type, extends(ic_abstract) :: ic
 
           contains
 
-          procedure, nopass :: apply_ic
-          procedure, nopass :: get_mach_ux_infty
-          procedure, nopass :: get_mach_uy_infty
-          procedure, nopass :: get_u_in
-          procedure, nopass :: get_v_in
-          procedure, nopass :: get_T_in
-          procedure, nopass :: get_P_out
-          procedure,   pass :: get_far_field
+          procedure, nopass :: apply_ic          !<@brief set the initial conditions                                                 
+          procedure, nopass :: get_mach_ux_infty !<@brief get the Mach number along the x-direction in the far-field                 
+          procedure, nopass :: get_mach_uy_infty !<@brief get the Mach number along the y-direction in the far-field                 
+          procedure, nopass :: get_u_in          !<@brief get the x-component of the velocity at the edge of the computational domain
+          procedure, nopass :: get_v_in          !<@brief get the y-component of the velocity at the edge of the computational domain
+          procedure, nopass :: get_T_in          !<@brief get the temperature at the edge of the computational domain                
+          procedure, nopass :: get_P_out         !<@brief get the pressure at the edge of the computational domain                   
+          procedure,   pass :: get_far_field     !<@brief get the governing variables imposed at the edge of the computational domain
 
         end type ic
 
@@ -99,21 +76,45 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> subroutine computing the initial conditions
-        !> for a steady state
+        !> apply the initial conditions
+        !> to the computational domain for steady state
+        !> \f[
+        !> \begin{pmatrix} 
+        !> \rho \\\ \rho u \\\ \rho v \\\ \rho E
+        !> \end{pmatrix}(x,y) =
+        !> \begin{pmatrix} 
+        !> \rho_\textrm{mid} + \Delta \rho(x,y) \\\ 0 \\\ 0 \\\
+        !> \displaystyle{\rho(x,y) (c_v T_0 - 3 \rho(x,y)) + \frac{1}{2 We} |\nabla \rho(x,y)|^2}
+        !> \end{pmatrix}
+        !> \f]
+        !> where
+        !> \f[ \displaystyle{ \rho_\textrm{mid} = \frac{\rho_\textrm{vap}(T_0) + \rho_\textrm{liq}(T_0)}{2} } \f]
+        !> \f[ \Delta \rho(x,y) = \epsilon_x(x) \, \epsilon_y(y) \f]
+        !> \f[ \epsilon_x(x) =
+        !> \begin{cases}
+        !>    \displaystyle{0.7 (\rho_\textrm{liq}-\rho_\textrm{vap}) \left[ 1 + \cos \left( \frac{2 \pi}{x_\textrm{max} - x_\textrm{min}} \left( x - \frac{x_\textrm{min} + x_\textrm{max}}{2} \right)  \right) \right]} & \mbox{if } x \in [x_\textrm{min},x_\textrm{max}] \\\
+        !>    0 & \mbox{otherwise}
+        !> \end{cases}
+        !> \f]
+        !> \f[ \epsilon_y(y) =
+        !> \begin{cases}
+        !>    \displaystyle{0.7 (\rho_\textrm{liq}-\rho_\textrm{vap}) \left[ 1 + \cos \left( \frac{2 \pi}{y_\textrm{max} - y_\textrm{min}} \left( y - \frac{y_\textrm{min} + y_\textrm{max}}{2} \right)  \right) \right]} & \mbox{if } y \in [y_\textrm{min},y_\textrm{max}] \\\
+        !>    0 & \mbox{otherwise}
+        !> \end{cases}
+        !> \f]
         !
         !> @date
-        !> 11_12_2014 - initial version - J.L. Desmarais
+        !> 08_08_2013 - initial version - J.L. Desmarais
         !
         !>@param nodes
-        !> array with the grid point data
+        !> array with the grid point data    
         !
         !>@param x_map
-        !> map of x-coordinates
+        !> array with the x-coordinates
         !
         !>@param y_map
-        !> map of y-coordinates
-        !---------------------------------------------------------------
+        !> array with the y-coordinates                
+        !--------------------------------------------------------------
         subroutine apply_ic(nodes,x_map,y_map)
 
           implicit none
@@ -123,30 +124,30 @@
           real(rkind), dimension(:)    , intent(in)    :: y_map          
 
           
-          !local variables for the droplet/bubble
+          ! local variables for the droplet/bubble
           real(rkind) :: dliq,dvap
 
 
-          !< local variables for the perturbation
+          ! local variables for the perturbation
           real(rkind) :: xMin, xMax
           real(rkind) :: Tx, kx, Ax
           
           real(rkind) :: yMin, yMax
           real(rkind) :: Ty, ky, Ay
 
-          !< local variables for the initialization
+          ! local variables for the initialization
           integer(ikind) :: i,j
           real(rkind)    :: x,y
           real(rkind)    :: noise
 
 
-          !<get the mass densities corresponding to the
-          !>liquid and vapor phases for the initial
-          !>temperature field
+          ! get the mass densities corresponding to the
+          ! liquid and vapor phases for the initial
+          ! temperature field
           dliq = get_mass_density_liquid(T0)
           dvap = get_mass_density_vapor(T0)
 
-          !<set the perturbation properties
+          ! set the perturbation properties
           if(rkind.eq.8) then
              xMin = -0.5d0
              xMax =  0.5d0
@@ -176,34 +177,34 @@
           end if
 
 
-          !<initialize the fields
+          ! initialize the fields
           do j=1, ny
              !DEC$ IVDEP
              do i=1, nx
 
-                !<coordinates
+                ! coordinates
                 x = x_map(i)
                 y = y_map(j)
 
-                !<unstable mass density
+                ! unstable mass density
                 if(rkind.eq.8) then
                    nodes(i,j,1)=(dliq+dvap)/2.0d0
                 else
                    nodes(i,j,1)=(dliq+dvap)/2.0
                 end if
 
-                !<adding the sinusoidal perturbation to 
-                !the initial unstable mass density
+                ! adding the sinusoidal perturbation to 
+                ! the initial unstable mass density
                 noise = perturbation(x,xMin,xMax,kx,Ax)*
      $               perturbation(y,yMin,yMax,ky,Ay)
                 nodes(i,j,1)=nodes(i,j,1)+noise
 
-                !<null velocity field
+                ! null velocity field
                 nodes(i,j,2)=0.0d0
                 nodes(i,j,3)=0.0d0
 
-                !<total energy field corresponding to the
-                !<temperature and the mass density fields
+                ! total energy field corresponding to the
+                ! temperature and the mass density fields
                 nodes(i,j,4)=energy_phase_separation(
      $               x,y,
      $               nodes(i,j,1),T0,
@@ -216,8 +217,24 @@
         end subroutine apply_ic
 
 
-        !get the variable enforced at the edge of the
-        !computational domain
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the Mach number imposed in the far-field
+        !> for the velocity in the x-direction
+        !> \f[ \textrm{Ma}_x = 0 \f]
+        !
+        !> @date
+        !> 08_08_2013 - initial version - J.L. Desmarais
+        !
+        !> @param side
+        !> left or right side
+        !
+        !> @return
+        !> Mach number for the velocity in the x-direction,
+        !> \f$ \textrm{Ma}_x \f$
+        !--------------------------------------------------------------
         function get_mach_ux_infty(side) result(var)
 
           implicit none
@@ -238,8 +255,24 @@
         end function get_mach_ux_infty
 
 
-        !get the variable enforced at the edge of the
-        !computational domain
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the Mach number imposed in the far-field
+        !> for the velocity in the y-direction
+        !> \f[ \textrm{Ma}_y = 0 \f]
+        !
+        !> @date
+        !> 08_08_2013 - initial version - J.L. Desmarais
+        !
+        !>@param side
+        !> left or right side
+        !
+        !>@return
+        !> Mach number for the velocity in the y-direction,
+        !> \f$ \textrm{Ma}_y \f$
+        !--------------------------------------------------------------
         function get_mach_uy_infty(side) result(var)
 
           implicit none
@@ -260,8 +293,30 @@
         end function get_mach_uy_infty
 
 
-        !get the x-component of the velocity enforced
-        !at the edge of the computational domain
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the value of the velocity
+        !> in the x-direction imposed in the far-field
+        !> \f[ u_\infty(t,x,y) = 0 \f]
+        !
+        !> @date
+        !> 08_08_2013 - initial version - J.L. Desmarais
+        !
+        !>@param t
+        !> time
+        !
+        !>@param x
+        !> x-coordinate
+        !
+        !>@param y
+        !> y-coordinate
+        !
+        !>@return
+        !> velocity along the x-direction imposed in the far-field
+        !> \f$ u_\infty(t,x,y) \f$
+        !--------------------------------------------------------------
         function get_u_in(t,x,y) result(var)
 
           implicit none
@@ -287,8 +342,30 @@
         end function get_u_in
 
 
-        !get the y-component of the velocity enforced
-        !at the edge of the computational domain
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the value of the velocity
+        !> in the y-direction imposed in the far-field
+        !> \f[ v_\infty(t,x,y) = 0 \f]
+        !
+        !> @date
+        !> 08_08_2013 - initial version - J.L. Desmarais
+        !
+        !>@param t
+        !> time
+        !
+        !>@param x
+        !> x-coordinate
+        !
+        !>@param y
+        !> y-coordinate
+        !
+        !>@return
+        !> velocity along the y-direction imposed in the far-field
+        !> \f$ v_\infty(t,x,y) \f$
+        !--------------------------------------------------------------
         function get_v_in(t,x,y) result(var)
 
           implicit none
@@ -314,8 +391,30 @@
         end function get_v_in
 
       
-        !get the temperature enforced at the edge of the
-        !computational domain
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the value of the
+        !> temperature imposed in the far-field
+        !> \f[ T_\infty(t,x,y) = T_0 \f]
+        !
+        !> @date
+        !> 08_08_2013 - initial version - J.L. Desmarais
+        !
+        !>@param t
+        !> time
+        !
+        !>@param x
+        !> x-coordinate
+        !
+        !>@param y
+        !> y-coordinate
+        !
+        !>@return
+        !> temperature imposed in the far-field
+        !> \f$ T_\infty(t,x,y) \f$
+        !--------------------------------------------------------------
         function get_T_in(t,x,y) result(var)
 
           implicit none
@@ -337,8 +436,32 @@
         end function get_T_in
 
 
-        !get the pressure enforced at the edge of the
-        !computational domain
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the value of the
+        !> pressure imposed in the far-field
+        !> \f[ P_\infty(t,x,y) =
+        !> \frac{8 \rho_\textrm{liq}(T_0) T_0}{3 - \rho_\textrm{liq}(T_0)}
+        !> - 3 \rho_\textrm{liq}^2(T_0) \f]
+        !
+        !> @date
+        !> 08_08_2013 - initial version - J.L. Desmarais
+        !
+        !>@param t
+        !> time
+        !
+        !>@param x
+        !> x-coordinate
+        !
+        !>@param y
+        !> y-coordinate
+        !
+        !>@return
+        !> pressure imposed in the far-field,
+        !> \f$ P_\infty(t,x,y) \f$
+        !--------------------------------------------------------------
         function get_P_out(t,x,y) result(var)
 
           implicit none
@@ -371,10 +494,26 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> get the governing variables imposed in the far field
+        !> get the value of the variables
+        !> imposed at the edge of the computational domain
+        !> depending on time and coordinates as well as the
+        !> state of the object
+        !> \f[
+        !> \begin{pmatrix}
+        !> \rho_\infty \\\ {\rho u}_\infty \\\ {\rho v}_\infty \\\ {\rho E}_\infty
+        !> \end{pmatrix} = 
+        !> \begin{pmatrix}
+        !> \rho_\textrm{liq}(T_0) \\\ 0 \\\ 0 \\\
+        !> \rho_\textrm{liq}(T_0) (c_v T_0 - 3 \rho_\textrm{liq}(T_0))
+        !> \end{pmatrix}
+        !> \f]
         !
         !> @date
-        !> 03_12_2014 - initial version - J.L. Desmarais
+        !> 08_08_2013 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> object encapsulating the initial conditions and
+        !> the state of the conditions imposed in the far-field
         !
         !>@param t
         !> time
@@ -385,8 +524,9 @@
         !>@param y
         !> y-coordinate
         !
-        !>@return var
-        !> governing variables in the far-field
+        !>@return
+        !> variable imposed at the edge of the computational
+        !> domain
         !--------------------------------------------------------------
         function get_far_field(this,t,x,y) result(var)
 
@@ -421,28 +561,41 @@
 
             end if
 
-          end function get_far_field
+        end function get_far_field
 
 
-          !> @author
+        !> @author
         !> Julien L. Desmarais
         !
         !> @brief
-        !> function computing the perturbation
+        !> function computing the perturbation, \f$ \epsilon \f$
+        !> \f[ \epsilon(x) = 
+        !> \begin{cases}
+        !> \displaystyle{A_x \left[ 1 + \cos \left( k_x \left( x - \frac{x_\textrm{min} + x_\textrm{max}}{2} \right) \right)\right]} & \mbox{if } x \in [x_\textrm{min}, x_\textrm{max}] \\\
+        !> 0 & \mbox{otherwise}
+        !> \end{cases}
+        !> \f]
         !
         !> @date
         !> 19_12_2013 - initial version - J.L. Desmarais
         !
         !>@param x
         !> x-coordinate
+        !
         !>@param x_min
         !> lower space border of the perturbation
+        !
         !>@param x_max
         !> upper space border of the perturbation
+        !
         !>@param kx
         !> wave number for the sinusoidal perturbation
+        !
         !>@param Ax
         !> amplitude of the perturbation
+        !
+        !>@return
+        !> perturbation amplitude, \f$ \epsilon \f$
         !---------------------------------------------------------------
         function perturbation(x,x_min,x_max,kx,Ax)
 
@@ -481,21 +634,34 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> function computing the perturbation
+        !> function computing the perturbation gradient, \f$ \frac{d \epsilon}{d x} \f$
+        !> \f[ \frac{d \epsilon}{d x}(x) = 
+        !> \begin{cases}
+        !> \displaystyle{- k_x \, Ax \, \sin \left( k_x \left(x- \frac{x_\textrm{max}+x_\textrm{min}}{2} \right) \right)}  & \mbox{if } x \in [x_\textrm{min}, x_\textrm{max}] \\\
+        !> 0 & \mbox{otherwise}
+        !> \end{cases}
+        !> \f]
         !
         !> @date
         !> 19_12_2013 - initial version - J.L. Desmarais
         !
         !>@param x
         !> x-coordinate
+        !
         !>@param x_min
         !> lower space border of the perturbation
+        !
         !>@param x_max
         !> upper space border of the perturbation
+        !
         !>@param kx
         !> wave number for the sinusoidal perturbation
+        !
         !>@param Ax
         !> amplitude of the perturbation
+        !
+        !>@return
+        !> perturbation amplitude, \f$ \frac{d \epsilon}{d x} \f$
         !---------------------------------------------------------------
         function perturbation_gradient(x,x_min,x_max,kx,Ax)
 
@@ -536,34 +702,49 @@
         !> function computing the total energy corresponding
         !> to the initial mass density and temperature fields
         !> leading to phase separation
+        !> \f[ \displaystyle{\rho E(x,y) = \rho(x,y) (c_v T_0 - 3 \rho(x,y)) + \frac{1}{2 We} |\nabla \rho(x,y)|^2} \f]
         !
         !> @date
         !> 19_12_2013 - initial version - J.L. Desmarais
         !
         !>@param x
         !> x-coordinate
+        !
         !>@param y
         !> y-coordinate
+        !
         !>@param mass_density
         !> mass density at (x,y)
+        !
         !>@param temperature
         !> temperature at (x,y)
+        !
         !>@param x_min
         !> lower space border of the perturbation along x
+        !
         !>@param x_max
         !> upper space border of the perturbation along x
+        !
         !>@param kx
         !> wave number for the sinusoidal perturbation along x
+        !
         !>@param Ax
         !> amplitude of the perturbation along x
+        !
         !>@param y_min
         !> lower space border of the perturbation along y
+        !
         !>@param y_max
         !> upper space border of the perturbation along y
+        !
         !>@param ky
         !> wave number for the sinusoidal perturbation along y
+        !
         !>@param Ay
         !> amplitude of the perturbation along y
+        !
+        !>@return
+        !> total energy density at (x,y)
         !---------------------------------------------------------------
         function energy_phase_separation(
      $               x,y,
