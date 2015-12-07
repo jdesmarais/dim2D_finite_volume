@@ -38,10 +38,12 @@
         !
         !> @brief
         !> subroutine computing the coordinate
-        !> corresponding to an ellipsoidial 
+        !> corresponding to an ellipsoidal 
         !> coordinate system
-        !> \f$ r=\sqrt{\frac{{(x-x_c)}^2}{a^2} +
-        !> \frac{{(y-y_c)}^2}{b^2}} \f$
+        !> \f[ r=\displaystyle{\sqrt{\frac{{(x-x_c)}^2}{a^2} +
+        !> \frac{{(y-y_c)}^2}{b^2}}} \f]
+        !> where \f$ a \f$ is the major axis and \f$ b \f$, the
+        !> minor axis.
         !
         !> @date
         !> 26_09_2013 - initial version - J.L. Desmarais
@@ -59,10 +61,13 @@
         !> coordinate along the y-axis for the center of the ellipsoid
         !
         !>@param a
-        !> diameter of the ellipsoid along the x-axis
+        !> diameter of the ellipsoid along the x-axis (major axis)
         !
         !>@param b
-        !> diameter of the ellipsoid along the y-axis
+        !> diameter of the ellipsoid along the y-axis (minor axis)
+        !
+        !>@return
+        !> ellipsoidal coordinate, \f$ r \f$
         !---------------------------------------------------------------
         function get_coordinate(x,y,xc,yc,a,b) result(r)
 
@@ -82,12 +87,22 @@
         !> @brief
         !> function giving a sign (-1 or +1) depending if there is
         !> liquid or vapor at the center of the domain
+        !> \f[
+        !> f(x) = 
+        !> \begin{cases}
+        !>   -1 & \mbox{if liquid phase in center} \\\
+        !>   +1 & \mbox{if vapor phase in center}
+        !> \end{cases}
+        !> \f]
         !
         !> @date
         !> 27_09_2013 - initial version - J.L. Desmarais
         !
         !>@param phase_at_center
         !> choose the phase at the center of the domain: liquid or vapor
+        !
+        !>@return
+        !> sign, \f$ f(x) \f$
         !----------------------------------------------------------------
         function choose_phase_at_center(phase_at_center) result(sign)
 
@@ -117,27 +132,50 @@
         !> @brief
         !> subroutine computing the mass density field
         !> corresponding to an ellipsoidal droplet
-        !> \f$ \rho(x,y) = \frac{\rho_l+\rho_v}{2}
-        !> + \frac{\rho_l-\rho_v}{2} \tanh \left(
-        !> \frac{-2 (r-r_c)}{l} \right) \f$
+        !> \f[ \rho(x,y) = \displaystyle{\frac{\rho_\textrm{liq}+\rho_\textrm{vap}}{2}
+        !> + \frac{\rho_\textrm{liq}-\rho_\textrm{vap}}{2} \tanh \left(
+        !> \frac{-2 \sqrt{ab} (r-r_i)}{L_i} \right)} \f]
+        !> where \f$ \rho_\textrm{liq}\f$ is the mass density for the
+        !> saturated liquid phase, \f$ \rho_\textrm{vap} \f$ is the mass density
+        !> for the vapor phase, \f$L_i\f$ is the width of the interface,
+        !> \f$r\f$ the ellipsoidal coordinate, and \f$ r_i \f$ the ellipsoidal
+        !> coordinate corresponding to the location of the interface.
         !
         !> @date
         !> 14_08_2013 - initial version - J.L. Desmarais
         !
-        !>@param r
-        !> ellipsoidal coordinate
+        !>@param x
+        !> coordinate along the x-axis in a Cartesian 2D system
         !
-        !>@param rc
-        !> ellipsoidal coordinate of the interface center
+        !>@param y
+        !> coordinate along the y-axis in a Cartesian 2D system
         !
-        !>@param d_liq
+        !>@param xc
+        !> coordinate along the x-axis for the center of the ellipsoid
+        !
+        !>@param yc
+        !> coordinate along the y-axis for the center of the ellipsoid
+        !
+        !>@param a
+        !> diameter of the ellipsoid along the x-axis (major axis)
+        !
+        !>@param b
+        !> diameter of the ellipsoid along the y-axis (minor axis)
+        !
+        !>@param li
+        !> width of the interface
+        !
+        !>@param dliq
         !> mass density of saturated liquid water
         !
-        !>@param d_vap
+        !>@param dvap
         !> mass density of saturated vapor water
         !
-        !>@param l
-        !> length of the interface
+        !>@param phase_at_center
+        !> phase in the center        
+        !
+        !>@return
+        !> mass density, \f$ \rho(x,y) \f$
         !---------------------------------------------------------------
         function mass_density_ellipsoid(
      $     x,y,xc,yc,a,b,li,dliq,dvap,phase_at_center)
@@ -179,7 +217,18 @@
         !> subroutine computing the squared norm of
         !> the mass density gradient field. The mass
         !> density field corresponds to an ellipsoidal
-        !> droplet \f$ {|\nabla \rho(x,y)|}^2 \f$
+        !> droplet
+        !> \f[ {|\nabla \rho(x,y)|}^2 =
+        !> {\left(\frac{\rho_\textrm{liq}-\rho_\textrm{vap}}{L_i r/\sqrt{a b}}\right)}^2
+        !> {\left[ 1.0 - {\left(\textrm{tanh}\left( \frac{2 \sqrt{a b} (r - r_i)}{L_i}\right)\right)}^2\right]}^2
+        !> \left[ \frac{(x-x_c)^2}{a^4} + \frac{(y-y_c)^2}{b^4} \right]
+        !> \f]
+        !> where \f$ \rho_\textrm{liq}\f$ is the mass density for the
+        !> saturated liquid phase, \f$ \rho_\textrm{vap} \f$ is the mass density
+        !> for the vapor phase, \f$L_i\f$ is the width of the interface,
+        !> \f$r\f$ the ellipsoidal coordinate, \f$ r_i \f$ the ellipsoidal
+        !> coordinate corresponding to the location of the interface, \f$ a \f$
+        !> the major axis of the ellipse and \f$ b \f$ its minor axis.
         !
         !> @date
         !> 14_08_2013 - initial version - J.L. Desmarais
@@ -187,32 +236,32 @@
         !>@param x
         !> coordinate along the x-axis in a Cartesian 2D system
         !
-        !>@param xc
-        !> coordinate along the x-axis for the center of the ellipsoid
-        !
         !>@param y
         !> coordinate along the y-axis in a Cartesian 2D system
+        !
+        !>@param xc
+        !> coordinate along the x-axis for the center of the ellipsoid
         !
         !>@param yc
         !> coordinate along the y-axis for the center of the ellipsoid
         !
-        !>@param ri
-        !> ellipsoidal coordinate of the interface center
-        !
         !>@param a
-        !> diameter of the ellipsoid along the x-axis
+        !> diameter of the ellipsoid along the x-axis (major axis)
         !
         !>@param b
-        !> diameter of the ellipsoid along the y-axis
-        !
-        !>@param d_liq
-        !> mass density of saturated liquid water
-        !
-        !>@param d_vap
-        !> mass density of saturated vapor water
+        !> diameter of the ellipsoid along the y-axis (minor axis)
         !
         !>@param li
-        !> length of the interface
+        !> width of the interface
+        !
+        !>@param dliq
+        !> mass density of saturated liquid water
+        !
+        !>@param dvap
+        !> mass density of saturated vapor water
+        !
+        !>@return
+        !> squared norm of the gradient of the mass density, \f$ |\nabla \rho |^2\f$
         !---------------------------------------------------------------
         function mass_density_grad_norm_squared(
      $     x,y,xc,yc,a,b,li,dliq,dvap)
@@ -258,20 +307,22 @@
         !> subroutine computing the total energy 
         !> evaluated at the cartesian point (x,y)
         !> in a uniform temperature field T0 and a
-        !> mass density field corrsponding to an 
-        !> ellisodial droplet.
-        !> \f$ \rho E(x,y) = \rho(x,y)*(\frac{8}{3}*c_v
-        !> *T_0-3*\rho(x,y)) + \frac{1}{2*We}*{|\nabla
-        !> \rho(x,y)|}^2\f$
+        !> mass density field corresponding to an 
+        !> ellipsoidal droplet.
+        !> \f[
+        !> \rho E(x,y) = \rho(x,y) \, \left(\frac{8}{3}c_v
+        !> T_0-3 \rho(x,y)\right) + \frac{1}{2 We} {|\nabla
+        !> \rho(x,y)|}^2
+        !> \f]
+        !> where \f$ \rho_\textrm{liq}\f$ is the mass density for the
+        !> saturated liquid phase, \f$ \rho_\textrm{vap} \f$ is the mass density
+        !> for the vapor phase, \f$L_i\f$ is the width of the interface,
+        !> \f$r\f$ the ellipsoidial coordinate, \f$ r_i \f$ the ellipsoidal
+        !> coordinate corresponding to the location of the interface, \f$ a \f$
+        !> the major axis of the ellipse and \f$ b \f$ its minor axis.
         !
         !> @date
         !> 14_08_2013 - initial version - J.L. Desmarais
-        !
-        !>@param md
-        !> mass density evaluated at the cartesian point (x,y)
-        !
-        !>@param T0
-        !> uniform temperature in the field
         !
         !>@param x
         !> coordinate along the x-axis in a Cartesian 2D system
@@ -285,23 +336,29 @@
         !>@param yc
         !> coordinate along the y-axis for the center of the ellipsoid
         !
-        !>@param ri
-        !> ellipsoidal coordinate of the interface center
-        !
         !>@param a
-        !> diameter of the ellipsoid along the x-axis
+        !> diameter of the ellipsoid along the x-axis (major axis)
         !
         !>@param b
-        !> diameter of the ellipsoid along the y-axis
+        !> diameter of the ellipsoid along the y-axis (minor axis)
         !
-        !>@param d_liq
+        !>@param li
+        !> width of the interface
+        !
+        !>@param dliq
         !> mass density of saturated liquid water
         !
-        !>@param d_vap
+        !>@param dvap
         !> mass density of saturated vapor water
         !
-        !>@param l
-        !> length of the interface
+        !>@param md
+        !> mass density evaluated at the cartesian point (x,y)
+        !
+        !>@param T0
+        !> uniform temperature in the field
+        !
+        !>@return
+        !> total energy, \f$ \rho E(x,y)\f$
         !---------------------------------------------------------------
         function total_energy_ellipsoid(
      $     x,y,xc,yc,a,b,li,dliq,dvap,

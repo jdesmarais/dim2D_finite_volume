@@ -10,7 +10,7 @@
       !> the velocity field due to vortices
       !
       !> @date
-      !> 27_09_2013 - initial version                   - J.L. Desmarais
+      !> 27_09_2013 - initial version - J.L. Desmarais
       !-----------------------------------------------------------------
       module dim2d_vortex_module
 
@@ -32,6 +32,18 @@
         !> @brief
         !> function computing the velocity due to a vortex
         !> whose center, spread and rotational are prescribed
+        !> \f[
+        !> \begin{pmatrix} u(x,y) \\\ v(x,y) \end{pmatrix} = 
+        !> \begin{pmatrix} - \displaystyle{\frac{y-y_c}{r}} \\\ \\\ \displaystyle{\frac{x-x_c}{r}} \end{pmatrix} w(r) 
+        !> \f]
+        !> where 
+        !> \f[ r = \sqrt{(x-x_c)^2+(y-y_c)^2} \f]
+        !> \f[ w(r) = \begin{cases}
+        !>  \omega r & \mbox{if } r<r_c\\\
+        !>  \omega \displaystyle{\frac{r_c^2}{r}} & \mbox{if } r \ge r_c
+        !> \end{cases}
+        !> \f]
+        !> \f[ \omega = \textrm{rot} \begin{pmatrix} u \\\ v \end{pmatrix} \f]
         !
         !> @date
         !> 27_09_2013 - initial version - J.L. Desmarais
@@ -48,8 +60,14 @@
         !>@param y_c
         !> spatial coordinate along the y-axis for the vortex center
         !
+        !>@param r_c
+        !> spread of the vortex
+        !
         !>@param omega
         !> rotational of the velocity field: strength of the vortex
+        !
+        !>@return
+        !> velocity, \f$ (u,v)^T \f$
         !---------------------------------------------------------------
         function get_vortex_velocity(x,y,x_c,y_c,r_c, omega)
      $       result(velocity)

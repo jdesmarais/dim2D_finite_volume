@@ -102,7 +102,7 @@
         !> where
         !> \f[ \rho_\textrm{bubble}(r,r_c) = \frac{\rho_\textrm{liq} + \rho_\textrm{vap}}{2}
         !> + \frac{\rho_\textrm{liq} - \rho_\textrm{vap}}{2} \tanh \left( \frac{2 (r-r_c)}{L_i} \right)\f]
-        !> \f[ r(x,y,a,b) = a b \sqrt{ \frac{x^2}{a^2} + \frac{y^2}{b^2} } \f]
+        !> \f[ r(x,y,a,b) = \sqrt{a b} \sqrt{ \frac{x^2}{a^2} + \frac{y^2}{b^2} } \f]
         !> and \f$ L_i \f$ is the width of the interface,
         !> and \f$ a \f$ and \f$ b \f$ are the major and minor radii
         !> of the ellipsoid

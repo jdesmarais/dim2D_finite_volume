@@ -68,7 +68,7 @@
         real(rkind), parameter :: u0_x_flow  = flow_velocity*flow_x_side                   !<@brief mean flow x-velocity if the flow is in the x-direction       
         real(rkind), parameter :: u0_y_flow  = 0.0d0                                       !<@brief mean flow x-velocity if the flow is in the y-direction       
         real(rkind), parameter :: u0_xy_flow = 0.5d0*SQRT(2.0d0)*flow_velocity*flow_x_side !<@brief mean flow x-velocity if the flow is in the diagonal direction
-
+                                                                                                                                                                 
         real(rkind), parameter :: v0_x_flow  = 0.0d0                                       !<@brief mean flow y-velocity if the flow is in the x-direction       
         real(rkind), parameter :: v0_y_flow  = flow_velocity*flow_y_side                   !<@brief mean flow y-velocity if the flow is in the y-direction       
         real(rkind), parameter :: v0_xy_flow = 0.5d0*SQRT(2.0d0)*flow_velocity*flow_y_side !<@brief mean flow y-velocity if the flow is in the diagonal direction
@@ -85,17 +85,17 @@
 
           contains
 
-          procedure, nopass :: apply_ic          !<@brief set the initial conditions                                                 
-          procedure, nopass :: get_mach_ux_infty !<@brief get the Mach number along the x-direction in the far-field                 
-          procedure, nopass :: get_mach_uy_infty !<@brief get the Mach number along the y-direction in the far-field                 
-          procedure, nopass :: get_u_in          !<@brief get the x-component of the velocity at the edge of the computational domain
-          procedure, nopass :: get_v_in          !<@brief get the y-component of the velocity at the edge of the computational domain
-          procedure, nopass :: get_T_in          !<@brief get the temperature at the edge of the computational domain                
-          procedure, nopass :: get_P_out         !<@brief get the pressure at the edge of the computational domain                   
-                                                 
+          procedure, nopass :: apply_ic          !<@brief set the initial conditions                                                        
+          procedure, nopass :: get_mach_ux_infty !<@brief get the Mach number along the x-direction in the far-field                        
+          procedure, nopass :: get_mach_uy_infty !<@brief get the Mach number along the y-direction in the far-field                        
+          procedure, nopass :: get_u_in          !<@brief get the x-component of the velocity at the edge of the computational domain       
+          procedure, nopass :: get_v_in          !<@brief get the y-component of the velocity at the edge of the computational domain       
+          procedure, nopass :: get_T_in          !<@brief get the temperature at the edge of the computational domain                       
+          procedure, nopass :: get_P_out         !<@brief get the pressure at the edge of the computational domain                          
+                                                                                                                                            
           procedure,   pass :: ini_far_field     !<@brief initialize the governing variables imposed at the edge of the computational domain
-          procedure,   pass :: get_far_field     !<@brief get the governing variables imposed at the edge of the computational domain
-          procedure,   pass :: set_far_field     !<@brief set the governing variables imposed at the edge of the computational domain
+          procedure,   pass :: get_far_field     !<@brief get the governing variables imposed at the edge of the computational domain       
+          procedure,   pass :: set_far_field     !<@brief set the governing variables imposed at the edge of the computational domain       
 
         end type ic
 
@@ -737,7 +737,7 @@
         !> 03_12_2014 - initial version - J.L. Desmarais
         !
         !>@return
-        !> mean flow velocity in the y-direction
+        !> mass density in the far-field, \f$ \rho_\infty \f$
         !--------------------------------------------------------------
         function get_mass_far_field()
      $     result(mass)

@@ -1,7 +1,7 @@
       !> @file
       !> class encapsulating subroutines to compute the initial
       !> conditions and the conditions enforced at the edge of
-      !> the computational domain for bubble transported
+      !> the computational domain for a bubble advected by the flow
       !
       !> @author 
       !> Julien L. Desmarais
@@ -9,7 +9,7 @@
       !> @brief
       !> class encapsulating subroutines to compute the initial
       !> conditions and the conditions enforced at the edge of
-      !> the computational domain for bubble ascending
+      !> the computational domain for a bubble advected by the flow
       !
       !> @date
       !> 12_12_2014 - initial version - J.L. Desmarais
@@ -66,62 +66,36 @@
         private
         public :: ic
 
-        !set the phase at the center
-        integer, parameter     :: phase_at_center = vapor
+        integer, parameter     :: phase_at_center = vapor !<@brief phase at the center (vapor: bubble in saturated liquid, liquid: droplet in saturated vapor)
         
-        !flow velocities for the different flow configurations
-        real(rkind), parameter :: u0_x_flow  = flow_velocity*flow_x_side
-        real(rkind), parameter :: u0_y_flow  = 0.0d0
-        real(rkind), parameter :: u0_xy_flow = 0.5d0*SQRT(2.0d0)*flow_velocity*flow_x_side
-
-        real(rkind), parameter :: v0_x_flow  = 0.0d0
-        real(rkind), parameter :: v0_y_flow  = flow_velocity*flow_y_side
-        real(rkind), parameter :: v0_xy_flow = 0.5d0*SQRT(2.0d0)*flow_velocity*flow_y_side
+        real(rkind), parameter :: u0_x_flow  = flow_velocity*flow_x_side                   !<@brief mean flow x-velocity if the flow is in the x-direction       
+        real(rkind), parameter :: u0_y_flow  = 0.0d0                                       !<@brief mean flow x-velocity if the flow is in the y-direction       
+        real(rkind), parameter :: u0_xy_flow = 0.5d0*SQRT(2.0d0)*flow_velocity*flow_x_side !<@brief mean flow x-velocity if the flow is in the diagonal direction
+                                                                                                                                                                 
+        real(rkind), parameter :: v0_x_flow  = 0.0d0                                       !<@brief mean flow y-velocity if the flow is in the x-direction       
+        real(rkind), parameter :: v0_y_flow  = flow_velocity*flow_y_side                   !<@brief mean flow y-velocity if the flow is in the y-direction       
+        real(rkind), parameter :: v0_xy_flow = 0.5d0*SQRT(2.0d0)*flow_velocity*flow_y_side !<@brief mean flow y-velocity if the flow is in the diagonal direction
 
 
         !> @class ic
         !> class encapsulating operators to set the initial
         !> conditions and the conditions enforced at the edge of the
-        !> computational domain for phase separation
-        !
-        !> @param apply_initial_conditions
-        !> set the initial conditions
-        !
-        !> @param get_mach_ux_infty
-        !> get the mach number along the x-direction in the far field
-        !
-        !> @param get_mach_uy_infty
-        !> get the mach number along the y-direction in the far field
-        !
-        !> @param get_u_in
-        !> get the x-component of the velocity at the edge of the
-        !> computational domain
-        !
-        !> @param get_v_in
-        !> get the y-component of the velocity at the edge of the
-        !> computational domain
-        !
-        !> @param get_T_in
-        !> get the temperature at the edge of the computational
-        !> domain
-        !
-        !> @param get_P_out
-        !> get the pressure at the edge of the computational domain
+        !> computational domain for a domain extension test
         !---------------------------------------------------------------
         type, extends(ic_abstract) :: ic
 
-          character(18) :: name = 'bubble_transported'
+          character(18) :: name = 'bubble_transported' !<@brief name of the initial condition
 
           contains
 
-          procedure, nopass :: apply_ic
-          procedure, nopass :: get_mach_ux_infty
-          procedure, nopass :: get_mach_uy_infty
-          procedure, nopass :: get_u_in
-          procedure, nopass :: get_v_in
-          procedure, nopass :: get_T_in
-          procedure, nopass :: get_P_out
-          procedure,   pass :: get_far_field
+          procedure, nopass :: apply_ic          !<@brief set the initial conditions                                                        
+          procedure, nopass :: get_mach_ux_infty !<@brief get the Mach number along the x-direction in the far-field                        
+          procedure, nopass :: get_mach_uy_infty !<@brief get the Mach number along the y-direction in the far-field                        
+          procedure, nopass :: get_u_in          !<@brief get the x-component of the velocity at the edge of the computational domain       
+          procedure, nopass :: get_v_in          !<@brief get the y-component of the velocity at the edge of the computational domain       
+          procedure, nopass :: get_T_in          !<@brief get the temperature at the edge of the computational domain                       
+          procedure, nopass :: get_P_out         !<@brief get the pressure at the edge of the computational domain                          
+          procedure,   pass :: get_far_field     !<@brief get the governing variables imposed at the edge of the computational domain
 
         end type ic
 
@@ -133,21 +107,40 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> subroutine computing the initial conditions
-        !> for a steady state
+        !> apply the initial conditions
+        !> with a bubble located in the center, whose
+        !> radius is twice the width of the interface at
+        !> equilibrium and advected by a uniform mean flow
+        !> \f[
+        !> \begin{pmatrix} 
+        !> \rho \\\ \rho u \\\ \rho v \\\ \rho E
+        !> \end{pmatrix}(x,y) =
+        !> \begin{pmatrix}
+        !> \rho_\textrm{bubble}(\sqrt{x^2+y^2},2L_i) \\\
+        !> \rho(x,y) u_0 \\\
+        !> \rho(x,y) v_0 \\\
+        !> \rho(x,y) \left[ \frac{8}{3} c_v T_0 - 3 \rho(x,y) \right]
+        !> + \frac{1}{2} \rho(x,y) (u_0^2 + v_0^2)
+        !> + \frac{1}{2 \textrm{We}} | \nabla \rho(x,y) |^2
+        !> \end{pmatrix}
+        !> \f]
+        !> where
+        !> \f[ \rho_\textrm{bubble}(r,r_c) = \frac{\rho_\textrm{liq} + \rho_\textrm{vap}}{2}
+        !> + \frac{\rho_\textrm{liq} - \rho_\textrm{vap}}{2} \tanh \left( \frac{2 (r-r_c)}{L_i} \right)\f]
+        !> and \f$ L_i \f$ is the width of the interface.
         !
         !> @date
-        !> 12_12_2014 - initial version - J.L. Desmarais
+        !> 08_08_2013 - initial version - J.L. Desmarais
         !
         !>@param nodes
-        !> array with the grid point data
+        !> array with the grid point data, \f$ (\rho, \rho u, \rho v ,\rho E) \f$
         !
         !>@param x_map
-        !> map of x-coordinates
+        !> array with the x-coordinates
         !
         !>@param y_map
-        !> map of y-coordinates
-        !---------------------------------------------------------------
+        !> array with the y-coordinates                
+        !--------------------------------------------------------------
         subroutine apply_ic(nodes,x_map,y_map)
 
           implicit none
@@ -224,8 +217,26 @@
         end subroutine apply_ic
 
 
-        !get the variable enforced at the edge of the
-        !computational domain
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the Mach number imposed in the far-field
+        !> for the velocity in the x-direction
+        !> \f[ \textrm{Ma}_x = \frac{u_0}{c}\f]
+        !> where \f$u_0\f$ is the velocity of the mean flow
+        !> in the x-direction and \f$c\f$ is the speed of sound
+        !
+        !> @date
+        !> 08_08_2013 - initial version - J.L. Desmarais
+        !
+        !>@param side
+        !> left or right side
+        !
+        !>@return
+        !> Mach number for the velocity in the x-direction,
+        !> \f$ \textrm{Ma}_x \f$
+        !--------------------------------------------------------------
         function get_mach_ux_infty(side) result(var)
 
           implicit none
@@ -247,8 +258,26 @@
         end function get_mach_ux_infty
 
 
-        !get the variable enforced at the edge of the
-        !computational domain
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the Mach number imposed in the far-field
+        !> for the velocity in the y-direction
+        !> \f[ \textrm{Ma}_y = \frac{v_0}{c}\f]
+        !> where \f$v_0\f$ is the velocity of the mean flow
+        !> in the y-direction and \f$c\f$ is the speed of sound
+        !
+        !> @date
+        !> 08_08_2013 - initial version - J.L. Desmarais
+        !
+        !>@param side
+        !> left or right side
+        !
+        !>@return
+        !> Mach number for the velocity in the y-direction,
+        !> \f$ \textrm{Ma}_y \f$
+        !--------------------------------------------------------------
         function get_mach_uy_infty(side) result(var)
 
           implicit none
@@ -270,8 +299,30 @@
         end function get_mach_uy_infty
 
 
-        !get the x-component of the velocity enforced
-        !at the edge of the computational domain
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the value of the velocity
+        !> in the x-direction imposed in the far-field
+        !> \f[ u_\infty(t,x,y) = u_0 \f]
+        !
+        !> @date
+        !> 08_08_2013 - initial version - J.L. Desmarais
+        !
+        !>@param t
+        !> time
+        !
+        !>@param x
+        !> x-coordinate
+        !
+        !>@param y
+        !> y-coordinate
+        !
+        !>@return
+        !> velocity along the x-direction imposed in the far-field,
+        !> \f$ u_\infty(t,x,y) \f$
+        !--------------------------------------------------------------
         function get_u_in(t,x,y) result(var)
 
           implicit none
@@ -292,8 +343,30 @@
         end function get_u_in
 
 
-        !get the y-component of the velocity enforced
-        !at the edge of the computational domain
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the value of the velocity
+        !> in the y-direction imposed in the far-field
+        !> \f[ v_\infty(t,x,y) = v_0 \f]
+        !
+        !> @date
+        !> 08_08_2013 - initial version - J.L. Desmarais
+        !
+        !>@param t
+        !> time
+        !
+        !>@param x
+        !> x-coordinate
+        !
+        !>@param y
+        !> y-coordinate
+        !
+        !>@return
+        !> velocity along the y-direction imposed in the far-field,
+        !> \f$ v_\infty(t,x,y) \f$
+        !--------------------------------------------------------------
         function get_v_in(t,x,y) result(var)
 
           implicit none
@@ -314,8 +387,30 @@
         end function get_v_in
 
       
-        !get the temperature enforced at the edge of the
-        !computational domain
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the value of the
+        !> temperature imposed in the far-field
+        !> \f[ T_\infty(t,x,y) = T_0 \f]
+        !
+        !> @date
+        !> 08_08_2013 - initial version - J.L. Desmarais
+        !
+        !>@param t
+        !> time
+        !
+        !>@param x
+        !> x-coordinate
+        !
+        !>@param y
+        !> y-coordinate
+        !
+        !>@return
+        !> temperature imposed in the far-field,
+        !> \f$ T_\infty(t,x,y) \f$
+        !--------------------------------------------------------------
         function get_T_in(t,x,y) result(var)
 
           implicit none
@@ -338,8 +433,32 @@
         end function get_T_in
 
 
-        !get the pressure enforced at the edge of the
-        !computational domain
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the value of the
+        !> pressure imposed in the far-field
+        !> \f[ P_\infty(t,x,y) =
+        !> \frac{8 \rho_\textrm{liq}(T_0) T_0}{3 - \rho_\textrm{liq}(T_0)}
+        !> - 3 \rho_\textrm{liq}^2(T_0) \f]
+        !
+        !> @date
+        !> 08_08_2013 - initial version - J.L. Desmarais
+        !
+        !>@param t
+        !> time
+        !
+        !>@param x
+        !> x-coordinate
+        !
+        !>@param y
+        !> y-coordinate
+        !
+        !>@return
+        !> pressure imposed in the far-field,
+        !> \f$ P_\infty(t,x,y) \f$
+        !--------------------------------------------------------------
         function get_P_out(t,x,y) result(var)
 
           implicit none
@@ -372,10 +491,33 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> get the governing variables imposed in the far field
+        !> get the value of the variables
+        !> imposed at the edge of the computational domain
+        !> depending on time and coordinates as well as the
+        !> state of the object
+        !> \f[ 
+        !> \begin{pmatrix}
+        !> \rho_\infty \\\
+        !> {\rho u}_\infty \\\
+        !> {\rho v}_\infty \\\
+        !> {\rho E}_\infty \\\
+        !> \end{pmatrix} =
+        !> \begin{pmatrix}
+        !> \rho_\textrm{liq}(T_0) \\\
+        !> \rho_\textrm{liq}(T_0) u_0 \\\
+        !> \rho_\textrm{liq}(T_0) v_0 \\\
+        !> \rho_\textrm{liq}(T_0) \left[ \frac{8}{3} c_v T_0 - 3 \rho_\textrm{liq}(T_0) \right]
+        !> + \frac{1}{2} \rho_\textrm{liq}(T_0) \left( u_0^2 + v_0^2 \right)
+        !> \end{pmatrix}
+        !> \f]
         !
         !> @date
         !> 03_12_2014 - initial version - J.L. Desmarais
+        !
+        !
+        !>@param this
+        !> object encapsulating the initial conditions and
+        !> the state of the conditions imposed in the far-field
         !
         !>@param t
         !> time
@@ -386,8 +528,9 @@
         !>@param y
         !> y-coordinate
         !
-        !>@return var
-        !> governing variables in the far-field
+        !>@return
+        !> variable imposed at the edge of the computational
+        !> domain
         !--------------------------------------------------------------
         function get_far_field(this,t,x,y) result(var)
 
@@ -447,6 +590,19 @@
         end function get_far_field
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the initial velocity of the mean flow
+        !> in the x-direction
+        !
+        !> @date
+        !> 03_12_2014 - initial version - J.L. Desmarais
+        !
+        !>@return
+        !> mean flow velocity in the x-direction
+        !--------------------------------------------------------------
         function get_velocity_x() result(velocity_x)
 
           implicit none
@@ -474,6 +630,19 @@
         end function get_velocity_x
 
         
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the initial velocity of the mean flow
+        !> in the y-direction
+        !
+        !> @date
+        !> 03_12_2014 - initial version - J.L. Desmarais
+        !
+        !>@return
+        !> mean flow velocity in the y-direction
+        !--------------------------------------------------------------
         function get_velocity_y() result(velocity_y)
 
           implicit none
@@ -498,6 +667,24 @@
         end function get_velocity_y
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the mass density imposed in the far-field
+        !> depending on the phase in the initial conditions:
+        !> bubble in saturated liquid or droplet in saturated
+        !> vapor
+        !
+        !> @date
+        !> 03_12_2014 - initial version - J.L. Desmarais
+        !
+        !> @param temperature
+        !> temperature in the far-field, \f$ T_\infty \f$
+        !
+        !>@return
+        !> mass density in the far-field, \f$ \rho_\infty \f$
+        !--------------------------------------------------------------
         function get_mass_far_field(temperature)
      $     result(mass)
 
@@ -522,6 +709,19 @@
         end function get_mass_far_field
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute the speed of sound in the far-field
+        !> depending on the phase in the far-field
+        !
+        !> @date
+        !> 03_12_2014 - initial version - J.L. Desmarais
+        !
+        !>@return
+        !> speed of sound
+        !--------------------------------------------------------------
         function get_speed_of_sound()
      $     result(c)
 
