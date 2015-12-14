@@ -1,0 +1,417 @@
+!1.	Output details
+!============================================================
+!detail_print : real : Set detail (between 0. and < = 1.0)
+!============================================================
+detail_print = 1.0
+
+
+!2.	Simulation duration
+!============================================================
+!t_steps         : integer : set number of steps in time
+!t_max           : real    : set simulation maximum time
+!steady_state_ac : integer : (0 not activated, 1 activated)
+!                :         : run until steady state
+!============================================================
+dt = 0.0008
+t_max = 0.0008
+steady_state_ac = 0
+
+
+!3.	Space discretisation
+!============================================================
+!dx      : real    : set the space step in the x-direction
+!x_min   : real    : set lower x-value
+!x_max   : real    : set higher x-value
+!
+!dy      : real    : set the space step in the y-direction
+!y_min   : real    : set lower y-value
+!y_max   : real    : set higher y-value
+!
+!npx     : integer : number of tiles in the x-direction
+!npy     : integer : number of tiles in the y-direction
+!============================================================
+dx = 0.036
+x_min = -1.85
+x_max = 1.85
+
+dy = 0.036
+y_min = -1.85
+y_max = 1.85
+
+npx = 1
+npy = 1
+
+
+!4.	Physical model
+!============================================================
+!set the physical model used
+!============================================================
+!------------------------------------------------------------
+!pm_choice : integer
+!------------------------------------------------------------
+! 0 : for simple test
+! 1 : for wave1d
+! 2 : for wave2d
+! 3 : for ns2d
+! 4 : for dim2d
+!============================================================
+pm_choice = 4
+
+
+!5.     Boundary conditions
+!============================================================
+!set the type of boundary conditions used
+!============================================================
+!------------------------------------------------------------
+!boundary_conditions_choice : integer
+!------------------------------------------------------------
+! 0 : for periodic xy
+! 1 : for reflection xy
+! 2 : for hedstrom openbc xy
+! 3 : for poinsot and lele openbc xy
+! 4 : for yoo and lodato openbc xy
+! 5 : for wall xy
+! 6 : for south wall and reflection for E,W,N
+! 7 : for south wall and open bc for E,W,N
+! 8 : for half south wall, reflection left, open bc for E,N
+!
+!------------------------------------------------------------
+!openbc_detector_distance : integer
+!------------------------------------------------------------
+!when using buffer layers, the detector are localized at a
+!fixed distance from the edges of the computational domain
+!------------------------------------------------------------
+!
+!------------------------------------------------------------
+!openbc_md_threshold_ac : boolean
+!------------------------------------------------------------
+!when using buffer layers with DIM, the increase of the
+!computational domain can be triggered by the mass density
+!if located in the multi-phase region
+!------------------------------------------------------------
+! 1: activate the use of the mass density to trigger
+!    the increase of the computational domain
+! 0: do not use the mass density to trigger the
+!    increase of the computational domain
+!
+!------------------------------------------------------------
+!openbc_md_threshold : real
+!------------------------------------------------------------
+! margin expressed as percentage
+!                               --------------------------------------
+!               ---------- _1  |  1  | mass density saturated liquid  |
+!              /_2              --------------------------------------
+!             /                |  4  | mass density saturated vapor   |
+!          3_/                  --------------------------------------
+!           /                  | 2-3 | marks where the mass density   |
+! 4_--------                   |     | is considered inside the multi-|
+!                              |     | phase region                   |
+! 0%   : 2 -> 1 and 3 -> 4      --------------------------------------
+! 100% : 2 and 3 are located at the middle point between 1 and 2
+!
+!------------------------------------------------------------
+!openbc_perturbation_T0_ac : integer
+!------------------------------------------------------------
+! 1: activate the perturbation of the temperature used to 
+!    determine the far field values
+! 0: do not activate the perturbation of the temperature used to 
+!    determine the far field values
+!
+!------------------------------------------------------------
+!openbc_perturbation_vx0_ac : integer
+!------------------------------------------------------------
+! 1: activate the perturbation of the x-component of the
+!    velocity used to determine the far field values
+! 0: do not activate the perturbation of the x-component of the
+!    velocity used to determine the far field values
+!
+!------------------------------------------------------------
+!openbc_perturbation_vy0_ac : integer
+!------------------------------------------------------------
+! 1: activate the perturbation of the y-component of the
+!    velocity used to determine the far field values
+! 0: do not activate the perturbation of the y-component of the
+!    velocity used to determine the far field values
+!
+!------------------------------------------------------------
+!openbc_perturbation_T0_amp : real
+!------------------------------------------------------------
+! amplitude of the perturbation applied to the temperature
+! used to compute the far field values
+!
+!------------------------------------------------------------
+!openbc_perturbation_vx0_amp : real
+!------------------------------------------------------------
+! amplitude of the perturbation applied to the x-component of
+! the velocity used to compute the far field values
+!
+!------------------------------------------------------------
+!openbc_perturbation_vy0_amp : real
+!------------------------------------------------------------
+! amplitude of the perturbation applied to the y-component of
+! the velocity used to compute the far field values
+!
+!============================================================
+bc_choice = 2
+
+openbc_detector_distance = 5
+
+openbc_md_threshold_ac = 0
+openbc_md_threshold = 0
+
+openbc_perturbation_T0_ac = 0
+openbc_perturbation_vx0_ac = 0
+openbc_perturbation_vy0_ac = 0
+
+openbc_perturbation_T0_amp = 0.0
+openbc_perturbation_vx0_amp = 0.0
+openbc_perturbation_vy0_amp = 0.0
+
+
+!5.2    Wall boundary conditions
+!================================================================================
+!set the wall parameters
+!================================================================================
+!
+!--------------------------------------------------------------------------------
+!5.2.1 Type of surface
+!--------------------------------------------------------------------------------
+!
+! wall_surface_type : integer
+! 	uniform_surface (same contact angle everywhere)
+!	surface_with_heaters (different contact angle at heater)
+!
+! wall_micro_contact_angle : real
+!       contact angle imposed at the wall
+!
+!
+!--------------------------------------------------------------------------------
+!5.2.2 Dimensions of the heater
+!--------------------------------------------------------------------------------
+!
+! wall_heater_center : real
+!       location of the center of the heater on the wall
+!
+! wall_heater_length : real
+!       size of the heater at the wall
+!
+! wall_heater_variation_angle_length : real
+!       characteristic length over which the contact angle
+!	varies between the wall and the heater
+!
+! wall_heater_micro_contact_angle : real
+!       contact angle imposed at the heater
+!
+!
+!--------------------------------------------------------------------------------
+!5.2.3 Conduction based heaters:
+!      Heat flux is imposed by temperature gradient
+!--------------------------------------------------------------------------------
+!
+! wall_heat_source_choice : integer
+! 	0 : no_heat_source
+!       1 : gaussian heat source
+! 
+! wall_maximum_heat_flux : real
+!	maximum heat flux at the heater
+!
+!--------------------------------------------------------------------------------
+!5.2.4 Source based heaters:
+!      Heat flux is directly incorporated in the fluxes
+!      independently of the temperature computed at the wall
+!--------------------------------------------------------------------------------
+!
+! wall_extra_heat_source_choice : integer
+! 	0 : no_heat_source
+!       1 : gaussian heat source
+! 
+! wall_extra_maximum_heat_flux : real
+!	maximum heat flux at the heater
+!
+!================================================================================
+!--------------------------------------------------------------------------------
+!5.2.1	Type of surface
+!--------------------------------------------------------------------------------
+wall_surface_type = 0
+wall_micro_contact_angle = 5.0
+
+!--------------------------------------------------------------------------------
+!5.2.2	Dimensions of the heater
+!--------------------------------------------------------------------------------
+wall_heater_center = 0.0
+wall_heater_length = 2.0
+wall_heater_variation_angle_length = 0.5
+wall_heater_micro_contact_angle = 45.0
+
+!--------------------------------------------------------------------------------
+!5.2.3	Characteristics of the conduction-based heaters
+!--------------------------------------------------------------------------------
+wall_heat_source_choice = no_heat_source
+wall_maximum_heat_flux = 0.0
+
+!--------------------------------------------------------------------------------
+!5.2.4	Characteristics of the source-based heaters
+!--------------------------------------------------------------------------------
+wall_extra_heat_source_choice = no_heat_source
+wall_maximum_extra_heat_flux = 0.0
+
+
+!6.    Initial conditions
+!============================================================
+!------------------------------------------------------------
+!ic_choice : integer
+!------------------------------------------------------------
+!
+!for wave2D:
+! 1 : peak
+!
+!for Navier-Stokes:
+! 0 : steady state
+! 1 : peak
+! 2 : vortex
+! 3 : vortex convected to the right
+!
+!for Diffuse Interface Model:
+! 0 : steady state
+! 1 : drop retraction
+! 2 : bubble ascending
+! 3 : homogeneous liquid
+! 4 : drop heads-on collision
+! 5 : phase separation
+! 6 : bubble transported
+! 7 : bubble next to wall
+! 8 : bubble collapse
+! 9 : bubble nucleation at wall
+!10 : bubble spherical cap
+!11 : new gridpoint test
+!12 : bubbles transported
+!
+!------------------------------------------------------------
+!flow_direction : character
+!------------------------------------------------------------
+! N: north (upward) direction
+! S: south (downward) direction
+! E: east (right) direction
+! W: west (left) direction
+! NE: north-east (upward-right) direction
+! NW: north-west (upward-left) direction
+! SE: south-east (downward-right) direction
+! SW: south-west (downward-left) direction
+!
+!------------------------------------------------------------
+!flow_velocity : real
+!------------------------------------------------------------
+!reduced speed of the mean flow
+!
+!--------------------------------------------------------------------------------
+!flow_profile : character
+!--------------------------------------------------------------------------------
+! - parabolic_profile : from 0 to flow_velocity at the height of the domain
+! - linear_profile    : from 0 to flow_velocity at the height of the domain
+!
+!------------------------------------------------------------
+!temperature : real
+!------------------------------------------------------------
+!temperature of the mean flow
+!
+!------------------------------------------------------------
+!micro_contact_angle : real
+!------------------------------------------------------------
+!micro static contact angle
+!
+!------------------------------------------------------------
+!phase_at_center : character
+!------------------------------------------------------------
+!phase in the center of the domain (liquid or vapor)
+!
+!------------------------------------------------------------
+!ic_perturbation_ac : integer
+!------------------------------------------------------------
+! 1: activate the superposition of perturbation in the initial
+!    conditions
+! 0: do not activate the superposition of perturbation in the
+!    initial conditions
+!
+!------------------------------------------------------------
+!ic_perturbation_amp : real
+!------------------------------------------------------------
+! maximum amplitude of the perturbation in the initial
+! conditions
+!
+!------------------------------------------------------------
+!li_perturbation_ac : integer
+!------------------------------------------------------------
+! 1: activate the perturbation of the interface length
+! 0: do not activate the perturbation of the interface length
+!
+!------------------------------------------------------------
+!li_perturbation_amp : real
+!------------------------------------------------------------
+! maximum amplitude of the perturbation for the interface
+! length
+!
+!============================================================
+!------------------------------------------------------------
+!6.1	Choice of the initial conditions
+!------------------------------------------------------------
+ic_choice = 12
+
+!------------------------------------------------------------
+!6.2	Parameters for the initial conditions
+!------------------------------------------------------------
+flow_direction = N
+flow_velocity = 0.1
+flow_profile = parabolic_profile
+temperature = 0.999
+micro_contact_angle = 90.0
+phase_at_center = vapor
+
+!--------------------------------------------------------------------------------
+!6.3	Parameters for the bubble collapse
+!--------------------------------------------------------------------------------
+ratio_bubble_interface = 2.0
+
+!------------------------------------------------------------
+!6.4    Perturbations of the initial conditions
+!------------------------------------------------------------
+ic_perturbation_ac = 0
+ic_perturbation_amp = 0.0
+li_perturbation_ac = 0
+li_perturbation_amp = 0.0
+
+!------------------------------------------------------------
+!6.4    Additional parameters for two bubbles transported
+!------------------------------------------------------------
+li_separation = 3.0
+
+
+!7.     DIM equations
+!============================================================
+!set the options tuning the DIM equations
+!============================================================
+!dim2d_lowTemperature : integer
+! 0 : do not use low temperature laws T \in [0.995, 0.999]
+! 1 : use low temperature laws: T \in [0.95,0.99]
+!
+!gravity_ac : integer
+! 0 : no gravity
+! 1 : gravity added
+!
+!gravity_amp : real
+! amplitude of the gravity added
+!============================================================
+dim2d_lowTemperature=0
+gravity_ac=0
+gravity_amp=0.000
+
+
+!8.	Wave equations
+!============================================================
+!set the options tuning the wave equations
+!============================================================
+!wave_forcing : integer
+! 0 : no forcing
+! 1 : oscillatory forcing
+! 2 : intermittent forcing
+!============================================================
+wave_forcing=0
