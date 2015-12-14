@@ -56,46 +56,22 @@
         !> @class ic
         !> class encapsulating operators to set the initial
         !> conditions and the conditions enforced at the edge of the
-        !> computational domain for phase separation
-        !
-        !> @param apply_initial_conditions
-        !> set the initial conditions
-        !
-        !> @param get_mach_ux_infty
-        !> get the mach number along the x-direction in the far field
-        !
-        !> @param get_mach_uy_infty
-        !> get the mach number along the y-direction in the far field
-        !
-        !> @param get_u_in
-        !> get the x-component of the velocity at the edge of the
-        !> computational domain
-        !
-        !> @param get_v_in
-        !> get the y-component of the velocity at the edge of the
-        !> computational domain
-        !
-        !> @param get_T_in
-        !> get the temperature at the edge of the computational
-        !> domain
-        !
-        !> @param get_P_out
-        !> get the pressure at the edge of the computational domain
+        !> computational domain for a domain extension test
         !---------------------------------------------------------------
         type, extends(ic_abstract) :: ic
 
-          character(18) :: name = 'bubble_nextto_wall'
+          character(18) :: name = 'bubble_nextto_wall' !<@brief name of the initial conditions
 
           contains
 
-          procedure, nopass :: apply_ic
-          procedure, nopass :: get_mach_ux_infty
-          procedure, nopass :: get_mach_uy_infty
-          procedure, nopass :: get_u_in
-          procedure, nopass :: get_v_in
-          procedure, nopass :: get_T_in
-          procedure, nopass :: get_P_out
-          procedure,   pass :: get_far_field
+          procedure, nopass :: apply_ic          !<@brief set the initial conditions                                                 
+          procedure, nopass :: get_mach_ux_infty !<@brief get the Mach number along the x-direction in the far-field                 
+          procedure, nopass :: get_mach_uy_infty !<@brief get the Mach number along the y-direction in the far-field                 
+          procedure, nopass :: get_u_in          !<@brief get the x-component of the velocity at the edge of the computational domain
+          procedure, nopass :: get_v_in          !<@brief get the y-component of the velocity at the edge of the computational domain
+          procedure, nopass :: get_T_in          !<@brief get the temperature at the edge of the computational domain                
+          procedure, nopass :: get_P_out         !<@brief get the pressure at the edge of the computational domain                   
+          procedure,   pass :: get_far_field     !<@brief get the governing variables imposed at the edge of the computational domain
 
         end type ic
 
@@ -106,21 +82,76 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> subroutine computing the initial conditions
-        !> for a steady state
+        !> apply the initial conditions
+        !> with saturated liquid everywhere or
+        !> with an initial vapor bubble away from the wall
+        !> in saturated liquid to see its influence
+        !> on the nucleation of the second bubble (vapor-jet)
+        !> \f[
+        !> \begin{pmatrix} 
+        !> \rho \\\ \rho u \\\ \rho v \\\ \rho E
+        !> \end{pmatrix}(x,y) =
+        !> \begin{pmatrix}
+        !> \rho_\textrm{nucl}(x,y) \\\
+        !> \rho(x,y) u_0(x,y) \\\
+        !> \rho(x,y) v_0(x,y) \\\
+        !> \rho(x,y) \left[ \frac{8}{3} c_v T_0 - 3 \rho(x,y) \right]
+        !> + \frac{1}{2} \rho(x,y) (u_0(x,y)^2 + v_0(x,y)^2)
+        !> + \frac{1}{2 \textrm{We}} | \nabla \rho(x,y) |^2
+        !> \end{pmatrix}
+        !> \f]
+        !> 
+        !> where the initial mass density field is:
+        !> \f[
+        !> \rho(x,y) = 
+        !> \begin{cases}
+        !> \rho_\textrm{liq} & \mbox{(for nucleation in homogeneous saturated liquid)} \\\
+        !> \rho_\textrm{bubble}(r,r_c) & \mbox{for nucleation at the wall next to another bubble}
+        !> \end{cases}
+        !> \f]
+        !> 
+        !> For the initial conditions with the initial bubble away
+        !> from the wall, we have:
+        !> \f[ \rho_\textrm{bubble}(r,r_c) = \frac{\rho_\textrm{liq} + \rho_\textrm{vap}}{2}
+        !> + \frac{\rho_\textrm{liq} - \rho_\textrm{vap}}{2} \tanh \left( \frac{2 (r-r_c)}{L_i} \right)\f]
+        !> and \f$ L_i \f$ is the width of the interface
+        !> The radius of the bubble, \f$ r_c\f$, is:
+        !> \f[ r_c = \textrm{inflow\_bubble\_radius} \f]
+        !> The radius coordinate is:
+        !> \f[ r(x,y) = \sqrt{(x-x_c)^2 + (y-y_c)^2}\f]
+        !> where the coordinates of the bubble center are:
+        !> \f[ \{x_c,y_c\} = \{\textrm{inflow\_bubble\_x\_center},\textrm{inflow\_bubble\_y\_center} \} \f]
+        !>
+        !> The initial velocity field is given by:
+        !> \f[ u_0(x,y) =
+        !> \begin{cases}
+        !> \displaystyle{u_{0x} \left( \frac{y - y_\textrm{min}}{y_\textrm{max} - y_\textrm{min}} \right)^\alpha} & \mbox{(for flow in the x-direction)} \\\
+        !> \displaystyle{u_{0y} \left( \frac{x - x_\textrm{min}}{x_\textrm{max} - x_\textrm{min}} \right)^\alpha} & \mbox{(for flow in the y-direction)}
+        !> \end{cases} \f]
+        !> \f[ v_0(x,y) =
+        !> \begin{cases}
+        !> \displaystyle{v_{0x} \left( \frac{x - x_\textrm{min}}{x_\textrm{max} - x_\textrm{min}} \right)^\alpha} & \mbox{(for flow in the x-direction)} \\\
+        !> \displaystyle{v_{0y} \left( \frac{y - y_\textrm{min}}{y_\textrm{max} - y_\textrm{min}} \right)^\alpha} & \mbox{(for flow in the y-direction)}
+        !> \end{cases} \f]
+        !> where
+        !> \f[ \alpha =
+        !> \begin{cases}
+        !> 1 & \mbox{(linear profile)} \\\
+        !> 2 & \mbox{(parabolic profile)}
+        !> \end{cases} \f]
         !
         !> @date
-        !> 12_12_2014 - initial version - J.L. Desmarais
+        !> 08_08_2013 - initial version - J.L. Desmarais
         !
         !>@param nodes
-        !> array with the grid point data
+        !> array with the grid point data, \f$ (\rho, \rho u, \rho v ,\rho E) \f$
         !
         !>@param x_map
-        !> map of x-coordinates
+        !> array with the x-coordinates
         !
         !>@param y_map
-        !> map of y-coordinates
-        !---------------------------------------------------------------
+        !> array with the y-coordinates                
+        !--------------------------------------------------------------
         subroutine apply_ic(nodes,x_map,y_map)
 
           implicit none
