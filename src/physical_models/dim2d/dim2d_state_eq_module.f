@@ -96,19 +96,19 @@
           real(rkind)             :: interface_lgh
 
 
-          if(dim2d_lowTemperature) then
-           
-             if(rkind.eq.8) then
-
-                interface_lgh=2.0d0/SQRT(we)*(-0.18904846589641416d0 + 1.6488520842641357d0/(SQRT(1.0d0-temperature)))
-
-             else
-
-                interface_lgh=2.0/SQRT(we)*(-0.18904846589641416d0 + 1.6488520842641357d0/(SQRT(1.0-temperature)))
-
-             end if
-
-          else
+c$$$          if(dim2d_lowTemperature) then
+c$$$           
+c$$$             if(rkind.eq.8) then
+c$$$
+c$$$                interface_lgh=2.0d0/SQRT(we)*(-0.18904846589641416d0 + 1.6488520842641357d0/(SQRT(1.0d0-temperature)))
+c$$$
+c$$$             else
+c$$$
+c$$$                interface_lgh=2.0/SQRT(we)*(-0.18904846589641416d0 + 1.6488520842641357d0/(SQRT(1.0-temperature)))
+c$$$
+c$$$             end if
+c$$$
+c$$$          else
            
              if(rkind.eq.8) then
 
@@ -120,7 +120,7 @@
 
              end if
 
-          end if
+c$$$          end if
               
         end function get_interface_length
 
