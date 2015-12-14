@@ -279,8 +279,11 @@ def compute_code_inputs(inputFileName,nbTiles):
                     'phase_separation',
                     'bubble_transported',
                     'bubble_next_to_wall',
+                    'bubble_collapse',
                     'bubble_nucleation',
-                    'bubble_spherical_cap']
+                    'bubble_spherical_cap',
+                    'newgrdpt_test',
+                    'bubbles_transported']
 
     bc_code      = ['periodic_xy_choice',
                     'reflection_xy_choice',
@@ -337,6 +340,7 @@ def compute_code_inputs(inputFileName,nbTiles):
                    'ic_perturbation_amp',
                    'li_perturbation_ac',
                    'li_perturbation_amp',
+                   'li_separation',
                    'dim2d_lowTemperature',
                    'gravity_ac',
                    'gravity_amp',
@@ -569,6 +573,7 @@ def update_parameters_inputs(file_path,
         'T0'                                 : inputs['temperature'],
         'ic_perturbation_amp'                : inputs['ic_perturbation_amp'],
         'li_perturbation_amp'                : inputs['li_perturbation_amp'],
+        'li_separation'                      : inputs['li_separation'],
         'gravity_amp'                        : inputs['gravity_amp'],
         'ratio_bubble_interface'             : inputs['ratio_bubble_interface'],
         'wall_micro_contact_angle'           : inputs['wall_micro_contact_angle'],
