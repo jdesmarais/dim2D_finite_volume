@@ -23,7 +23,7 @@
 
         parameter (institut     = 'Eindhoven university of technology')
         parameter (prog_version = 'cretean bull V0.1')
-        parameter (commit = '4c78eca773a1f2cd8a4bbaab4d39524899ef7da7')
+        parameter (commit = '919d832d3fdc01d574bd17d680d86ec6b4cf4719')
         parameter (ref          = 'desmaraisjulien@gmail.com')
         parameter (convention   = 'cf-1.6')
         
@@ -62,7 +62,7 @@
 
 
         ! initial conditions choice for NS
-        character(15), dimension(12), parameter :: ns2d_ic_code =[
+        character(15), dimension(13), parameter :: ns2d_ic_code =[
      $       'steady_state   ',
      $       'peak           ',
      $       'vortex         ',
@@ -70,6 +70,7 @@
      $       'sym_y          ',
      $       'negative_spot  ',
      $       'sincos         ',
+     $       'not_implemented',
      $       'not_implemented',
      $       'not_implemented',
      $       'not_implemented',
@@ -85,7 +86,7 @@
         integer, parameter :: sincos=6
 
         ! initial conditions choice for DIM
-        character(20), dimension(12), parameter :: dim2d_ic_code =[
+        character(20), dimension(13), parameter :: dim2d_ic_code =[
      $       'steady_state        ',
      $       'drop_retraction     ',
      $       'bubble_ascending    ',
@@ -97,7 +98,8 @@
      $       'bubble_collapse     ',
      $       'bubble_nucleation   ',
      $       'bubble_spherical_cap',
-     $       'newgrdpt_test       ']
+     $       'newgrdpt_test       ',
+     $       'bubbles_transported ']
 
         integer, parameter :: steady_state=0
         integer, parameter :: drop_retraction=1
@@ -111,6 +113,7 @@
         integer, parameter :: bubble_nucleation=9
         integer, parameter :: bubble_spherical_cap=10
         integer, parameter :: newgrdpt_test=11
+        integer, parameter :: bubbles_transported=12
 
 
         ! phase at center code

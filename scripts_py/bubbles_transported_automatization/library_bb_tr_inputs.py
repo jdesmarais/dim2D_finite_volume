@@ -6,7 +6,9 @@ useful functions to compute the input parameters for simulations with
 two bubbles transported by the flow
 '''
 
+import os
 import sys  #for system fcts
+import inspect
 import math #for mathematical fcts
 
 
@@ -82,9 +84,11 @@ def get_domain_extent(Lx,Ly,dx,dy):
     
     domain_extent = [[0 for x in range(2)] for x in range(2)]
 
-    domain_extent[0][0] = - (nx_half+1)*dx
-    domain_extent[1][0] = + (nx_half+1)*dx
-    domain_extent[0][1] = - (ny_half+1)*dy
-    domain_extent[1][1] = + (ny_half+1)*dy
+    domain_extent[0][0] = - nx_half*dx
+    domain_extent[1][0] = + nx_half*dx
+    domain_extent[0][1] = - ny_half*dy
+    domain_extent[1][1] = + ny_half*dy
     
     return domain_extent
+
+
