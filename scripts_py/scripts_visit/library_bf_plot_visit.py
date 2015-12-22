@@ -76,7 +76,8 @@ def get_total_nb_timesteps(cdir):
 #open and plot the data "field" between min and max
 #using the colorTable
 def open_and_plot_pseudocolor(
-    filePath,field,
+    filePath,
+    field,
     fieldMin,
     fieldMax,
     colorTableName,
@@ -103,7 +104,7 @@ def open_and_plot_pseudocolor(
         PseudocolorAtts.maxFlag = 1
         PseudocolorAtts.max = fieldMax
 
-    PseudocolorAtts.centering = PseudocolorAtts.Zonal  # Natural, Nodal, Zonal
+    PseudocolorAtts.centering = PseudocolorAtts.Natural # Natural, Nodal, Zonal
 
     PseudocolorAtts.colorTableName = colorTableName
     PseudocolorAtts.invertColorTable = 0
@@ -143,6 +144,12 @@ def open_and_plot_pseudocolor(
     PseudocolorAtts.lightingFlag = 1
 
     visit.SetPlotOptions(PseudocolorAtts)
+
+    # remove or enable database file display
+    AnnotationAtts = visit.AnnotationAttributes()
+    AnnotationAtts.databaseInfoFlag = legendFlag
+    AnnotationAtts.userInfoFlag = legendFlag
+    visit.SetAnnotationAttributes(AnnotationAtts)    
 
 
 #set the 2D view: min and max
@@ -306,6 +313,12 @@ def plot_and_print_field(
     #get the detectors file
     dct_files = get_dct_files(dirInputNcFiles,timestep)
 
+    #legend flag
+    if(legend):
+        legendFlag=1
+    else:
+        legendFlag=0
+
     #plot the interior
     for interior_file in interior_files:
         open_and_plot_pseudocolor(
@@ -314,14 +327,8 @@ def plot_and_print_field(
             fieldMin,
             fieldMax,
             "hot",
-            1,
-            legend=legend)
-
-    if(legend):
-        legendFlag=1
-    else:
-        legendFlag=0
-
+            legendFlag)
+   
     #plot the buffer layers
     for bf_file in bf_files:
 
@@ -358,9 +365,8 @@ def create_grdpts_id_pictures(
     xmax,
     ymin,
     ymax,
-    step=1,
     diff=False,
-    timesteps=[0,-999]):
+    timesteps=[0,-999,1]):
 
     #determine the total number of timesteps
     if(timesteps[1]==-999):
@@ -381,7 +387,7 @@ def create_grdpts_id_pictures(
 
     #loop over the time steps, extract the grdpts_id
     #and create a picture from the view
-    for timestep in range(timesteps[0],timesteps[1]+1,step):
+    for timestep in range(timesteps[0],timesteps[1]+1,timesteps[2]):
 
         plot_and_print_grdpts_id(
             dirInputNcFiles,
@@ -401,8 +407,7 @@ def create_field_pictures(
     xmax,
     ymin,
     ymax,
-    step=1,
-    timesteps=[0,-999],
+    timesteps=[0,-999,1],
     legend=False):
 
 
@@ -425,7 +430,7 @@ def create_field_pictures(
 
     #loop over the time steps, extract the grdpts_id
     #and create a picture from the view
-    for timestep in range(timesteps[0],timesteps[1]+1,step):
+    for timestep in range(timesteps[0],timesteps[1]+1,timesteps[2]):
 
         plot_and_print_field(
             dirInputNcFiles,

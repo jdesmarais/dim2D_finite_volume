@@ -92,3 +92,35 @@ def get_domain_extent(Lx,Ly,dx,dy):
     return domain_extent
 
 
+# compute the t_max of the simulation
+def get_simulation_time(Lx,
+                        bubble_diameter,
+                        bubble_separation_lgh,
+                        interface_influence_lgh,
+                        flow_velocity):
+    """Determine the total duration of the simulation
+    to let the two bubbles leave the computational domain
+
+    Args:
+        Lx (double): length of the domain in the direction of the flow
+        bubble_diameter (double) : diameter of the bubbles in the domain
+        bubble_separation_lgh (double) : separation length between the
+           bubbles
+        interface_influence_lgh (double) : threshold length above which 
+           the interface is not interacting with a object at this length 
+        flow_velocity (double) : mean flow velocity
+
+    Returns:
+        simulation time t_max
+    """
+
+    total_length = 0.5*(bubble_separation_lgh+Lx) +\
+        bubble_diameter + 2.0*interface_influence_lgh
+
+    simulation_time = float(math.ceil(
+            total_length/flow_velocity*
+            10**4))/(10**4)
+
+    return simulation_time
+
+

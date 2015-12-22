@@ -53,17 +53,17 @@
 
         ! computational field dimensions
         !--------------------------------------------------
-        real(rkind), parameter :: x_min = -1.8500000000d0 !<@brief minimum x-coordinate for the x-map
-        real(rkind), parameter :: x_max = 1.8500000000d0  !<@brief maximum x-coordinate for the x-map
-        real(rkind), parameter :: y_min = -1.8500000000d0  !<@brief minimum y-coordinate for the y-map
-        real(rkind), parameter :: y_max = 1.8500000000d0  !<@brief maximum y-coordinate for the y-map
+        real(rkind), parameter :: x_min = -0.6426000000d0 !<@brief minimum x-coordinate for the x-map
+        real(rkind), parameter :: x_max = 0.6426000000d0  !<@brief maximum x-coordinate for the x-map
+        real(rkind), parameter :: y_min = -1.0206000000d0  !<@brief minimum y-coordinate for the y-map
+        real(rkind), parameter :: y_max = 1.0206000000d0  !<@brief maximum y-coordinate for the y-map
         
         ! computational times
-        real(rkind), parameter :: t_max = 0.0008000000d0 !<@brief maximum simulation time
-        real(rkind), parameter :: dt = 0.0008000000d0     !<@brief time step
+        real(rkind), parameter :: t_max = 25.2065000000d0 !<@brief maximum simulation time
+        real(rkind), parameter :: dt = 0.0004000000d0     !<@brief time step
         
         ! output writing
-        real(rkind), parameter :: detail_print = 1.0000000000d0   !<@brief percentage of time steps written in output: 0.0d0=no file writen, 0.5=write output every two time steps, 1.0=write all the time steps
+        real(rkind), parameter :: detail_print = 0.0159000000d0   !<@brief percentage of time steps written in output: 0.0d0=no file writen, 0.5=write output every two time steps, 1.0=write all the time steps
         logical    , parameter :: write_domain_extension = .true. !<@brief write the buffer layers (domain extension)
 
         ! mpi choice
@@ -72,8 +72,8 @@
 
         ! size of the main tables
         ! careful, choose ne according to the physical model
-        integer(ikind), parameter :: ntx = 108 !<@brief total number of grid-points along the x-direction for the computational domain
-        integer(ikind), parameter :: nty = 108 !<@brief total number of grid-points along the y-direction for the computational domain
+        integer(ikind), parameter :: ntx = 107 !<@brief total number of grid-points along the x-direction for the computational domain
+        integer(ikind), parameter :: nty = 167 !<@brief total number of grid-points along the y-direction for the computational domain
 
         integer(ikind), parameter :: nx = ntx/npx !<@brief number of grid-points along the x-direction for one tile
         integer(ikind), parameter :: ny = nty/npy !<@brief number of grid-points along the y-direction for one tile
@@ -305,7 +305,7 @@
         !> as a fraction of the width of the interface at the
         !> initial temperature
         !--------------------------------------------------
-        integer    , parameter :: li_separation = 3.0000000000d0
+        integer    , parameter :: li_separation = 4.0000000000d0
 
 
         !============================================================
@@ -666,7 +666,7 @@
         !> @brief control the distance between the detectors
         !> and the edge of the computational domain
         !--------------------------------------------------
-        integer    , parameter :: obc_dct_distance = 5
+        integer    , parameter :: obc_dct_distance = 4
 
         !>@brief activate or not the perturbation of the temperature
         !> imposed in the far field compared to the initial conditions
@@ -858,7 +858,7 @@
         !> are adapted once the simulation starts
         !> should be set to .true. by default
         !--------------------------------------------------
-        logical    , parameter :: debug_adapt_computational_domain = .false.
+        logical    , parameter :: debug_adapt_computational_domain = .true.
         
         !> @brief control whether the new grid points are computed when
         !> increasing the computational domain (only use for tests,

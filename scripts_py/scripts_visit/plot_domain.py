@@ -12,22 +12,29 @@ import visit
 #describe the usage for using options
 def usage():
     
-    print '-h       : display this help'
-    print '-g       : create movie for the configuration of the grid-points'
-    print '-f=field : create movie for the field'
-    print '--x_min  : x_min for the field display'
-    print '--x_max  : x_min for the field display'
-    print '--y_min  : x_min for the field display'
-    print '--y_max  : x_min for the field display'
+    print '-h                            : display this help'
+    print '-d dir                        : directory where the .nc files are saved'
+    print '-g                            : create movie for the configuration of the grid-points'
+    print '-f field                      : create movie for the field given (ex: mass)'
+    print '--x_min=x_min                 : x_min for the field display'
+    print '--x_max=x_max                 : x_max for the field display'
+    print '--y_min=y_min                 : y_min for the field display'
+    print '--y_max=y_max                 : y_max for the field display'
+    print '--min=min                     : min for the field'
+    print '--max=max                     : max for the field'
+    print '--diff                        : create the movie for the error'
+    print '--tsteps=[t_min,t_max,t_incr] : time steps analyzed'
+    print '-w                            : with window'
 
     return
+
 
 #parse the options
 def parse_options(argv):
     
     try:
         opts, args = getopt.getopt(argv,
-                                   "hgf:d:",
+                                   "hgf:d:w",
                                    ["help",
                                     "grdpts_id",
                                     "field=",
@@ -37,7 +44,9 @@ def parse_options(argv):
                                     "y_min=",
                                     "y_max=",
                                     "diff",
-                                    "tsteps="])
+                                    "tsteps=",
+                                    "min=",
+                                    "max="])
     except getopt.GetoptError:
         usage()
         sys.exit(2)
@@ -51,6 +60,9 @@ def parse_options(argv):
     y_min=-17
     y_max= 17
     diff = False
+    no_window=False
+    fieldMin='None'
+    fieldMax='None'
 
     for opt, arg in opts:
 
@@ -85,6 +97,12 @@ def parse_options(argv):
         elif opt == "--y_max":
             y_max = float(arg)
 
+        elif opt == "--min":
+            fieldMin = float(arg)
+
+        elif opt == "--max":
+            fieldMax = float(arg)
+
         elif opt == "--diff":
             diff = True
 
@@ -95,6 +113,9 @@ def parse_options(argv):
             for i in range(0,len(tsteps)):
                 tsteps[i]=int(tsteps[i])
             print 'timesteps: ', tsteps
+
+        elif opt == "-w":
+            no_window = True
                 
 
     print 'display_grdpts: ', display_grdpts
@@ -113,8 +134,11 @@ def parse_options(argv):
                     ('x_max',x_max),
                     ('y_min',y_min),
                     ('y_max',y_max),
+                    ('field_min',fieldMin),
+                    ('field_max',fieldMax),
                     ('diff',diff),
-                    ('timesteps',tsteps)
+                    ('timesteps',tsteps),
+                    ('no_window',no_window)
                    ])
     return options
 
@@ -125,11 +149,15 @@ if __name__=="__main__":
     #main body
     argv = sys.argv[1:]
     options = parse_options(argv)
-    visit.Launch()
+
+    if(options['no_window']):
+        visit.LaunchNowin()
+    else:
+        visit.Launch()
+    visit.SuppressMessages(1)
 
 
     #analyze options
-    movieStep = 1
     dirNc     = options['dirInputNcFiles']
     xmin      = options['x_min']
     xmax      = options['x_max']
@@ -147,7 +175,6 @@ if __name__=="__main__":
 	    dirNc,
 	    xmin,xmax,
 	    ymin,ymax,
-	    step=movieStep,
             diff=diff,
             timesteps=timesteps)
 	
@@ -165,24 +192,23 @@ if __name__=="__main__":
         
 	#field position
 	field=options['field_displayed']
-	fieldMin='None'
-	fieldMax='None'
+        fieldMin=options['field_min']
+        fieldMax=options['field_max']
 	
-	#create_field_pictures(
-	#    dirNc,
-	#    field,
-	#    fieldMin,
-	#    fieldMax,
-	#    xmin,xmax,
-	#    ymin,ymax,
-	#    step=movieStep,
-        #    timesteps=timesteps,
-        #    legend=True)
+	create_field_pictures(
+	    dirNc,
+	    field,
+	    fieldMin,
+	    fieldMax,
+	    xmin,xmax,
+	    ymin,ymax,
+            timesteps=timesteps,
+            legend=False)
 	#
-	filePattern=field+'%4d.png'
-	movieFileName=field+'.avi'
-	
-	create_movie(
-	    os.path.join(dirNc,'visit_'+field),
-	    filePattern,
-	    movieFileName)
+	#filePattern=field+'%4d.png'
+	#movieFileName=field+'.avi'
+	#
+	#create_movie(
+	#    os.path.join(dirNc,'visit_'+field),
+	#    filePattern,
+	#    movieFileName)
