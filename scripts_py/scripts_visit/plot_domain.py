@@ -1,6 +1,9 @@
 #!/usr/bin/python -i
 
-from library_bf_plot_visit import create_grdpts_id_pictures,create_movie,create_field_pictures
+from library_bf_plot_visit import\
+    create_grdpts_id_pictures,\
+    create_movie,\
+    create_field_pictures
 
 import sys
 import os
@@ -25,6 +28,7 @@ def usage():
     print '--diff                        : create the movie for the error'
     print '--tsteps=[t_min,t_max,t_incr] : time steps analyzed'
     print '-w                            : with window'
+    print '--load_var=path_var.xml       : file describing extra field variables'
 
     return
 
@@ -46,7 +50,8 @@ def parse_options(argv):
                                     "diff",
                                     "tsteps=",
                                     "min=",
-                                    "max="])
+                                    "max=",
+                                    "load_var="])
     except getopt.GetoptError:
         usage()
         sys.exit(2)
@@ -63,12 +68,13 @@ def parse_options(argv):
     no_window=False
     fieldMin='None'
     fieldMax='None'
+    loadVar='None'
 
     for opt, arg in opts:
 
         if opt in ("-h","--help"):
             usage()
-            sys.exit(2)
+            os._exit(1) #sys.exit(0)
             
         elif opt in ("-g", "--grdpts_id"):
             display_grdpts=True
@@ -116,6 +122,9 @@ def parse_options(argv):
 
         elif opt == "-w":
             no_window = True
+
+        elif opt == "--loadVar":
+            loadVar=arg
                 
 
     print 'display_grdpts: ', display_grdpts
@@ -138,7 +147,8 @@ def parse_options(argv):
                     ('field_max',fieldMax),
                     ('diff',diff),
                     ('timesteps',tsteps),
-                    ('no_window',no_window)
+                    ('no_window',no_window),
+                    ('')
                    ])
     return options
 

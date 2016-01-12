@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<data>
+  <window name="window1">
+    <plot file="file1.nc" var="div_velocity">
+      <type>pseudocolor</type>
+      <min>0.95</min>
+      <max>1.005</max>
+      <color>gray</color>
+    </plot>
+    <plot file="file2.nc" var="mass">
+      <type>contour</type>
+      <contours thickness="1.0">
+	<contour color="red" value="1.004">
+        </contour>
+      </contours>
+    </plot>
+  </window>
+</data>
