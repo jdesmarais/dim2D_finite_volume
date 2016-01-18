@@ -115,7 +115,10 @@
      $       wall_extra_heat_source_choice,
      $       wall_maximum_extra_heat_flux,
      $       wall_extra_heat_source_center,
-     $       wall_extra_heat_source_variance
+     $       wall_extra_heat_source_variance,
+     $       
+     $       wall_heat_source_stop_ac,
+     $       wall_heat_source_stop_time
 
         use pmodel_eq_class, only :
      $       pmodel_eq
@@ -565,6 +568,27 @@
                    end if
 
                 end if
+
+             end if
+
+             ! limited time heat source
+             if(wall_heat_source_stop_ac) then
+
+                retval = nf90_put_att(
+     $               ncid,
+     $               NF90_GLOBAL,
+     $               'wall_heat_source_stop',
+     $               'activated')
+                !DEC$ FORCEINLINE RECURSIVE
+                call nf90_handle_err(retval)
+
+                retval = nf90_put_att(
+     $               ncid,
+     $               NF90_GLOBAL,
+     $               'wall_heat_source_stop_time',
+     $               wall_heat_source_stop_time)
+                !DEC$ FORCEINLINE RECURSIVE
+                call nf90_handle_err(retval)
 
              end if
 

@@ -10,6 +10,9 @@ from library_messages import\
     print_mg_final
 
 import time
+import math
+
+import numpy as np
 
 
 def define_dim_variables(cv_r=3.05,we=83634):
@@ -44,7 +47,6 @@ def set_default_pseudocolor_param(PseudocolorAtts):
     the pseudocolor plot    
     """
     
-    PseudocolorAtts.scaling = PseudocolorAtts.Linear  # Linear, Log, Skew
     PseudocolorAtts.skewFactor = 1
     PseudocolorAtts.limitsMode = PseudocolorAtts.OriginalData  # OriginalData, CurrentPlot
     PseudocolorAtts.centering = PseudocolorAtts.Natural  # Natural, Nodal, Zonal
@@ -191,7 +193,8 @@ def plot_pseudocolor(filePath,
                      colorTableName='Hotandcold',
                      fieldMin='None',
                      fieldMax='None',
-                     legend=True):
+                     legend=True,
+                     scaleType='Linear'):
     """
     Plot a pseudocolor field
 
@@ -201,6 +204,7 @@ def plot_pseudocolor(filePath,
     fieldMin       (Float)   : min for the colorTable
     fieldMax       (Float)   : max for the colorTable
     legend         (Boolean) : display the legend
+    scaleType      (String)  : either Linear, Log or Skew
     """
 
     # open the file
@@ -216,6 +220,13 @@ def plot_pseudocolor(filePath,
     set_default_pseudocolor_param(PseudocolorAtts)
 
     # set the user-defined parameters for plotting the field
+    # Linear, Log, Skew
+    dictScaleType = {'Linear':PseudocolorAtts.Linear,
+                     'Log':PseudocolorAtts.Log,
+                     'Skew':PseudocolorAtts.Skew}
+
+    PseudocolorAtts.scaling = dictScaleType[scaleType]
+
     PseudocolorAtts.colorTableName = colorTableName
 
     if(fieldMin!='None'):
@@ -328,9 +339,14 @@ def launch_visit(window=False):
 
 
 def set_visit_save_options(outputDir='None',
-                           multipleWindows=True):
+                           multipleWindows=True,
+                           windowArray=[1,1]):
     """
     Set the save options for visit
+
+    outputDir       (String)            : directory path where pictures are saved
+    multipleWindows (Boolean)           : whether multiple windows are saved
+    windowArray     ([Integer,Integer]) : how windows are arranged
     """
 
     # import the save options
@@ -340,10 +356,7 @@ def set_visit_save_options(outputDir='None',
     SaveWindowAtts.fileName = "visit"
     SaveWindowAtts.family = 1
     SaveWindowAtts.format = SaveWindowAtts.PNG  # BMP, CURVE, JPEG, OBJ, PNG, POSTSCRIPT, POVRAY, PPM, RGB, STL, TIFF, ULTRA, VTK, PLY
-    SaveWindowAtts.width = 1024
-    SaveWindowAtts.height = 1024
     SaveWindowAtts.screenCapture = 0
-    
     SaveWindowAtts.quality = 80
     SaveWindowAtts.progressive = 0
     SaveWindowAtts.binary = 0
@@ -366,6 +379,13 @@ def set_visit_save_options(outputDir='None',
     else:
         SaveWindowAtts.saveTiled = 0
 
+    width  = windowArray[0]*1024
+    height = windowArray[1]*1024
+
+    SaveWindowAtts.width = width
+    SaveWindowAtts.height = height
+
+
     # set the save options
     visit.SetSaveWindowAttributes(SaveWindowAtts)
 
@@ -383,11 +403,13 @@ def display_DIM_soundwave_with_error(dirNc,
                                      timestep,
                                      soundMin,
                                      soundMax,
+                                     errorMin,
                                      errorMax,
                                      bubbleValue,
                                      maxBfLayers=10,
                                      borders='None',
-                                     legend=True):
+                                     legend=True,
+                                     windows=[1,2]):
     """
     Display two windows:
      - the first window displays the sound waves
@@ -397,7 +419,7 @@ def display_DIM_soundwave_with_error(dirNc,
      - the second window displays the local error compared
        to the large domain simulation
 
-    dirNc       (String)   : path to the folder with .nc files
+    dirNc       ([String]) : paths to the folders with .nc files
     timestep    (Integer)  : time step plotted
     soundMin    (Float)    : minimum for the sound wave field
     soundMax    (Float)    : maximum for the sound wave field
@@ -406,14 +428,11 @@ def display_DIM_soundwave_with_error(dirNc,
     borders     (Integerx4): [x_min,x_max,y_min,y_max] for the view
     legend      (Boolean)  : display graph legend
     """
-
-    # load the extra variables needed when displaying
-    # DIM simulations
-    define_dim_variables()
+    
 
     # first window
     #--------------------
-    visit.SetActiveWindow(1)
+    visit.SetActiveWindow(windows[0])
 
     nbActivePlots=[0,0]
     
@@ -484,13 +503,13 @@ def display_DIM_soundwave_with_error(dirNc,
 
     # Second window
     #--------------------
-    visit.SetActiveWindow(2)
+    visit.SetActiveWindow(windows[1])
 
     # plot the error field for the interior
     filePath = os.path.join(dirNc,'error','error'+str(timestep)+'.nc')
     fieldPseudoColor = 'error_mass'
     colorTableName = 'hot'
-    fieldMin = 0.0
+    fieldMin = errorMin
     fieldMax = errorMax
 
     plot_pseudocolor(filePath,
@@ -498,7 +517,8 @@ def display_DIM_soundwave_with_error(dirNc,
                      colorTableName=colorTableName,
                      fieldMin=fieldMin,
                      fieldMax=fieldMax,
-                     legend=True)
+                     legend=True,
+                     scaleType='Log')
 
     nbActivePlots[1]+=1
 
@@ -513,14 +533,21 @@ def display_DIM_soundwave_with_error(dirNc,
 def clean_DIM_soundwave_with_error(dirNc,
                                    timestep,
                                    nbActivePlots,
-                                   maxBfLayers=10):
+                                   maxBfLayers=10,
+                                   windows=[1,2]):
     """
     Clean the plots + close the database
+    
+    dirNc         (String)            : path to the directory where the data files are saved
+    timestep      (Integer)           : timestep integer
+    nbActivePlots ([Integer,Integer]) : number of active plots per window
+    maxBfLayers   (Integer)           : total number of buffer layer per cardinal point
+    windows       ([Integer,Integer]) : windows where the plots should be cleaned
     """
 
     # clean the first window
     #------------------------------
-    visit.SetActiveWindow(1)
+    visit.SetActiveWindow(windows[0])
     # clean the fields
     for i in range(0,nbActivePlots[0]+1):
         visit.DeleteActivePlots()
@@ -543,7 +570,7 @@ def clean_DIM_soundwave_with_error(dirNc,
 
     # clean the second window
     #------------------------------
-    visit.SetActiveWindow(2)
+    visit.SetActiveWindow(windows[1])
 
     #clean the field
     for i in range(0,nbActivePlots[1]+1):
@@ -556,71 +583,157 @@ def clean_DIM_soundwave_with_error(dirNc,
     return
 
 
+def get_soundwave_windows(i,nbDirs):
+    """
+    Return the window IDs for plotting the
+    error and the waves
+
+    i      : Integer           : directory ID
+    nbDirs : Integer           : total number of directories
+
+    windows: [Integer,Integer] : window ID for plotting the error and the waves
+    """
+
+    if(nbDirs==1):
+        windows = [1,2]
+    else:
+        windows = [i+1,nbDirs+i+1]
+
+    return windows
+
+
 def postprocess_DIM_soundwave_with_error(
-    dirNc,
-    nbTimesteps,
+    dirsNc,
+    timesteps,
     soundMin,
     soundMax,
+    errorMin,
     errorMax,
     bubbleValue,
-    borders):
+    borders,
+    dirOutputPictures='None',
+    check_dirOutputPictures_exist=True):
     """
-    dirNc       (String)  : directory where the Nc files are saved
-    nbTimesteps (Integer) : total number of timesteps
-    soundMin    (Float)   : 
+    dirsNc                        ([String,...])              : directories where the Nc files are saved
+    timesteps                     ([Integer,Integer,Integer]) : [t_min, t_max, t_step]
+    soundMin                      (Float)                     : minimum to see the sound waves
+    soundMax                      (Float)                     : maximum to see the sound waves
+    errorMin                      (Float)                     : minimum when plotting the error
+    errorMax                      (Float)                     : maximum when plotting the error
+    bubbleValue                   (Float)                     : value to plot the mass contour of the bubble
+    borders                       ([Float,Float,Float,Float]) : [x_min,x_max,y_min,y_max] to set the 2D-view
+    dirOutputPictures             (String)                    : path for the output pictures
+    check_dirOutputPictures_exist (Boolean)                   : check whether the output folder already exist
     """
+
+    nbDirs=len(dirsNc)
 
     # create output dir to save the pictures
-    dirOutputPictures = os.path.join(dirNc,'visit_wave')
+    if(dirOutputPictures=='None'):
+        if(nbDirs==1):
+            dirOutputPictures = os.path.join(dirsNc[0],'visit_wave')
+        else:
+            dirOutputPictures = 'visit_wave'
 
-    if(os.path.isdir(dirOutputPictures)):
-        shutil.rmtree(dirOutputPictures)
+    if(check_dirOutputPictures_exist):
+        if(os.path.isdir(dirOutputPictures)):
+            print 'dir for visit picture already exists'
+            print dirOutputPictures
+            os._exit(1)
+            #shutil.rmtree(dirOutputPictures)
 
-    os.mkdir(dirOutputPictures)
+        os.mkdir(dirOutputPictures)
 
+    else:
+        if(not os.path.isdir(dirOutputPictures)):
+            print 'dir for visit picture does not exist'
+            print dirOutputPictures
+            os._exit(1)
     
+    # determine how the windows should be organized
+    # we need 2*nb of dirs since: 2 windows per dir:
+    # one for error one for one for the density
+    
+    if(nbDirs>1):
+        if(nbDirs<5):
+            visit.SetWindowLayout(2*nbDirs)
+            windowArray = [nbDirs,2]
+            
+        else:
+            print 'the number of directories is too large'
+            print '1<= nbDirs < 5'
+            os._exit(1)
+    else:
+        windowArray = [2,1]
+    
+
     # set the saving options
-    set_visit_save_options(outputDir=dirOutputPictures)
+    set_visit_save_options(outputDir=dirOutputPictures,
+                           multipleWindows=True,
+                           windowArray=windowArray)
 
 
     # check that the folders and files exist
-    if(not os.path.isdir(os.path.join(dirNc,'sm_domain'))):
-        print dirNc+' : sm_domain does not exist'
-        os._exit(1)
+    for dirNc in dirsNc:
 
-    if(not os.path.isdir(os.path.join(dirNc,'error'))):
-        print dirNc+' : error does not exist'
-        os._exit(1)
+        if(not os.path.isdir(os.path.join(dirNc,'sm_domain'))):
+            print dirNc+' : sm_domain does not exist'
+            os._exit(1)
+            
+        if(not os.path.isdir(os.path.join(dirNc,'error'))):
+            print dirNc+' : error does not exist'
+            os._exit(1)
+                
+        if(not os.path.isfile(os.path.join(dirNc,'sm_domain','data'+str(timesteps[1])+'.nc'))):
+            print dirNc+' : data files do not exist'
+            os._exit(1)
+                    
+        if(not os.path.isfile(os.path.join(dirNc,'error','error'+str(timesteps[1])+'.nc'))):
+            print dirNc+' : error files do not exist'
+            os._exit(1)
 
-    if(not os.path.isfile(os.path.join(dirNc,'sm_domain','data'+str(nbTimesteps-1)+'.nc'))):
-        print dirNc+' : data files do not exist'
-        os._exit(1)
 
-    if(not os.path.isfile(os.path.join(dirNc,'error','error'+str(nbTimesteps-1)+'.nc'))):
-        print dirNc+' : error files do not exist'
-        os._exit(1)
+    # load the extra variables needed when displaying
+    # DIM simulations
+    define_dim_variables()
+
+    nbActivePlots = np.zeros([nbDirs,2],dtype=int)
+
+    # create the pictures    
+    for timestep in range(timesteps[0],timesteps[1]+1,timesteps[2]):
+
+        # create the plots for the timestep
+        for i in range(0,nbDirs):
+            
+            windows = get_soundwave_windows(i,nbDirs)
+
+            nbActivePlots[i,:] = display_DIM_soundwave_with_error(dirsNc[i],
+                                                                  timestep,
+                                                                  soundMin,
+                                                                  soundMax,
+                                                                  errorMin,
+                                                                  errorMax,
+                                                                  bubbleValue,
+                                                                  borders=borders,
+                                                                  legend=False,
+                                                                  windows=windows)
 
 
-    # create the pictures
-    
-    for timestep in range(0,nbTimesteps,1):
-
-        nbActivePlots = display_DIM_soundwave_with_error(dirNc,
-                                                         timestep,
-                                                         soundMin,
-                                                         soundMax,
-                                                         errorMax,
-                                                         bubbleValue,
-                                                         borders=borders,
-                                                         legend=False)
-
+        # save all the plots as one bui picture
         save_visit_windows()
 
-        print_mg_progress('files processed: '+str(timestep)+'/'+str(nbTimesteps))
+        # display progress
+        print_mg_progress('files processed: '+str(timestep)+'/'+str(timesteps[1]))
 
-        clean_DIM_soundwave_with_error(dirNc,
-                                       timestep,
-                                       nbActivePlots)
+        # clean the plots
+        for i in range(0,nbDirs):
+
+            windows = get_soundwave_windows(i,nbDirs)
+
+            clean_DIM_soundwave_with_error(dirsNc[i],
+                                           timestep,
+                                           nbActivePlots[i,:],
+                                           windows=windows)
 
 
 if __name__=='__main__':
@@ -631,48 +744,40 @@ if __name__=='__main__':
     # set two windows
     visit.AddWindow()
 
-    # settings
-    #dirNc = os.path.join('/home','jdesmarais',
-    #                     'projects','jcp2015_submission',
-    #                     '20150509_dim2d_bb_trans_cv_r3.5_lin',
-    #                     'dim2d_0.999_0.1_dct2')
-    #
-    #nbTimesteps = 1044
-    #
-    #soundMin =-1.0e-4
-    #soundMax = 1.0e-4
-    #errorMax = 1.0e-5
-    #bubbleValue = 1.004
-    #borders = [-1.5,1.5,-1.5,4.0]
+    # set the options
+    dirsNc = []
 
-    
-    for dct in [8,12,16]:
+    for md in [0.05,0.1,0.2,0.3]:
 
-        # set the options
+        
         dirNc = os.path.join('/home','jdesmarais',
                              'projects','jcp2015_submission',
                              '20150509_dim2d_bb_trans_cv_r3.5_lin',
-                             'dim2d_0.95_0.1_dct'+str(dct))
-        
-        nbTimesteps = 1036
-        
-        soundMin =-5.0e-2
-        soundMax = 5.0e-2
-        errorMax = 5.0e-2
-        bubbleValue = 1.022
-        borders = [-0.25,0.25,-0.25,0.65]
+                             'dim2d_0.99_0.05_md'+str(md))
+        dirsNc.append(dirNc)
 
+        
+    timesteps = [600,1017,1]
+        
+    soundMin =-0.003
+    soundMax = 0.003
+    errorMin = 1.0e-5
+    errorMax = 5.0e-2
+    bubbleValue = 1.012
+    borders = [-0.5,0.5,-0.5,1.2]
 
-        # postprocess
-        postprocess_DIM_soundwave_with_error(
-            dirNc,
-            nbTimesteps,
-            soundMin,
-            soundMax,
-            errorMax,
-            bubbleValue,
-            borders)
-    
+    # postprocess
+    postprocess_DIM_soundwave_with_error(
+        dirsNc,
+        timesteps,
+        soundMin,
+        soundMax,
+        errorMin,
+        errorMax,
+        bubbleValue,
+        borders,
+        dirOutputPictures='test',
+        check_dirOutputPictures_exist=False)
 
     print_mg_final('all files processed')
         

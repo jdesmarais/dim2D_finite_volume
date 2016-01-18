@@ -361,7 +361,7 @@ wall_maximum_extra_heat_flux = 0.0
 !--------------------------------------------------------------------------------
 !6.1	Choice of the initial conditions
 !--------------------------------------------------------------------------------
-ic_choice = 8
+ic_choice = 9
 
 !--------------------------------------------------------------------------------
 !6.2	Parameters for the initial conditions
@@ -384,6 +384,11 @@ ic_perturbation_ac = 0
 ic_perturbation_amp = 0.0
 li_perturbation_ac = 0
 li_perturbation_amp = 0.0
+
+!------------------------------------------------------------
+!6.5    Additional parameters for two bubbles transported
+!------------------------------------------------------------
+li_separation = 0.0
 
 
 !7.     DIM equations

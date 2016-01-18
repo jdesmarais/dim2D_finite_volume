@@ -380,7 +380,7 @@ li_perturbation_ac = 0
 li_perturbation_amp = 0.0
 
 !------------------------------------------------------------
-!6.4    Additional parameters for two bubbles transported
+!6.5    Additional parameters for two bubbles transported
 !------------------------------------------------------------
 li_separation = 3.0
 

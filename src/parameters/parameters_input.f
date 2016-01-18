@@ -53,17 +53,17 @@
 
         ! computational field dimensions
         !--------------------------------------------------
-        real(rkind), parameter :: x_min = -0.6426000000d0 !<@brief minimum x-coordinate for the x-map
-        real(rkind), parameter :: x_max = 0.6426000000d0  !<@brief maximum x-coordinate for the x-map
-        real(rkind), parameter :: y_min = -1.0206000000d0  !<@brief minimum y-coordinate for the y-map
-        real(rkind), parameter :: y_max = 1.0206000000d0  !<@brief maximum y-coordinate for the y-map
+        real(rkind), parameter :: x_min = 0.0000000000d0 !<@brief minimum x-coordinate for the x-map
+        real(rkind), parameter :: x_max = 0.1428000000d0  !<@brief maximum x-coordinate for the x-map
+        real(rkind), parameter :: y_min = 0.0000000000d0  !<@brief minimum y-coordinate for the y-map
+        real(rkind), parameter :: y_max = 0.1428000000d0  !<@brief maximum y-coordinate for the y-map
         
         ! computational times
-        real(rkind), parameter :: t_max = 25.2065000000d0 !<@brief maximum simulation time
-        real(rkind), parameter :: dt = 0.0004000000d0     !<@brief time step
+        real(rkind), parameter :: t_max = 100.0000000000d0 !<@brief maximum simulation time
+        real(rkind), parameter :: dt = 0.0000420000d0     !<@brief time step
         
         ! output writing
-        real(rkind), parameter :: detail_print = 0.0159000000d0   !<@brief percentage of time steps written in output: 0.0d0=no file writen, 0.5=write output every two time steps, 1.0=write all the time steps
+        real(rkind), parameter :: detail_print = 0.0003000000d0   !<@brief percentage of time steps written in output: 0.0d0=no file writen, 0.5=write output every two time steps, 1.0=write all the time steps
         logical    , parameter :: write_domain_extension = .true. !<@brief write the buffer layers (domain extension)
 
         ! mpi choice
@@ -72,8 +72,8 @@
 
         ! size of the main tables
         ! careful, choose ne according to the physical model
-        integer(ikind), parameter :: ntx = 107 !<@brief total number of grid-points along the x-direction for the computational domain
-        integer(ikind), parameter :: nty = 167 !<@brief total number of grid-points along the y-direction for the computational domain
+        integer(ikind), parameter :: ntx = 89 !<@brief total number of grid-points along the x-direction for the computational domain
+        integer(ikind), parameter :: nty = 89 !<@brief total number of grid-points along the y-direction for the computational domain
 
         integer(ikind), parameter :: nx = ntx/npx !<@brief number of grid-points along the x-direction for one tile
         integer(ikind), parameter :: ny = nty/npy !<@brief number of grid-points along the y-direction for one tile
@@ -124,7 +124,7 @@
         !> - y_direction  : from bottom to up
         !> - xy_direction : from SW to NE corner
         !--------------------------------------------------
-        integer    , parameter :: flow_direction = y_direction
+        integer    , parameter :: flow_direction = x_direction
 
         !> @brief
         !> direction of the main flow along the x-direction
@@ -143,7 +143,7 @@
         !> @brief
         !> velocity of the mean flow
         !--------------------------------------------------
-        real(rkind), parameter :: flow_velocity = 0.1000000000d0
+        real(rkind), parameter :: flow_velocity = 0.0000000000d0
 
         !> @brief profile of the flow
         !> - linear_profile: linear velocity profile
@@ -154,7 +154,7 @@
         !>@brief
         !> temperature of the mean flow
         !--------------------------------------------------
-        real(rkind), parameter :: T0 = 0.9990000000d0
+        real(rkind), parameter :: T0 = 0.9500000000d0
 
         !>@brief initial conditions
         !> - for wave2d equations
@@ -173,7 +173,7 @@
         !>      - homogeneous_liquid : constant liquid density
         !>      - phase_separation   : unstable mass density
         !--------------------------------------------------
-        integer    , parameter :: ic_choice = bubbles_transported
+        integer    , parameter :: ic_choice = bubble_nucleation
 
         !>@brief
         !> phase present in the center of the bubble/droplet
@@ -305,7 +305,7 @@
         !> as a fraction of the width of the interface at the
         !> initial temperature
         !--------------------------------------------------
-        integer    , parameter :: li_separation = 4.0000000000d0
+        integer    , parameter :: li_separation = 0.0000000000d0
 
 
         !============================================================
@@ -348,7 +348,7 @@
         !> boundary conditions are specified for each boundary
         !> layer (N,S,E,W,SE,SW,NE,NW)
         !--------------------------------------------------
-        integer, parameter :: bc_choice = hedstrom_xy_choice
+        integer, parameter :: bc_choice = half_wall_S_open_choice
 
         !> @brief boundary condition configuration for
         !> the North layer
@@ -358,7 +358,7 @@
         !> @brief boundary condition configuration for
         !> the South layer
         !--------------------------------------------------
-        integer, parameter :: bc_S_choice = hedstrom_choice
+        integer, parameter :: bc_S_choice = wall_choice
 
         !> @brief boundary condition configuration for
         !> the East layer
@@ -368,12 +368,12 @@
         !> @brief boundary condition configuration for
         !> the West layer
         !--------------------------------------------------
-        integer, parameter :: bc_W_choice = hedstrom_choice
+        integer, parameter :: bc_W_choice = reflection_x_choice
 
         !> @brief boundary condition configuration for
         !> the North-West corner
         !--------------------------------------------------
-        integer, parameter :: bc_NW_choice = hedstrom_choice
+        integer, parameter :: bc_NW_choice = reflection_x_choice
 
         !> @brief boundary condition configuration for
         !> the North-East corner
@@ -383,12 +383,12 @@
         !> @brief boundary condition configuration for
         !> the South-East corner
         !--------------------------------------------------
-        integer, parameter :: bc_SE_choice = hedstrom_choice
+        integer, parameter :: bc_SE_choice = wall_choice
 
         !> @brief boundary condition configuration for
         !> the South-West corner
         !--------------------------------------------------
-        integer, parameter :: bc_SW_choice = hedstrom_choice
+        integer, parameter :: bc_SW_choice = reflection_x_choice
 
 
         !============================================================
@@ -408,7 +408,7 @@
         !> conditions are applied (to avoid conflicts):
         !> first boundary layer computed
         !--------------------------------------------------
-        integer, parameter :: bc_order1 = SW_corner_type
+        integer, parameter :: bc_order1 = W_edge_type
 
         !> @brief specify the order in which the boundary
         !> conditions are applied (to avoid conflicts):
@@ -426,7 +426,7 @@
         !> conditions are applied (to avoid conflicts):
         !> fourth boundary layer computed
         !--------------------------------------------------
-        integer, parameter :: bc_order4 = W_edge_type
+        integer, parameter :: bc_order4 = SW_corner_type
 
         !> @brief specify the order in which the boundary
         !> conditions are applied (to avoid conflicts):
@@ -438,19 +438,19 @@
         !> conditions are applied (to avoid conflicts):
         !> sixth boundary layer computed
         !--------------------------------------------------
-        integer, parameter :: bc_order6 = NW_corner_type
+        integer, parameter :: bc_order6 = N_edge_type
 
         !> @brief specify the order in which the boundary
         !> conditions are applied (to avoid conflicts):
         !> seventh boundary layer computed
         !--------------------------------------------------
-        integer, parameter :: bc_order7 = N_edge_type
+        integer, parameter :: bc_order7 = NE_corner_type
 
         !> @brief specify the order in which the boundary
         !> conditions are applied (to avoid conflicts):
         !> eighth boundary layer computed
         !--------------------------------------------------
-        integer, parameter :: bc_order8 = NE_corner_type
+        integer, parameter :: bc_order8 = NW_corner_type
 
 
         !============================================================
@@ -481,7 +481,7 @@
         !> the South boundary (bc_nodes_choice, bc_fluxes_choice,
         !> bc_timedev_choice, bc_flux_and_node_choice)
         !--------------------------------------------------
-        integer, parameter :: bc_S_type_choice = bc_timedev_choice
+        integer, parameter :: bc_S_type_choice = bc_flux_and_node_choice
 
         !> @brief type of boundary condition applied at
         !> the East boundary (bc_nodes_choice, bc_fluxes_choice,
@@ -493,13 +493,13 @@
         !> the West boundary (bc_nodes_choice, bc_fluxes_choice,
         !> bc_timedev_choice, bc_flux_and_node_choice)
         !--------------------------------------------------
-        integer, parameter :: bc_W_type_choice = bc_timedev_choice
+        integer, parameter :: bc_W_type_choice = bc_nodes_choice
         
         !> @brief type of boundary condition applied at
         !> the North-West boundary (bc_nodes_choice, bc_fluxes_choice,
         !> bc_timedev_choice, bc_flux_and_node_choice)
         !--------------------------------------------------
-        integer, parameter :: bc_NW_type_choice = bc_timedev_choice
+        integer, parameter :: bc_NW_type_choice = bc_nodes_choice
 
         !> @brief type of boundary condition applied at
         !> the North-East boundary (bc_nodes_choice, bc_fluxes_choice,
@@ -511,13 +511,13 @@
         !> the South-West boundary (bc_nodes_choice, bc_fluxes_choice,
         !> bc_timedev_choice, bc_flux_and_node_choice)
         !--------------------------------------------------
-        integer, parameter :: bc_SW_type_choice = bc_timedev_choice
+        integer, parameter :: bc_SW_type_choice = bc_nodes_choice
 
         !> @brief type of boundary condition applied at
         !> the South-East boundary (bc_nodes_choice, bc_fluxes_choice,
         !> bc_timedev_choice, bc_flux_and_node_choice)
         !--------------------------------------------------
-        integer, parameter :: bc_SE_type_choice = bc_timedev_choice
+        integer, parameter :: bc_SE_type_choice = bc_flux_and_node_choice
 
 
         !============================================================
@@ -535,11 +535,11 @@
         !> - uniform_surface : the contact angle is the same everywhere
         !> - surface_with_heaters : the contact angle varies at the location of the heaters
         !-----------------------------------------------------
-        integer    , parameter :: wall_surface_type = 0.0
+        integer    , parameter :: wall_surface_type = uniform_surface
         
         !> @brief wall micro contact angle (in degrees)
         !-----------------------------------------------------
-        real(rkind), parameter :: wall_micro_contact_angle = 5.0000000000d0
+        real(rkind), parameter :: wall_micro_contact_angle = 90.0000000000d0
 
         !> @brief location of the center of the heater, \f$ x_c \f$
         !--------------------------------------------------
@@ -549,16 +549,16 @@
         !> Therefore, the heater corresponds to:
         !> \f[ x \in [ x_c-l_h, x_c+l_h] \f]
         !--------------------------------------------------
-        real(rkind), parameter :: wall_heater_length = 2.0000000000d0
+        real(rkind), parameter :: wall_heater_length = 0.0712945354d0
 
         !> @brief characteristic length over which the contact
         !> length is varying at the wall
         !--------------------------------------------------
-        real(rkind), parameter :: wall_heater_variation_angle_length = 0.5000000000d0
+        real(rkind), parameter :: wall_heater_variation_angle_length = 0.1000000000d0
  
         !> @brief contact angle imposed on the heater (in degrees)
         !--------------------------------------------------
-        real(rkind), parameter :: wall_heater_micro_contact_angle = 45.0000000000d0
+        real(rkind), parameter :: wall_heater_micro_contact_angle = 90.0000000000d0
 
 
         !============================================================
@@ -572,6 +572,8 @@
         ! wall_maximum_extra_heat_flux
         ! wall_extra_heat_source_center
         ! wall_extra_heat_source_variance
+        ! wall_heat_source_stop_ac
+        ! wall_heat_source_stop_time
         !============================================================
 
         !>@brief choice of heat source at the wall to impose
@@ -580,12 +582,12 @@
         !> - constant_heat_source : the heat sourcve is constant, \f$ Q_w= Q_{w,m} \f$
         !> - gaussian_heat_source : Gaussian profile for the heat source, \f$ Q_w(x) = \frac{Q_{w,m}}{\sigma_w \sqrt{2 \pi}} \exp\left( \frac{-(x-x_{w,c})^2}{2 \sigma_w^2} \right) \f$
         !--------------------------------------------------
-        integer    , parameter :: wall_heat_source_choice = no_heat_source
+        integer    , parameter :: wall_heat_source_choice = gaussian_heat_source
         
         !>@brief maximum heat flux at the wall,
         !> \f$ Q_{w,m} \f$
         !--------------------------------------------------
-        real(rkind), parameter :: wall_maximum_heat_flux = 0.0000000000d0        
+        real(rkind), parameter :: wall_maximum_heat_flux = 0.0200000000d0        
 
         !>@brief center if gaussian heat source,
         !> \f$ x_{c,w}\f$
@@ -613,6 +615,14 @@
         !-----------------------------------------------------
         real(rkind), parameter :: wall_extra_heat_source_variance = 0.5d0*wall_heater_length
         
+        !> @brief stop the heat source after a given time: activation
+        !-------------------------------------------------------------
+        logical, parameter :: wall_heat_source_stop_ac = .true.
+        
+        !> @brief stop the heat source after a given time: time
+        !-------------------------------------------------------------
+        real(rkind), parameter :: wall_heat_source_stop_time = 15.0d0
+
 
         !============================================================
         ! 3.5) additional parameters for the open boundary conditions
@@ -666,7 +676,7 @@
         !> @brief control the distance between the detectors
         !> and the edge of the computational domain
         !--------------------------------------------------
-        integer    , parameter :: obc_dct_distance = 4
+        integer    , parameter :: obc_dct_distance = 5
 
         !>@brief activate or not the perturbation of the temperature
         !> imposed in the far field compared to the initial conditions
@@ -790,7 +800,7 @@
         !> - fixed_domain_choice: no boundary adaptation
         !> - adapt_domain_choice: adapt the boundary to the needs
         !--------------------------------------------------
-        integer, parameter :: adapt_S_choice = adapt_domain_choice
+        integer, parameter :: adapt_S_choice = fixed_domain_choice
 
         !> @brief choose whether the East boundary can be
         !> extended
@@ -804,7 +814,7 @@
         !> - fixed_domain_choice: no boundary adaptation
         !> - adapt_domain_choice: adapt the boundary to the needs
         !--------------------------------------------------
-        integer, parameter :: adapt_W_choice = adapt_domain_choice
+        integer, parameter :: adapt_W_choice = fixed_domain_choice
 
 
         !============================================================
@@ -858,7 +868,7 @@
         !> are adapted once the simulation starts
         !> should be set to .true. by default
         !--------------------------------------------------
-        logical    , parameter :: debug_adapt_computational_domain = .true.
+        logical    , parameter :: debug_adapt_computational_domain = .false.
         
         !> @brief control whether the new grid points are computed when
         !> increasing the computational domain (only use for tests,

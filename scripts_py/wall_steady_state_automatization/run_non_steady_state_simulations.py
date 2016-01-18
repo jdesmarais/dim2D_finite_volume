@@ -299,13 +299,13 @@ if __name__=="__main__":
 
     # choice of the results generated
     #------------------------------------------------------------
-    uniformNucleation_sourceHeatStudy     = False
+    uniformNucleation_sourceHeatStudy     = True
     uniformNucleation_contactAngleStudy   = False
     uniformNucleation_flowVelocityStudy   = False
 
     heaterNucleation_sourceHeatStudy   = False
     heaterNucleation_contactAngleStudy = False
-    heaterNucleation_flowVelocityStudy = True
+    heaterNucleation_flowVelocityStudy = False
 
     uniformSphericalC_flowVelocityStudy = False
     heaterSphericalC_flowVelocityStudy  = False
@@ -367,7 +367,7 @@ if __name__=="__main__":
         wall_heater_center       = 0.0
         wall_heater_length       = 4*Li
         wall_heat_source_choice  = 'gaussian_heat_source'
-        wall_max_heat_flux_array = [0.04,0.06,0.08,0.1] #[-0.02,-0.04,-0.06,-0.08,-0.1]
+        wall_max_heat_flux_array = [0.02] #[0.02,0.04,0.06,0.08,0.1]
         total_nb_files           = 500
 
         spherical_cap      = False
@@ -382,7 +382,7 @@ if __name__=="__main__":
 
             for max_heat_flux in wall_max_heat_flux_array:
             
-                PBSnameRun = 'dim2d_'+str(temperature)+'_sh'+str(max_heat_flux)
+                PBSnameRun = 'dim2d_'+str(temperature)+'_fh'+str(max_heat_flux)
 
                 generate_wall_nonst_results_uniform_surface(
                     mainDir,
@@ -422,7 +422,7 @@ if __name__=="__main__":
 
             for max_heat_flux in wall_max_heat_flux_array:
             
-                PBSnameRun = 'dim2d_'+str(temperature)+'_sh'+str(max_heat_flux)
+                PBSnameRun = 'dim2d_'+str(temperature)+'_fh'+str(max_heat_flux)
 
                 generate_wall_nonst_results_surface_with_heaters(
                     mainDir,                           
@@ -491,7 +491,7 @@ if __name__=="__main__":
 
             for contact_angle in wall_micro_contact_angle:
             
-                PBSnameRun = 'dim2d_'+str(temperature)+'_sh'+str(wall_maximum_heat_flux)+'_ca'+str(contact_angle)
+                PBSnameRun = 'dim2d_'+str(temperature)+'_fh'+str(wall_maximum_heat_flux)+'_ca'+str(contact_angle)
 
                 generate_wall_nonst_results_uniform_surface(
                     mainDir,
@@ -616,7 +616,7 @@ if __name__=="__main__":
             
                         PBSnameRun =\
                             'dim2d_'+str(temperature)+\
-                            '_sh'+str(max_heat_flux)+\
+                            '_fh'+str(max_heat_flux)+\
                             '_ca'+str(contact_angle)+\
                             '_v'+str(flow_velocity)                        
 
@@ -665,7 +665,7 @@ if __name__=="__main__":
             
                         PBSnameRun =\
                             'dim2d_'+str(temperature)+\
-                            '_sh'+str(max_heat_flux)+\
+                            '_fh'+str(max_heat_flux)+\
                             '_ca'+str(wall_micro_contact_angle)+\
                             '_v'+str(flow_velocity)+\
                             '_hca'+str(contact_angle)
@@ -779,7 +779,7 @@ if __name__=="__main__":
                             '_ca'+str(contact_angle)
 
                         if(max_heat_flux!=0.0):
-                            PBSnameRun += '_sh'+str(max_heat_flux)
+                            PBSnameRun += '_fh'+str(max_heat_flux)
                             
                         if(flow_velocity!=0.0):
                             PBSnameRun += '_v'+str(flow_velocity)
@@ -835,7 +835,7 @@ if __name__=="__main__":
                             '_hca'+str(wall_micro_contact_angle)
 
                         if(max_heat_flux!=0.0):
-                            PBSnameRun += '_sh'+str(max_heat_flux)
+                            PBSnameRun += '_fh'+str(max_heat_flux)
                             
                         if(flow_velocity!=0.0):
                             PBSnameRun += '_v'+str(flow_velocity)

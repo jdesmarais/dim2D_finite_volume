@@ -78,6 +78,9 @@
      $       wall_extra_heat_source_center,
      $       wall_extra_heat_source_variance,
      $       
+     $       wall_heat_source_stop_ac,
+     $       wall_heat_source_stop_time,
+     $       
      $       debug_real
 
         use parameters_kind, only :
@@ -1659,28 +1662,45 @@
           real(rkind)             :: heat_flux
 
           real(rkind) :: s
+          logical     :: limited_flux
 
-          select case(heat_source_choice)
 
-            case(no_heat_source)
-               heat_flux = 0.0d0
-               
-            case(constant_heat_source)
-               heat_flux = maximum_heat_flux
+          limited_flux = wall_heat_source_stop_ac.and.(t.gt.wall_heat_source_stop_time)
 
-            case(gaussian_heat_source)
-               heat_flux = maximum_heat_flux*
-     $              Exp(-0.5d0*((x-heat_source_center)/
-     $                          heat_source_variance)**2)
 
-            case default
-               print '(''wall_xy_equilibrium_module'')'
-               print '(''get_heat_flux'')'
-               print '(''heat_source_choice not recognized'')'
-               print '(''heat_source_choice: '',I1)', wall_heat_source_choice
-               stop ''
+          ! the heat flux is equal to zero if:
+          ! the heat source is limited in time
+          ! and the current time is beyond the threshold time
+          if(limited_flux) then
+          
+             heat_flux = 0.0d0
 
-          end select               
+          ! otherwise the heat flux is computed normally
+          else
+
+             select case(heat_source_choice)
+
+               case(no_heat_source)
+                  heat_flux = 0.0d0
+                  
+               case(constant_heat_source)
+                  heat_flux = maximum_heat_flux
+
+               case(gaussian_heat_source)
+                  heat_flux = maximum_heat_flux*
+     $                 Exp(-0.5d0*((x-heat_source_center)/
+     $                 heat_source_variance)**2)
+
+               case default
+                  print '(''wall_xy_equilibrium_module'')'
+                  print '(''get_heat_flux'')'
+                  print '(''heat_source_choice not recognized'')'
+                  print '(''heat_source_choice: '',I1)', wall_heat_source_choice
+                  stop ''
+
+             end select  
+
+          end if
 
           s = (t+x+y)
 
